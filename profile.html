@@ -194,8 +194,8 @@
       </div>
 
 	  <div id="dev-reset" style="text-align:center; margin-top:50px; color:#ccc; font-size:10px; cursor:pointer;">
-  v1.0 (Reset Data)
-</div>
+        v1.0 (Reset Data)
+      </div>
     </div>
 
     <button class="lout" onclick="window.logout()">🚪 Sign Out</button>
@@ -372,13 +372,20 @@ async function loadSavedListings() {
   }
 }
 
+// ─── NOTIFICATION PREFS INTEGRATION ───
 function loadPrefs(data) {
-  const d    = data || {};
-  const p    = d.prefs || {};
-  const maxDay    = p.maxDay    ?? LS('pref_maxDay')    ?? 999;
-  const maxHour   = p.maxHour   ?? LS('pref_maxHour')   ?? 999;
-  const paused    = p.paused    ?? LS('pref_paused')    ?? false;
-  const interests = p.interests ?? LS('pref_interests') ?? ['deal','rental','pg','job'];
+  const d = data || {};
+  
+  const maxDay    = d.pref_maxDay ?? parseInt(localStorage.getItem('pref_maxDay')) || 3;
+  const maxHour   = d.pref_maxHour ?? parseInt(localStorage.getItem('pref_maxHour')) || 1;
+  const paused    = d.pref_paused ?? (localStorage.getItem('pref_paused') === 'true');
+  
+  let interests;
+  try {
+    interests = d.pref_interests ?? JSON.parse(localStorage.getItem('pref_interests') || '["deal","rental","pg","job"]');
+  } catch(e) {
+    interests = ['deal','rental','pg','job'];
+  }
 
   const tog = document.getElementById('tog-pause');
   paused ? tog.classList.add('on') : tog.classList.remove('on');
@@ -389,10 +396,12 @@ function loadPrefs(data) {
     const v = parseInt(b.textContent) || 999;
     b.classList.toggle('on', v === maxDay || (b.textContent === 'No limit' && maxDay === 999));
   });
+  
   document.querySelectorAll('[onclick^="window.setMaxHour"]').forEach(b => {
     const v = parseInt(b.textContent) || 999;
     b.classList.toggle('on', v === maxHour || (b.textContent === 'No limit' && maxHour === 999));
   });
+  
   document.querySelectorAll('[data-cat]').forEach(b => {
     b.classList.toggle('on', interests.includes(b.dataset.cat));
   });
@@ -401,14 +410,14 @@ function loadPrefs(data) {
 window.togglePause = tog => {
   tog.classList.toggle('on');
   const v = tog.classList.contains('on');
-  SS('pref_paused', v);
-  syncField(uid, 'prefs.paused', v);
+  localStorage.setItem('pref_paused', v.toString());
+  syncField(uid, 'pref_paused', v);
   toast(v ? '⏸️' : '▶️', v ? 'Notifications paused' : 'Notifications resumed');
 };
 
 window.setMaxDay = (n, btn) => {
-  SS('pref_maxDay', n);
-  syncField(uid, 'prefs.maxDay', n);
+  localStorage.setItem('pref_maxDay', n.toString());
+  syncField(uid, 'pref_maxDay', n);
   document.getElementById('lbl-day').textContent = n === 999 ? 'No limit' : n;
   document.querySelectorAll('[onclick^="window.setMaxDay"]').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
@@ -416,8 +425,8 @@ window.setMaxDay = (n, btn) => {
 };
 
 window.setMaxHour = (n, btn) => {
-  SS('pref_maxHour', n);
-  syncField(uid, 'prefs.maxHour', n);
+  localStorage.setItem('pref_maxHour', n.toString());
+  syncField(uid, 'pref_maxHour', n);
   document.getElementById('lbl-hour').textContent = n === 999 ? 'No limit' : n;
   document.querySelectorAll('[onclick^="window.setMaxHour"]').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
@@ -425,11 +434,24 @@ window.setMaxHour = (n, btn) => {
 };
 
 window.toggleInterest = (cat, btn) => {
-  const interests = new Set(LS('pref_interests') || ['deal','rental','pg','job']);
+  let interestsArray;
+  try {
+    interestsArray = JSON.parse(localStorage.getItem('pref_interests') || '["deal","rental","pg","job"]');
+  } catch(e) {
+    interestsArray = ['deal','rental','pg','job'];
+  }
+  
+  const interests = new Set(interestsArray);
   interests.has(cat) ? interests.delete(cat) : interests.add(cat);
-  if (!interests.size) { interests.add(cat); toast('⚠️', 'Need at least one interest'); return; }
-  SS('pref_interests', [...interests]);
-  syncField(uid, 'prefs.interests', [...interests]);
+  
+  if (!interests.size) { 
+    interests.add(cat); 
+    toast('⚠️', 'Need at least one interest'); 
+    return; 
+  }
+  
+  localStorage.setItem('pref_interests', JSON.stringify([...interests]));
+  syncField(uid, 'pref_interests', [...interests]);
   btn.classList.toggle('on', interests.has(cat));
   toast('🎯', 'Interests saved');
 };
@@ -699,8 +721,6 @@ document.getElementById('dev-reset').addEventListener('click', () => {
     window.location.reload(true);
   }
 });
-
-
 </script>
 </body>
 </html>
