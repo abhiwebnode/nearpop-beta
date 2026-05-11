@@ -155,9 +155,8 @@
 </div>
 
 <script type="module">
-// 🚀 ALL imports natively restored
+// 🚀 Removed broken import from notifications.js
 import { db, LS, SS, TC, TE, distM, fmtDist, isExpired, toast, addPts } from './js/app.js';
-import { trackEng } from './js/notifications.js';
 import { syncField } from './js/userSync.js';
 import { getDocs, query, collection, orderBy, doc, getDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
@@ -165,6 +164,15 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
 if (!LS('uid')) { 
   sessionStorage.setItem('np_intent', window.location.href); 
   window.location.href = 'index.html'; 
+}
+
+// 🚀 Local fallback for Engagement Analytics
+function trackEng(id, delta) {
+  try {
+    if (LS('uid')) {
+      updateDoc(doc(db, 'users', LS('uid')), { ['eng_' + id]: increment(delta) }).catch(()=>{});
+    }
+  } catch(e) {}
 }
 
 const CTAS = { deal: '🛍️ Claim Offer', rental: '📞 Contact Owner', pg: '📞 Contact PG', job: '📝 Apply Now' };
