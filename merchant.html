@@ -54,6 +54,7 @@
 .badge{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:800;margin-left:4px;vertical-align:middle}
 .badge.live{background:rgba(16, 185, 129, 0.1);color:var(--grn)}
 .badge.pause{background:var(--light);color:var(--gray)}
+.badge.smart{background:rgba(59, 130, 246, 0.1);color:var(--blue);border:1px solid rgba(59, 130, 246, 0.2);}
 
 .mcd-s{text-align:right}
 .mcd-p{font-size:16px;font-weight:900;color:var(--or)}
@@ -109,10 +110,6 @@
 .la-sv{font-size:13px;font-weight:900}
 .la-sl{font-size:9px;color:var(--gray);font-weight:600}
 
-.tab-btns{display:flex;background:var(--light);border-radius:8px;padding:3px;margin-bottom:16px}
-.tab-btn{flex:1;text-align:center;padding:6px;font-size:11px;font-weight:800;color:var(--gray);border-radius:6px;cursor:pointer;transition:all .2s}
-.tab-btn.on{background:var(--card);color:var(--deep);box-shadow:0 2px 6px rgba(0,0,0,.05)}
-
 .qr-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--bdr); }
 .qr-stat-row:last-child { border-bottom: none; }
 .qr-stat-icon { font-size: 16px; margin-right: 8px; }
@@ -128,9 +125,6 @@
   border-radius: 8px;
 }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-.spin { width: 34px; height: 34px; border: 4px solid rgba(255,87,34,0.1); border-top-color: #FF5722; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .fab-create {
   position: fixed;
@@ -160,12 +154,7 @@
   box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
 }
 
-.fab-icon {
-  font-size: 26px;
-  font-weight: 300;
-  line-height: 1;
-  margin-top: -2px; 
-}
+.fab-icon { font-size: 26px; font-weight: 300; line-height: 1; margin-top: -2px; }
 
 .tour-backdrop { position: fixed; inset: 0; z-index: 9997; pointer-events: auto; }
 .tour-overlay { position: fixed; z-index: 9998; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.75); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -194,10 +183,10 @@
 
   <div class="mwbox" id="tour-wallet">
     <div>
-      <div class="mw-lbl">Free Promo Credits</div>
+      <div class="mw-lbl">Promo Credits</div>
       <div class="mw-val" id="mwal">--- 🪙</div>
     </div>
-    <button class="mw-btn" onclick="document.getElementById('mod-credits').classList.add('on')">🎁 Earn Credits</button>
+    <button class="mw-btn" onclick="document.getElementById('mod-credits').classList.add('on')">🎁 Earn Free</button>
   </div>
 
   <div class="tabs">
@@ -294,26 +283,7 @@
     </div>
 
     <div id="mcards">
-      <div class="mcd" style="border:none; box-shadow:none;">
-        <div style="display:flex; gap:12px;">
-          <div class="skeleton" style="width:42px; height:42px; border-radius:12px; flex-shrink:0;"></div>
-          <div style="flex:1;">
-            <div class="skeleton" style="width:70%; height:16px; margin-bottom:8px;"></div>
-            <div class="skeleton" style="width:50%; height:12px; margin-bottom:8px;"></div>
-            <div class="skeleton" style="width:100%; height:3px; border-radius:3px;"></div>
-          </div>
-          <div style="width:40px;">
-            <div class="skeleton" style="width:100%; height:16px; margin-bottom:4px;"></div>
-            <div class="skeleton" style="width:80%; height:10px; margin-left:auto;"></div>
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--bdr);">
-          <div class="skeleton" style="height:28px; border-radius:8px;"></div>
-          <div class="skeleton" style="height:28px; border-radius:8px;"></div>
-          <div class="skeleton" style="height:28px; border-radius:8px;"></div>
-        </div>
       </div>
-    </div>
   </div>
 </div>
 
@@ -325,16 +295,13 @@
   <div class="msht" style="padding-bottom: 30px;">
     <div class="mh"></div>
     <div style="text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 16px; color: var(--deep);">Export Standee</div>
-    
     <button class="btn-or" onclick="window.exportStandee('print')" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
       <span style="font-size: 20px;">🖨️</span> Show on Screen
     </button>
-    
     <button class="btn-lt" onclick="window.exportStandee('pdf-a4')" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
       <span style="font-size: 20px;">📄</span> Download PDF
     </button>
-
-    </div>
+  </div>
 </div>
 
 <div class="modal" id="mod-credits" onclick="if(event.target===this)this.classList.remove('on')">
@@ -391,8 +358,23 @@
 
     <div class="a-inp-row">
       <div class="edit-grp" style="flex:1"><label class="edit-lbl">Price/Text</label><input type="text" id="edit-price" class="a-inp"></div>
-      <div class="edit-grp" style="flex:1"><label class="edit-lbl">Daily Budget (Credits)</label><input type="number" id="edit-budget" class="a-inp" min="25" step="25"></div>
+      <div class="edit-grp" style="flex:1"><label class="edit-lbl">Daily Budget (Total)</label><input type="number" id="edit-budget" class="a-inp" min="25" step="25"></div>
     </div>
+    
+    <div class="edit-grp">
+      <label class="edit-lbl" style="display:flex; justify-content:space-between;">
+        <span>Max Alerts Per Hour</span>
+        <span style="color:var(--blue);">🛡️ Smart Pacing</span>
+      </label>
+      <select id="edit-hourly" class="a-inp" style="background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.3);">
+        <option value="999">No limit (Burn budget instantly)</option>
+        <option value="50">50 Alerts / Hour (Recommended)</option>
+        <option value="25">25 Alerts / Hour (Slow Pacing)</option>
+        <option value="10">10 Alerts / Hour (Conservative)</option>
+      </select>
+      <p style="font-size: 10px; color: var(--gray); margin-top: 4px; line-height: 1.4;">Spread your budget throughout the day. Prevents one busy hour from draining your daily limit.</p>
+    </div>
+
     <div class="edit-grp"><label class="edit-lbl">Reach Radius (meters)</label>
       <select id="edit-radius" class="a-inp"><option value="300">300m (Hyperlocal)</option><option value="500">500m (Standard)</option><option value="1500">1.5km (Neighborhood)</option><option value="5000">5km (City Area)</option></select>
     </div>
@@ -407,20 +389,12 @@
   <div class="msht" style="padding-bottom: 30px;">
     <div class="mh"></div>
     <div style="text-align: center; margin-bottom: 10px; font-weight: 800; font-size: 16px; color: var(--deep);">Upload Photo</div>
-    
-    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 16px; text-align: center;">
-      <div style="font-size: 11px; font-weight: 700; color: var(--or); margin-bottom: 4px;">⚠️ Note / ध्यान दें:</div>
-      <div style="font-size: 10px; color: var(--deep); line-height: 1.4;">If the camera restarts your app, please take the photo first and choose "Gallery".<br><span style="color: var(--gray);">यदि कैमरा ऐप को रीस्टार्ट करता है, तो कृपया पहले फोटो लें और "Gallery" चुनें।</span></div>
-    </div>
-    
     <button class="btn-or" onclick="document.getElementById('img-camera').click(); document.getElementById('mod-photo-choice').classList.remove('on');" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
       <span style="font-size: 20px;">📸</span> Take Live Photo
     </button>
-    
     <button class="btn-lt" onclick="document.getElementById('img-gallery').click(); document.getElementById('mod-photo-choice').classList.remove('on');" style="width: 100%; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
       <span style="font-size: 20px;">🖼️</span> Choose from Gallery
     </button>
-
     <input type="file" id="img-camera" accept="image/*" capture="environment" style="display:none;">
     <input type="file" id="img-gallery" accept="image/*" style="display:none;">
   </div>
@@ -437,24 +411,6 @@
     </div>
     <button class="btn-or" onclick="window.upgradePremium()" style="background:linear-gradient(135deg, #F59E0B, #D97706); width:100%;">⚡ Upgrade for 499 Credits</button>
     <button class="btn-lt" style="width:100%; margin-top:8px;" onclick="document.getElementById('mod-premium').classList.remove('on')">Maybe Later</button>
-  </div>
-</div>
-
-<div class="modal" id="mod-playstore" onclick="if(event.target===this)window.closePlayStorePopup()">
-  <div class="msht">
-    <div class="mh"></div>
-    <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
-      <img src="icons/icon-192.png" style="width:64px; height:64px; border-radius:14px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
-      <div>
-        <div style="font-size:18px; font-weight:800; color:var(--deep); font-family:'Syne', sans-serif;">Get the NearPop App</div>
-        <div style="font-size:12px; color:var(--gray); font-weight:600; line-height:1.4; margin-top:2px;">Experience faster speeds, background deal alerts, and smoother navigation.</div>
-      </div>
-    </div>
-    <button class="btn-or" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; font-size: 15px; margin-bottom: 10px;" onclick="window.openPlayStore()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3.609 1.814L13.792 12 3.61 22.186a1.981 1.981 0 0 1-.36-.088A1.91 1.91 0 0 1 2 20.316V3.684a1.91 1.91 0 0 1 1.25-1.782c.115-.043.235-.073.359-.088zM14.85 13.06l3.418 3.417-6.07 3.504-4.59-4.591 7.242-2.33zM21.576 9.176l-3.308-1.91-3.418 3.418 3.418 3.418 3.308-1.91a1.915 1.915 0 0 0 0-3.016zM18.268 7.266L14.85 10.684 7.608 8.354l6.07-3.504 4.59 4.591H18.268z"/></svg>
-      Get it on Google Play
-    </button>
-    <button class="btn-lt" style="width:100%;" onclick="window.closePlayStorePopup()">Continue on Web</button>
   </div>
 </div>
 
@@ -700,10 +656,11 @@ function renderFromData(all, userData) {
     insightTxt.style.color = 'var(--blue)';
     insightTxt.innerHTML = '💡 <b>High interest, low conversion.</b><br>Customers are looking at your offers. Make sure your staff is ready to greet them when they walk in!';
   } else {
-    insightBox.style.background = 'rgba(16, 185, 129, 0.1)';
-    insightBox.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-    insightTxt.style.color = 'var(--grn)';
-    insightTxt.innerHTML = '🔥 <b>Excellent performance!</b><br>You are successfully driving real, trackable foot traffic to your business.';
+    // 🚀 NEW: Smart Proximity Insight Text
+    insightBox.style.background = 'rgba(59, 130, 246, 0.1)';
+    insightBox.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+    insightTxt.style.color = 'var(--blue)';
+    insightTxt.innerHTML = '🛡️ <b>Smart Delivery Active</b><br>NearPop is using the 5-second intent rule to filter out fast-moving traffic. Your budget is protected from spam!';
   }
 
   document.getElementById('listing-analytics').innerHTML = mine.map(l => {
@@ -758,6 +715,11 @@ function renderCards(mine) {
       expiryBadge = `<span class="badge" style="background:rgba(16, 185, 129, 0.1);color:var(--grn)">✅ Active</span>`;
     }
     
+    // 🚀 NEW: Smart Pacing Badge 
+    const smartBadge = l.hourlyCap && l.hourlyCap < 999 
+        ? `<span class="badge smart">🛡️ Smart Pacing</span>` 
+        : '';
+    
     return `
       <div class="mcd">
         <div style="display:flex; gap:12px;">
@@ -766,7 +728,7 @@ function renderCards(mine) {
 </div>
           <div style="flex:1;">
             <div class="mcd-t">${l.title||''}</div>
-            <div class="mcd-m">${l.radius||300}m radius · ${l.budget||25} Credits/day <span class="badge ${l.status==='paused'?'pause':'live'}">${l.status==='paused'?'⏸ PAUSED':'● LIVE'}</span> ${expiryBadge}</div>
+            <div class="mcd-m">${l.radius||300}m radius · ${l.budget||25} Credits/day <span class="badge ${l.status==='paused'?'pause':'live'}">${l.status==='paused'?'⏸ PAUSED':'● LIVE'}</span> ${expiryBadge} ${smartBadge}</div>
             ${capPctFixed > 0 ? `<div style="margin-top:5px;background:var(--light);border-radius:3px;height:3px"><div style="background:var(--or);border-radius:3px;height:3px;width:${capPctFixed}%"></div></div>` : ''}
           </div>
           <div class="mcd-s">
@@ -794,6 +756,10 @@ window.openEdit = (id) => {
   document.getElementById('edit-desc').value = l.desc || ''; 
   document.getElementById('edit-price').value = l.price || ''; 
   document.getElementById('edit-budget').value = l.budget || 25; 
+  
+  // 🚀 NEW: Load Hourly Pacing
+  document.getElementById('edit-hourly').value = l.hourlyCap || 999;
+  
   document.getElementById('edit-radius').value = l.radius || 300; 
   
   pendingEditImageB64 = null;
@@ -819,6 +785,7 @@ window.saveEdit = async () => {
       price: document.getElementById('edit-price').value.trim(), 
       budget: budget, 
       dailyPopupLimit: budget * 10, 
+      hourlyCap: parseInt(document.getElementById('edit-hourly').value) || 999, // 🚀 NEW: Save Hourly
       radius: parseInt(document.getElementById('edit-radius').value) || 300 
     };
 
@@ -868,7 +835,6 @@ window.deleteListing = async (id) => {
   } 
 };
 
-// Dynamic WhatsApp Status Generator
 window.exportStatus = async (id) => {
   window.haptic(30);
   const l = currentListings.find(x => x.id === id);
@@ -892,20 +858,17 @@ window.exportStatus = async (id) => {
   
   const col = l.color || '#FF5722';
   
-  // 1. Image Sizing with Max-Height and Shrink Protection
   const imgUrl = l.imageUrl || l.image;
   const imgHtml = imgUrl 
     ? `<img src="${imgUrl}" crossorigin="anonymous" style="width:100%; max-height:650px; object-fit:cover; border-radius:30px; margin-bottom:30px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); flex-shrink:0;">` 
     : `<div style="width:100%; height:500px; max-height:650px; background:${col}20; border-radius:30px; display:flex; align-items:center; justify-content:center; font-size:250px; margin-bottom:30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 4px solid ${col}40; flex-shrink:0;">${l.emoji || '🏷️'}</div>`;
 
-  // 2. Fetch Merchant Logo
   const mLogoNode = document.getElementById('m-logo');
   const currMerchantLogo = (mLogoNode && mLogoNode.style.display !== 'none' && mLogoNode.src) ? mLogoNode.src : null;
   const mLogoHtml = currMerchantLogo 
     ? `<img src="${currMerchantLogo}" crossorigin="anonymous" style="width: 110px; height: 110px; border-radius: 25px; object-fit: contain; background: #fff; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">` 
     : `<div style="width: 110px; height: 110px; border-radius: 25px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 55px; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">🏪</div>`;
 
-  // 3. Render Canvas Template
   container.innerHTML = `
     <div id="status-export-wrap" style="width: 1080px; height: 1920px; background-color: #111827; background-image: radial-gradient(circle at 10% 10%, #FF572240 0%, transparent 40%), radial-gradient(circle at 90% 90%, ${col}40 0%, #111827 50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-family: 'Nunito', sans-serif; position:relative; overflow:hidden;">
        
@@ -1335,33 +1298,6 @@ window.generatePermanentStandee = () => {
   `);
   printWindow.document.close();
 };
-
-window.closePlayStorePopup = () => { 
-  const mod = document.getElementById('mod-playstore');
-  if (mod) mod.classList.remove('on'); 
-  localStorage.setItem('hide_playstore', 'true'); 
-};
-
-window.openPlayStore = () => {
-  window.haptic(50);
-  window.open('https://play.google.com/store/apps/details?id=in.nearpop.app', '_blank');
-  window.closePlayStorePopup();
-};
-
-setTimeout(() => {
-  if ('Notification' in window) {
-    if (Notification.permission === 'default') {
-      const notifPrompt = document.getElementById('notif-prompt');
-      if (notifPrompt) notifPrompt.style.display = 'flex';
-    } else if (Notification.permission === 'granted') { 
-      window.askForNotifs(); 
-    }
-  }
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if (!isStandalone && !localStorage.getItem('hide_playstore')) { 
-    window.showPlayStorePopup(); 
-  }
-}, 3000);
 
 // 🚀 NEW: Guided Onboarding Tour Engine
 class AppTour {
