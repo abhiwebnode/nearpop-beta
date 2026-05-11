@@ -101,7 +101,7 @@
 .insight-ic{font-size:18px}
 .insight-txt{font-size:12px;color:var(--grn);font-weight:600;line-height:1.4}
 
-.la-list{margin-top:16px}
+.la-list{margin-top:16px; max-height:220px; overflow-y:auto; padding-right:4px;}
 .la-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr)}
 .la-row:last-child{border-bottom:none;padding-bottom:0}
 .la-name{font-size:12px;font-weight:800;color:var(--deep)}
@@ -191,7 +191,7 @@
 
   <div class="tabs">
     <div class="tab on">Dashboard</div>
-    <div class="tab" onclick="window.location.href='home.html'">View as Customer</div>
+    <div class="tab" onclick="window.location.href='map.html'">View as Customer</div>
   </div>
 
   <div class="mbody">
@@ -1353,10 +1353,19 @@ class AppTour {
         <button style="position:absolute; top:12px; right:12px; background:transparent; border:none; font-size:18px; color:#9CA3AF; cursor:pointer;" id="t-close">×</button>
       `;
 
-      let popTop = rect.bottom + 20;
-      if (popTop + 180 > window.innerHeight) {
-        popTop = rect.top - 180; 
+		let popTop = rect.bottom + 20;
+      
+      // If it goes off the bottom of the screen, try putting it above
+      if (popTop + 200 > window.innerHeight) {
+        popTop = rect.top - 200; 
+        
+        // Failsafe: If the element is so massive that it pushes the popover off the TOP too
+        if (popTop < 80) {
+          // Pin it safely to the bottom of the viewport
+          popTop = window.innerHeight - 240; 
+        }
       }
+      
       this.popover.style.top = popTop + 'px';
       this.popover.classList.add('visible');
 
