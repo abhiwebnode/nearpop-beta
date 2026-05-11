@@ -155,18 +155,11 @@
 }
 
 .fab-icon { font-size: 26px; font-weight: 300; line-height: 1; margin-top: -2px; }
-
-.tour-backdrop { position: fixed; inset: 0; z-index: 9997; pointer-events: auto; }
-.tour-overlay { position: fixed; z-index: 9998; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.75); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.tour-popover { position: fixed; z-index: 9999; left: 50%; width: calc(100% - 32px); max-width: 340px; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translate(-50%, 20px); border: 1px solid rgba(0,0,0,0.1); }
-.tour-popover.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-
 </style>
 </head>
 <body>
 <div id="app-shell"><div id="wrap">
   <div class="mhdr">
-    <button class="mbtn" style="right: 85px; background: rgba(0,0,0,0.15);" onclick="window.startMerchantTour()">❓ Help</button>
     <button class="mbtn" onclick="window.logout()">Logout</button>
     
     <div style="position:relative; display:inline-block; margin-bottom: 12px; cursor:pointer;" onclick="window.openPhotoChoice('logo')">
@@ -181,7 +174,7 @@
     <p>Merchant Dashboard</p>
   </div>
 
-  <div class="mwbox" id="tour-wallet">
+  <div class="mwbox">
     <div>
       <div class="mw-lbl">Promo Credits</div>
       <div class="mw-val" id="mwal">--- 🪙</div>
@@ -191,7 +184,7 @@
 
   <div class="tabs">
     <div class="tab on">Dashboard</div>
-    <div class="tab" onclick="window.location.href='map.html'">View as Customer</div>
+    <div class="tab" onclick="window.location.href='home.html'">View as Customer</div>
   </div>
 
   <div class="mbody">
@@ -202,7 +195,7 @@
       <div class="stat"><div class="stat-v" id="st-r">0%</div><div class="stat-l">Visit Rate</div></div>
     </div>
 
-    <div class="hmap-box" id="tour-dashboard">
+    <div class="hmap-box">
       <div class="hmap-hdr">
         <div class="hmap-title">📈 Customer Journey</div>
         <div class="hmap-date" id="hmap-date">Live Data</div>
@@ -249,7 +242,7 @@
     </div>
     
     <div class="sec-title" style="margin-bottom:12px; font-weight:800; color:var(--deep); font-size:16px;">📲 Smart Storefront</div>
-    <div class="mcd" id="tour-qr" style="text-align: center; margin-bottom: 24px;">
+    <div class="mcd" style="text-align: center; margin-bottom: 24px;">
       <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px; font-weight: 600; line-height:1.4;">Print or download this permanent QR code. It automatically routes customers to your live deals.</p>
       <div style="display:flex; gap:10px;">
          <button class="btn-or" onclick="document.getElementById('mod-standee-choice').classList.add('on')" style="flex:1; padding: 12px; font-size: 13px; background:var(--deep);">🖨️ Get Standee</button>
@@ -287,7 +280,7 @@
   </div>
 </div>
 
-<button class="fab-create" id="tour-fab" onclick="window.checkPremium()" title="Create New Listing">
+<button class="fab-create" onclick="window.checkPremium()" title="Create New Listing">
   <span class="fab-icon">＋</span> Create Listing
 </button>
 
@@ -1299,113 +1292,11 @@ window.generatePermanentStandee = () => {
   printWindow.document.close();
 };
 
-// 🚀 NEW: Guided Onboarding Tour Engine
-class AppTour {
-  constructor(steps, onComplete) {
-    this.steps = steps;
-    this.idx = 0;
-    this.onComplete = onComplete;
-    
-    this.backdrop = document.createElement('div');
-    this.backdrop.className = 'tour-backdrop';
-    
-    this.overlay = document.createElement('div');
-    this.overlay.className = 'tour-overlay';
-    
-    this.popover = document.createElement('div');
-    this.popover.className = 'tour-popover';
-    
-    document.body.appendChild(this.backdrop);
-    document.body.appendChild(this.overlay);
-    document.body.appendChild(this.popover);
-  }
-
-  start() {
-    this.idx = 0;
-    this.showStep();
-  }
-
-  showStep() {
-    if (this.idx >= this.steps.length) return this.end();
-    const step = this.steps[this.idx];
-    const el = document.querySelector(step.target);
-    
-    if (!el) { this.idx++; return this.showStep(); }
-
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    setTimeout(() => {
-      const rect = el.getBoundingClientRect();
-      
-      this.overlay.style.top = (rect.top - 8) + 'px';
-      this.overlay.style.left = (rect.left - 8) + 'px';
-      this.overlay.style.width = (rect.width + 16) + 'px';
-      this.overlay.style.height = (rect.height + 16) + 'px';
-
-      this.popover.innerHTML = `
-        <div style="font-weight:900; font-size:17px; margin-bottom:8px; color:#111827; display:flex; align-items:center; gap:8px;">${step.icon || '💡'} ${step.title}</div>
-        <div style="font-size:13px; color:#4B5563; margin-bottom:20px; line-height:1.6; font-weight:600;">${step.desc}</div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <button style="background:transparent; color:#9CA3AF; border:none; font-weight:800; font-size:12px; cursor:pointer; padding:8px 0;" id="t-prev">${this.idx > 0 ? '← Back' : ''}</button>
-          <div style="font-size:11px; color:#D1D5DB; font-weight:800; position:absolute; left:50%; transform:translateX(-50%);">${this.idx + 1} / ${this.steps.length}</div>
-          <button style="background:#FF5722; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(255,87,34,0.3);" id="t-next">${this.idx === this.steps.length - 1 ? 'Finish' : 'Next →'}</button>
-        </div>
-        <button style="position:absolute; top:12px; right:12px; background:transparent; border:none; font-size:18px; color:#9CA3AF; cursor:pointer;" id="t-close">×</button>
-      `;
-
-		let popTop = rect.bottom + 20;
-      
-      // If it goes off the bottom of the screen, try putting it above
-      if (popTop + 200 > window.innerHeight) {
-        popTop = rect.top - 200; 
-        
-        // Failsafe: If the element is so massive that it pushes the popover off the TOP too
-        if (popTop < 80) {
-          // Pin it safely to the bottom of the viewport
-          popTop = window.innerHeight - 240; 
-        }
-      }
-      
-      this.popover.style.top = popTop + 'px';
-      this.popover.classList.add('visible');
-
-      const prevBtn = document.getElementById('t-prev');
-      if (this.idx === 0) prevBtn.style.visibility = 'hidden';
-      else prevBtn.onclick = () => { this.idx--; this.showStep(); };
-
-      document.getElementById('t-close').onclick = () => this.end();
-      document.getElementById('t-next').onclick = () => { this.idx++; this.showStep(); };
-    }, 400); 
-  }
-
-  end() {
-    this.backdrop.remove();
-    this.overlay.remove();
-    this.popover.remove();
-    if(this.onComplete) this.onComplete();
-  }
-}
-
-window.startMerchantTour = () => {
-  const steps = [
-    { target: '#tour-wallet', icon: '🎁', title: 'Free Promo Credits', desc: 'Use these free credits to boost your deals. You get +100 free credits every day you log in!' },
-    { target: '#tour-dashboard', icon: '📈', title: 'Customer Dashboard', desc: 'Watch your performance live. See how many people view your deals and physically visit your store.' },
-    { target: '#tour-qr', icon: '📲', title: 'Smart Storefront QR', desc: 'Print this QR code for your counter. Customers scan it to earn points, and you get valuable foot-traffic data!' },
-    { target: '#tour-fab', icon: '🚀', title: 'Create a Listing', desc: 'Tap this button to post your first deal, rental, or job directly to the local map.' }
-  ];
-  
-  new AppTour(steps, async () => {
-    localStorage.setItem('np_tour_merchant', 'true');
-    try { await updateDoc(doc(db, 'users', uid), { tourMerchant: true }); } catch(e){}
-  }).start();
+window.closePlayStorePopup = () => { 
+  const mod = document.getElementById('mod-playstore');
+  if (mod) mod.classList.remove('on'); 
+  localStorage.setItem('hide_playstore', 'true'); 
 };
-
-// Automatically start tour if it's their first time
-setTimeout(() => {
-  if (!localStorage.getItem('np_tour_merchant') && currentListings.length === 0) {
-    window.startMerchantTour();
-  }
-}, 1200);
 
 </script>
 </body>
