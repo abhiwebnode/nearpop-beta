@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="NearPop — Merchant Dashboard">
+<meta name="theme-color" content="#FF5722">
+<meta name="color-scheme" content="light dark"> 
+<meta name="mobile-web-app-capable" content="yes">
+<title>NearPop — Merchant</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
+<link rel="stylesheet" href="css/shared.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+.mwbox { margin-top: 20px !important; }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;background:var(--bg-body)}
+
+.mhdr{background:#FF5722;padding:20px 85px 30px 16px;color:#fff;flex-shrink:0;border-radius:0 0 24px 24px;box-shadow:0 4px 20px rgba(255,87,34,.3);position:relative}
+.mhdr h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px; line-height:1.3; word-wrap:break-word;}
+.mhdr p{font-size:13px;font-weight:600;opacity:.9}
+.mbtn{position:absolute;top:20px;right:16px;background:rgba(255,255,255,.2);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+
+.mwbox{background:var(--card);border-radius:18px;padding:16px;margin:-20px 16px 16px;box-shadow:0 6px 16px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10;border:1px solid var(--bdr)}
+.mw-lbl{font-size:11px;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.mw-val{font-size:24px;font-weight:900;color:var(--deep);font-family:'Syne',sans-serif}
+.mw-btn{background:var(--or);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(255,87,34,.25)}
+
+.tabs{display:flex;gap:12px;padding:0 16px;margin-bottom:12px;overflow-x:auto}
+.tab{font-size:14px;font-weight:800;color:var(--gray);padding:8px 0;cursor:pointer;position:relative}
+.tab.on{color:var(--deep)}
+.tab.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--or);border-radius:3px}
+
+.mbody{flex:1;overflow-y:auto;padding:0 16px 90px}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat{background:var(--card);padding:14px;border-radius:16px;border:1px solid var(--bdr);box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.stat-v{font-size:22px;font-weight:900;color:var(--deep);margin-bottom:2px;font-family:'Syne',sans-serif}
+.stat-l{font-size:11px;font-weight:700;color:var(--gray)}
+
+.sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec h3{font-size:16px;font-weight:800;color:var(--deep)}
+.sec a{font-size:13px;font-weight:800;color:var(--or);text-decoration:none}
+
+.mcd{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid var(--bdr);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.mcd-ic{width:42px;height:42px;border-radius:12px;background:var(--bg-body);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.mcd-t{font-size:14px;font-weight:800;color:var(--deep);margin-bottom:4px;line-height:1.2}
+.mcd-m{font-size:11px;color:var(--gray);font-weight:600}
+
+.badge{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:800;margin-left:4px;vertical-align:middle}
+.badge.live{background:rgba(16, 185, 129, 0.1);color:var(--grn)}
+.badge.pause{background:var(--light);color:var(--gray)}
+
+.mcd-s{text-align:right}
+.mcd-p{font-size:16px;font-weight:900;color:var(--or)}
+.mcd-pl{font-size:10px;font-weight:700;color:var(--gray)}
+
+.mcd-acts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; border-top: 1px solid var(--bdr); padding-top: 12px; margin-top: 12px; }
+.act-btn { padding: 8px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: transform 0.2s; border: none; font-family: inherit;}
+.act-btn:active { transform: scale(0.95); }
+.act-edit { background: rgba(59, 130, 246, 0.1); color: var(--blue); border: 1px solid rgba(59, 130, 246, 0.2); }
+.act-pause { background: var(--bg-body); color: var(--deep); border: 1px solid var(--bdr); }
+.act-del { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+.act-btn-full { grid-column: 1 / -1; background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25); font-family: inherit; transition: transform 0.2s; }
+.act-btn-full:active { transform: scale(0.97); }
+
+.edit-lbl { font-size: 11px; font-weight: 800; color: var(--gray); margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+.edit-grp { margin-bottom: 12px; }
+.a-inp { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--bdr); background: var(--bg-body); font-size: 13px; font-weight: 700; color: var(--deep); font-family: inherit; }
+.a-inp:focus { border-color: var(--or); outline: none; }
+.a-inp-row { display: flex; gap: 8px; }
+
+.pm-btn { background: var(--card); border: 2px solid var(--bdr); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 800; color: var(--deep); cursor: pointer; transition: all 0.2s; font-family: inherit; text-align: left; width: 100%;}
+.pm-btn:active { transform: scale(0.97); border-color: var(--or); background: rgba(255,87,34,.05); }
+.pm-ic { font-size: 22px; }
+
+.hmap-box{background:var(--card);border-radius:16px;padding:16px;margin-bottom:20px;border:1px solid var(--bdr);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.hmap-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hmap-title{font-size:15px;font-weight:800;color:var(--deep)}
+.hmap-date{font-size:11px;font-weight:600;color:var(--gray);background:var(--light);padding:4px 8px;border-radius:6px}
+
+.funnel{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.f-row{display:flex;align-items:center;gap:12px}
+.f-lbl{width:70px;font-size:11px;font-weight:800;color:var(--gray);text-align:right;flex-shrink:0}
+.f-bar-wrap{flex:1;height:24px;background:var(--light);border-radius:12px;position:relative;overflow:hidden}
+.f-bar{height:100%;border-radius:12px;transition:width 1s cubic-bezier(0.34, 1.56, 0.64, 1);display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:800;color:#fff}
+.f-val{font-size:14px;font-weight:900;color:var(--deep);width:40px;text-align:right}
+
+.roi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--bg-body);padding:12px;border-radius:12px;margin-bottom:16px}
+.roi-box{text-align:center}
+.roi-v{font-size:15px;font-weight:900;color:var(--deep);margin-bottom:2px}
+.roi-l{font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase}
+
+.insight{background:rgba(16, 185, 129, 0.1);border:1px solid rgba(16, 185, 129, 0.3);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}
+.insight-ic{font-size:18px}
+.insight-txt{font-size:12px;color:var(--grn);font-weight:600;line-height:1.4}
+
+.la-list{margin-top:16px}
+.la-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.la-row:last-child{border-bottom:none;padding-bottom:0}
+.la-name{font-size:12px;font-weight:800;color:var(--deep)}
+.la-stats{display:flex;gap:16px}
+.la-stat{text-align:right}
+.la-sv{font-size:13px;font-weight:900}
+.la-sl{font-size:9px;color:var(--gray);font-weight:600}
+
+.tab-btns{display:flex;background:var(--light);border-radius:8px;padding:3px;margin-bottom:16px}
+.tab-btn{flex:1;text-align:center;padding:6px;font-size:11px;font-weight:800;color:var(--gray);border-radius:6px;cursor:pointer;transition:all .2s}
+.tab-btn.on{background:var(--card);color:var(--deep);box-shadow:0 2px 6px rgba(0,0,0,.05)}
+
+.qr-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--bdr); }
+.qr-stat-row:last-child { border-bottom: none; }
+.qr-stat-icon { font-size: 16px; margin-right: 8px; }
+.qr-stat-title { font-size: 13px; font-weight: 800; color: var(--deep); }
+.qr-stat-sub { font-size: 10px; color: var(--gray); font-weight: 600; display: block; margin-top: 2px; }
+.qr-stat-val { font-size: 16px; font-weight: 900; color: var(--or); }
+
+.skeleton {
+  background: #E5E7EB;
+  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.spin { width: 34px; height: 34px; border: 4px solid rgba(255,87,34,0.1); border-top-color: #FF5722; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fab-create {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  height: 56px;
+  padding: 0 24px 0 16px;
+  background: linear-gradient(135deg, #FF5722, #D97706);
+  color: #fff;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(255, 87, 34, 0.4);
+  cursor: pointer;
+  z-index: 900;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.fab-create:active {
+  transform: scale(0.95);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.fab-icon {
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: -2px; 
+}
+
+.tour-backdrop { position: fixed; inset: 0; z-index: 9997; pointer-events: auto; }
+.tour-overlay { position: fixed; z-index: 9998; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.75); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.tour-popover { position: fixed; z-index: 9999; left: 50%; width: calc(100% - 32px); max-width: 340px; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translate(-50%, 20px); border: 1px solid rgba(0,0,0,0.1); }
+.tour-popover.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+</style>
+</head>
+<body>
+<div id="app-shell"><div id="wrap">
+  <div class="mhdr">
+    <button class="mbtn" style="right: 85px; background: rgba(0,0,0,0.15);" onclick="window.startMerchantTour()">❓ Help</button>
+    <button class="mbtn" onclick="window.logout()">Logout</button>
+    
+    <div style="position:relative; display:inline-block; margin-bottom: 12px; cursor:pointer;" onclick="window.openPhotoChoice('logo')">
+      <img id="m-logo" style="width: 56px; height: 56px; border-radius: 14px; background: #fff; object-fit: contain; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 2px solid rgba(255,255,255,0.3);">
+      <div id="m-logo-placeholder" style="width: 56px; height: 56px; border-radius: 14px; background: rgba(255,255,255,0.2); border: 2px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size:20px; color:#fff;" title="Upload Shop Logo">📷</div>
+      <div style="position:absolute; bottom:-6px; right:-6px; background:#111827; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:10px; border:2px solid #FF5722; color:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✏️</div>
+    </div>
+    
+    <div id="logo-status" style="font-size:11px; color:#fff; font-weight:bold; margin-top:-4px; margin-bottom:12px;"></div>
+
+    <h2 id="mbiz">My Business</h2>
+    <p>Merchant Dashboard</p>
+  </div>
+
+  <div class="mwbox" id="tour-wallet">
+    <div>
+      <div class="mw-lbl">Free Promo Credits</div>
+      <div class="mw-val" id="mwal">--- 🪙</div>
+    </div>
+    <button class="mw-btn" onclick="document.getElementById('mod-credits').classList.add('on')">🎁 Earn Credits</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on">Dashboard</div>
+    <div class="tab" onclick="window.location.href='home.html'">View as Customer</div>
+  </div>
+
+  <div class="mbody">
+    <div class="stats">
+      <div class="stat"><div class="stat-v" id="st-a">0</div><div class="stat-l">Active Listings</div></div>
+      <div class="stat"><div class="stat-v" id="st-p">0</div><div class="stat-l">Map Views</div></div>
+      <div class="stat"><div class="stat-v" id="st-v">0</div><div class="stat-l">Store Visits</div></div>
+      <div class="stat"><div class="stat-v" id="st-r">0%</div><div class="stat-l">Visit Rate</div></div>
+    </div>
+
+    <div class="hmap-box" id="tour-dashboard">
+      <div class="hmap-hdr">
+        <div class="hmap-title">📈 Customer Journey</div>
+        <div class="hmap-date" id="hmap-date">Live Data</div>
+      </div>
+      
+      <div id="hmap-insight">
+        <div class="funnel">
+          <div class="f-row">
+            <div class="f-lbl">Discovered</div>
+            <div class="f-bar-wrap"><div class="f-bar" id="fb-disc" style="width:0%;background:#94A3B8"></div></div>
+            <div class="f-val" id="fv-disc">0</div>
+          </div>
+          <div class="f-row">
+            <div class="f-lbl">Interested</div>
+            <div class="f-bar-wrap"><div class="f-bar" id="fb-int" style="width:0%;background:var(--or)"></div></div>
+            <div class="f-val" id="fv-int">0</div>
+          </div>
+          <div class="f-row">
+            <div class="f-lbl">Engaged</div>
+            <div class="f-bar-wrap"><div class="f-bar" id="fb-eng" style="width:0%;background:var(--blue)"></div></div>
+            <div class="f-val" id="fv-eng">0</div>
+          </div>
+          <div class="f-row">
+            <div class="f-lbl">Visited</div>
+            <div class="f-bar-wrap"><div class="f-bar" id="fb-vis" style="width:0%;background:var(--grn)"></div></div>
+            <div class="f-val" id="fv-vis">0</div>
+          </div>
+        </div>
+        
+        <div class="roi-grid">
+          <div class="roi-box"><div class="roi-v" id="rr-ctr">0%</div><div class="roi-l">Interest Rate</div></div>
+          <div class="roi-box"><div class="roi-v" id="rr-conv">0%</div><div class="roi-l">Visit Rate</div></div>
+          <div class="roi-box"><div class="roi-v" id="rr-spend">0 🪙</div><div class="roi-l">Est. Spend</div></div>
+        </div>
+        
+        <div class="insight" id="insight-box">
+          <div class="insight-ic">💡</div>
+          <div class="insight-txt" id="insight-txt">Gathering data...</div>
+        </div>
+        
+        <div style="margin-top:20px;font-size:13px;font-weight:800;color:var(--deep);border-bottom:1px solid var(--bdr);padding-bottom:8px">Listing Breakdown</div>
+        <div class="la-list" id="listing-analytics"></div>
+      </div>
+    </div>
+    
+    <div class="sec-title" style="margin-bottom:12px; font-weight:800; color:var(--deep); font-size:16px;">📲 Smart Storefront</div>
+    <div class="mcd" id="tour-qr" style="text-align: center; margin-bottom: 24px;">
+      <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px; font-weight: 600; line-height:1.4;">Print or download this permanent QR code. It automatically routes customers to your live deals.</p>
+      <div style="display:flex; gap:10px;">
+         <button class="btn-or" onclick="document.getElementById('mod-standee-choice').classList.add('on')" style="flex:1; padding: 12px; font-size: 13px; background:var(--deep);">🖨️ Get Standee</button>
+         <button class="btn-lt" onclick="window.showStoreQR()" style="flex:1; padding: 12px; font-size: 13px;">📱 Show In-Store</button>
+      </div>
+    </div>
+
+    <div class="sec-title" style="margin-bottom:12px; font-weight:800; color:var(--deep); font-size:16px;">📊 QR Analytics</div>
+    <div class="mcd" style="margin-bottom: 24px;">
+      <div class="qr-stat-row">
+        <div><span class="qr-stat-title"><span class="qr-stat-icon">📷</span> Total Scans</span><span class="qr-stat-sub">All people who scanned</span></div>
+        <div class="qr-stat-val" id="qr-scan">0</div>
+      </div>
+      <div class="qr-stat-row">
+        <div><span class="qr-stat-title"><span class="qr-stat-icon">🌟</span> New Users Acquired</span><span class="qr-stat-sub">First-time NearPop signups</span></div>
+        <div class="qr-stat-val" style="color:var(--grn)" id="qr-new">0</div>
+      </div>
+      <div class="qr-stat-row">
+        <div><span class="qr-stat-title"><span class="qr-stat-icon">🔄</span> Returning Users</span><span class="qr-stat-sub">Existing users returning</span></div>
+        <div class="qr-stat-val" style="color:var(--blue)" id="qr-ret">0</div>
+      </div>
+      <div class="qr-stat-row">
+        <div><span class="qr-stat-title"><span class="qr-stat-icon">👀</span> Store Menu Opens</span><span class="qr-stat-sub">Viewed digital storefront</span></div>
+        <div class="qr-stat-val" style="color:var(--deep)" id="qr-open">0</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Your Listings</h3>
+      <button style="background:none;border:none;color:var(--or);font-weight:800;font-size:13px;cursor:pointer;" onclick="window.checkPremium()">+ Create New</button>
+    </div>
+
+    <div id="mcards">
+      <div class="mcd" style="border:none; box-shadow:none;">
+        <div style="display:flex; gap:12px;">
+          <div class="skeleton" style="width:42px; height:42px; border-radius:12px; flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div class="skeleton" style="width:70%; height:16px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:50%; height:12px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:100%; height:3px; border-radius:3px;"></div>
+          </div>
+          <div style="width:40px;">
+            <div class="skeleton" style="width:100%; height:16px; margin-bottom:4px;"></div>
+            <div class="skeleton" style="width:80%; height:10px; margin-left:auto;"></div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--bdr);">
+          <div class="skeleton" style="height:28px; border-radius:8px;"></div>
+          <div class="skeleton" style="height:28px; border-radius:8px;"></div>
+          <div class="skeleton" style="height:28px; border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab-create" id="tour-fab" onclick="window.checkPremium()" title="Create New Listing">
+  <span class="fab-icon">＋</span> Create Listing
+</button>
+
+<div class="modal" id="mod-standee-choice" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht" style="padding-bottom: 30px;">
+    <div class="mh"></div>
+    <div style="text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 16px; color: var(--deep);">Export Standee</div>
+    
+    <button class="btn-or" onclick="window.exportStandee('print')" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span style="font-size: 20px;">🖨️</span> Show on Screen
+    </button>
+    
+    <button class="btn-lt" onclick="window.exportStandee('pdf-a4')" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span style="font-size: 20px;">📄</span> Download PDF
+    </button>
+
+    </div>
+</div>
+
+<div class="modal" id="mod-credits" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht" style="padding-bottom: 30px;">
+    <div class="mh"></div>
+    <div class="mt" style="font-size:22px;">🎁 Earn Free Credits</div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px;line-height:1.5;">NearPop is 100% free. Earn promo credits to keep your deals live and reach more local customers!</p>
+    
+    <div style="background:var(--card); border:2px solid var(--bdr); border-radius:14px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <div style="font-size:14px; font-weight:800; color:var(--deep); margin-bottom:4px;">Daily Check-In</div>
+            <div style="font-size:12px; color:var(--gray); font-weight:600;">+100 Credits every 24 hours</div>
+        </div>
+        <button id="btn-claim-daily" onclick="window.claimDailyCredits()" style="background:var(--or); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer;">Claim</button>
+    </div>
+
+    <div style="background:var(--card); border:2px solid var(--bdr); border-radius:14px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <div style="font-size:14px; font-weight:800; color:var(--deep); margin-bottom:4px;">Share With Neighbor</div>
+            <div style="font-size:12px; color:var(--gray); font-weight:600;">+200 Credits once</div>
+        </div>
+        <button id="btn-claim-share" onclick="window.shareAppBonus()" style="background:var(--blue); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer;">Share</button>
+    </div>
+
+    <button class="btn-lt" style="width:100%; margin-top:8px;" onclick="document.getElementById('mod-credits').classList.remove('on')">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="mod-qr" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht" style="align-items: center; text-align: center; padding-bottom: 30px;">
+    <div class="mh"></div>
+    <h3 style="color: var(--deep); margin-bottom: 5px; font-family: 'Syne', sans-serif;">Your Store QR</h3>
+    <p style="font-size: 12px; color: var(--gray); margin-bottom: 20px; font-weight: 600;">Customers must be physically in your store to claim.</p>
+    <div id="qrcode-box" style="background: white; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+    <button class="btn-lt" onclick="document.getElementById('mod-qr').classList.remove('on')" style="width: 100%; margin-top: 20px;">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="mod-edit" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht" style="max-height: 85vh; overflow-y: auto;">
+    <div class="mh"></div>
+    <div class="mt">✏️ Edit Listing</div>
+    <input type="hidden" id="edit-id">
+    <div class="edit-grp"><label class="edit-lbl">Title</label><input type="text" id="edit-title" class="a-inp"></div>
+    <div class="edit-grp"><label class="edit-lbl">Description</label><textarea id="edit-desc" class="a-inp" style="height: 80px; resize: none;"></textarea></div>
+    
+    <div class="edit-grp">
+      <label class="edit-lbl">Update Shop/Deal Image</label>
+      <div class="a-inp" style="text-align: center; cursor: pointer; color: var(--or); display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.openPhotoChoice('edit')">
+        <span style="font-size:18px;">📷</span> Tap to change photo
+      </div>
+      <div id="edit-img-status" style="font-size:11px; color:var(--or); margin-top:4px; font-weight:800; text-align:center;"></div>
+    </div>
+
+    <div class="a-inp-row">
+      <div class="edit-grp" style="flex:1"><label class="edit-lbl">Price/Text</label><input type="text" id="edit-price" class="a-inp"></div>
+      <div class="edit-grp" style="flex:1"><label class="edit-lbl">Daily Budget (Credits)</label><input type="number" id="edit-budget" class="a-inp" min="25" step="25"></div>
+    </div>
+    <div class="edit-grp"><label class="edit-lbl">Reach Radius (meters)</label>
+      <select id="edit-radius" class="a-inp"><option value="300">300m (Hyperlocal)</option><option value="500">500m (Standard)</option><option value="1500">1.5km (Neighborhood)</option><option value="5000">5km (City Area)</option></select>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 16px;">
+      <button class="btn-lt" style="flex:1" onclick="document.getElementById('mod-edit').classList.remove('on')">Cancel</button>
+      <button class="btn-or" style="flex:1" onclick="window.saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mod-photo-choice" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht" style="padding-bottom: 30px;">
+    <div class="mh"></div>
+    <div style="text-align: center; margin-bottom: 10px; font-weight: 800; font-size: 16px; color: var(--deep);">Upload Photo</div>
+    
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 16px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--or); margin-bottom: 4px;">⚠️ Note / ध्यान दें:</div>
+      <div style="font-size: 10px; color: var(--deep); line-height: 1.4;">If the camera restarts your app, please take the photo first and choose "Gallery".<br><span style="color: var(--gray);">यदि कैमरा ऐप को रीस्टार्ट करता है, तो कृपया पहले फोटो लें और "Gallery" चुनें।</span></div>
+    </div>
+    
+    <button class="btn-or" onclick="document.getElementById('img-camera').click(); document.getElementById('mod-photo-choice').classList.remove('on');" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span style="font-size: 20px;">📸</span> Take Live Photo
+    </button>
+    
+    <button class="btn-lt" onclick="document.getElementById('img-gallery').click(); document.getElementById('mod-photo-choice').classList.remove('on');" style="width: 100%; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span style="font-size: 20px;">🖼️</span> Choose from Gallery
+    </button>
+
+    <input type="file" id="img-camera" accept="image/*" capture="environment" style="display:none;">
+    <input type="file" id="img-gallery" accept="image/*" style="display:none;">
+  </div>
+</div>
+
+<div class="modal" id="mod-premium" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht">
+    <div class="mh"></div>
+    <div class="mt" style="font-size:22px;">👑 Go Premium</div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.5;">You've reached the limit of 1 free listing. Upgrade to Premium to run multiple campaigns, dominate different neighborhoods, and skyrocket your sales.</p>
+    <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="font-weight:900; color:var(--or); margin-bottom:8px;">Premium Perks:</div>
+      <ul style="font-size:12px; color:var(--deep); margin-left:16px; line-height:1.6;"><li>Unlimited Active Listings</li><li>Priority Search Ranking</li><li>Advanced Insights & Analytics</li></ul>
+    </div>
+    <button class="btn-or" onclick="window.upgradePremium()" style="background:linear-gradient(135deg, #F59E0B, #D97706); width:100%;">⚡ Upgrade for 499 Credits</button>
+    <button class="btn-lt" style="width:100%; margin-top:8px;" onclick="document.getElementById('mod-premium').classList.remove('on')">Maybe Later</button>
+  </div>
+</div>
+
+<div class="modal" id="mod-playstore" onclick="if(event.target===this)window.closePlayStorePopup()">
+  <div class="msht">
+    <div class="mh"></div>
+    <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+      <img src="icons/icon-192.png" style="width:64px; height:64px; border-radius:14px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
+      <div>
+        <div style="font-size:18px; font-weight:800; color:var(--deep); font-family:'Syne', sans-serif;">Get the NearPop App</div>
+        <div style="font-size:12px; color:var(--gray); font-weight:600; line-height:1.4; margin-top:2px;">Experience faster speeds, background deal alerts, and smoother navigation.</div>
+      </div>
+    </div>
+    <button class="btn-or" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; font-size: 15px; margin-bottom: 10px;" onclick="window.openPlayStore()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3.609 1.814L13.792 12 3.61 22.186a1.981 1.981 0 0 1-.36-.088A1.91 1.91 0 0 1 2 20.316V3.684a1.91 1.91 0 0 1 1.25-1.782c.115-.043.235-.073.359-.088zM14.85 13.06l3.418 3.417-6.07 3.504-4.59-4.591 7.242-2.33zM21.576 9.176l-3.308-1.91-3.418 3.418 3.418 3.418 3.308-1.91a1.915 1.915 0 0 0 0-3.016zM18.268 7.266L14.85 10.684 7.608 8.354l6.07-3.504 4.59 4.591H18.268z"/></svg>
+      Get it on Google Play
+    </button>
+    <button class="btn-lt" style="width:100%;" onclick="window.closePlayStorePopup()">Continue on Web</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
+</div>
+
+<script type="module">
+import { db, auth, LS, SS, TC, TE, toast, cacheGet, cacheSet, cacheClear, CACHE_TTL } from './js/app.js';
+import { getDoc, getDocs, query, collection, where, updateDoc, deleteDoc, doc, setDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+
+if (!LS('uid') || LS('role') !== 'merchant') { window.location.href = 'index.html'; }
+
+const uid   = LS('uid');
+
+window.haptic = (ms = 50) => {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+};
+
+const mname = LS('mname')||'My Business';
+let wallet  = LS('wallet')||500;
+
+let currentListings = (cacheGet() || []).filter(l => l.uid === uid);
+let isDataLoaded = !!cacheGet(); 
+
+const logoUrl = LS('logoUrl');
+if (logoUrl) {
+  const mLogo = document.getElementById('m-logo');
+  mLogo.src = logoUrl;
+  mLogo.style.display = 'block';
+  const ph = document.getElementById('m-logo-placeholder');
+  if(ph) ph.style.display = 'none';
+}
+
+let userPlan = LS('plan') || 'free';
+if (userPlan === 'premium') {
+  document.getElementById('mbiz').innerHTML = mname + ' <span style="font-size:14px">👑</span>';
+} else {
+  document.getElementById('mbiz').textContent = mname;
+}
+
+document.getElementById('mwal').textContent = Math.floor(wallet) + ' 🪙';
+
+let currentPhotoTarget = ''; 
+let pendingEditImageB64 = null;
+
+window.openPhotoChoice = (target) => {
+  window.haptic(30);
+  currentPhotoTarget = target; 
+  document.getElementById('mod-photo-choice').classList.add('on');
+};
+
+const handleImageSelection = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  toast('⏳', 'Processing photo...');
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (currentPhotoTarget === 'logo') {
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        canvas.width = 400;
+        canvas.height = 400;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 400, 400);
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, 400, 400);
+      } else {
+        const MAX_WIDTH = 800;
+        let scaleSize = MAX_WIDTH / img.width;
+        if (scaleSize > 1) scaleSize = 1; 
+        canvas.width = img.width * scaleSize;
+        canvas.height = img.height * scaleSize;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      }
+      
+      const compressedB64 = canvas.toDataURL('image/webp', 0.8); 
+      e.target.value = ''; 
+
+      if (currentPhotoTarget === 'logo') {
+        await uploadLogoToImgBB(compressedB64);
+      } else if (currentPhotoTarget === 'edit') {
+        pendingEditImageB64 = compressedB64;
+        document.getElementById('edit-img-status').textContent = '✅ New photo attached!';
+        toast('✅', 'Photo attached! Click Save Changes.');
+      }
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+document.getElementById('img-camera').addEventListener('change', handleImageSelection);
+document.getElementById('img-gallery').addEventListener('change', handleImageSelection);
+
+async function uploadToImgBB(base64Str) {
+  const apiKey = "4dd5a19986e0ffeabe66a2eb0114d358";
+  const formData = new FormData();
+  formData.append("image", base64Str.split(',')[1]); 
+  
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { 
+    method: "POST", 
+    body: formData 
+  });
+  const data = await res.json();
+  if (data.success) return data.data.url;
+  throw new Error("ImgBB rejection");
+}
+
+async function uploadLogoToImgBB(b64) {
+  document.getElementById('logo-status').textContent = '⏳ Uploading logo...';
+  try {
+    const url = await uploadToImgBB(b64);
+    await updateDoc(doc(db, 'users', uid), { logoUrl: url });
+    localStorage.setItem('np_logoUrl', url);
+    
+    const mLogo = document.getElementById('m-logo');
+    mLogo.src = url;
+    mLogo.style.display = 'block';
+    document.getElementById('m-logo-placeholder').style.display = 'none';
+    
+    document.getElementById('logo-status').textContent = '';
+    toast('✅', 'Shop logo updated!');
+  } catch (err) {
+    document.getElementById('logo-status').textContent = '❌ Upload failed';
+    toast('❌', 'Logo upload failed. Check network.');
+  }
+}
+
+async function loadListings(force=true) {
+  try {
+    if(force) cacheClear();
+    const c = cacheGet(); 
+    
+    const userDocRef = doc(db, 'users', uid);
+    const userDocSnap = await getDoc(userDocRef);
+    const userData = userDocSnap.exists() ? userDocSnap.data() : {};
+    
+    if (userData.logoUrl) {
+      localStorage.setItem('np_logoUrl', userData.logoUrl); 
+      const mLogo = document.getElementById('m-logo');
+      mLogo.src = userData.logoUrl;
+      mLogo.style.display = 'block';
+      const ph = document.getElementById('m-logo-placeholder');
+      if(ph) ph.style.display = 'none';
+    }
+    
+    if(c && !force){
+      renderFromData(c, userData);
+      return;
+    }
+    
+    const snap = await getDocs(query(collection(db,'listings'), where('uid','==',uid)));
+    let all  = snap.docs.map(d => ({id:d.id,...d.data()}));
+    all.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    cacheSet(all); 
+    renderFromData(all, userData);
+  } catch(e) {
+    const c = cacheGet(); 
+    if(c) renderFromData(c, {});
+    toast('⚠️', 'Showing cached version.');
+  }
+}
+
+function renderFromData(all, userData) {
+  isDataLoaded = true; 
+  const mine = all.filter(l => l.uid === uid);
+  currentListings = mine;
+  renderCards(mine);
+  
+  const activeCount = mine.filter(l=>l.status!=='paused').length;
+  const totMapViews = mine.reduce((a,l)=>a+(l.popups||0), 0);
+  const totVisits = mine.reduce((a,l)=>a+(l.visits||0), 0); 
+  const visitRate = totMapViews > 0 ? ((totVisits / totMapViews) * 100).toFixed(1) + '%' : '0%';
+  
+  document.getElementById('st-a').textContent = activeCount;
+  document.getElementById('st-p').textContent = totMapViews;
+  document.getElementById('st-v').textContent = totVisits;
+  document.getElementById('st-r').textContent = visitRate;
+  
+  const qrScans = userData.qrScans || 0;
+  const qrNew = userData.qrNew || 0;
+  const qrRet = userData.qrRet || 0;
+  const qrOpens = userData.qrOpens || 0;
+  
+  document.getElementById('qr-scan').textContent = qrScans;
+  document.getElementById('qr-new').textContent = qrNew;
+  document.getElementById('qr-ret').textContent = qrRet;
+  document.getElementById('qr-open').textContent = qrOpens;
+
+  const discovered = totMapViews + qrScans;
+  const interested = qrOpens + mine.reduce((a,l)=>a+(l.opens||0), 0); 
+  const engaged = mine.reduce((a,l)=>a+(l.engagements||0), 0);
+  const visited = totVisits;
+  
+  document.getElementById('fv-disc').textContent = discovered;
+  document.getElementById('fv-int').textContent = interested;
+  document.getElementById('fv-eng').textContent = engaged;
+  document.getElementById('fv-vis').textContent = visited;
+
+  const pct = x => discovered > 0 ? Math.max(4, Math.round((x / discovered) * 100)) : 4;
+  setTimeout(() => {
+    document.getElementById('fb-disc').style.width = '100%';
+    document.getElementById('fb-int').style.width  = pct(interested)+'%';
+    document.getElementById('fb-eng').style.width  = pct(engaged)+'%';
+    document.getElementById('fb-vis').style.width  = pct(visited)+'%';
+  }, 100);
+
+  const intRate = discovered > 0 ? ((interested / discovered) * 100).toFixed(1) + '%' : '0%';
+  const finalRate = discovered > 0 ? ((visited / discovered) * 100).toFixed(1) + '%' : '0%';
+  const estimatedSpend = mine.reduce((a,l)=>a+((l.popups||0) * 0.1), 0); 
+  
+  document.getElementById('rr-ctr').textContent = intRate;
+  document.getElementById('rr-conv').textContent = finalRate;
+  document.getElementById('rr-spend').textContent = Math.floor(estimatedSpend) + ' 🪙';
+
+  const insightBox = document.getElementById('insight-box');
+  const insightTxt = document.getElementById('insight-txt');
+  
+  if (discovered === 0) {
+    insightBox.style.background = 'rgba(245, 158, 11, 0.1)';
+    insightBox.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+    insightTxt.style.color = 'var(--or)';
+    insightTxt.innerHTML = '⚡ <b>Your shop is live!</b><br>Put your QR Standee on the counter so customers can start scanning it.';
+  } else if (qrScans > 0 && qrOpens === 0) {
+    insightBox.style.background = 'rgba(239, 68, 68, 0.1)';
+    insightBox.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    insightTxt.style.color = '#EF4444';
+    insightTxt.innerHTML = '⚠️ <b>Scans but no clicks.</b><br>People are scanning your QR code but leaving immediately. Try making your deal titles more exciting!';
+  } else if (interested > 0 && visited === 0) {
+    insightBox.style.background = 'rgba(59, 130, 246, 0.1)';
+    insightBox.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+    insightTxt.style.color = 'var(--blue)';
+    insightTxt.innerHTML = '💡 <b>High interest, low conversion.</b><br>Customers are looking at your offers. Make sure your staff is ready to greet them when they walk in!';
+  } else {
+    insightBox.style.background = 'rgba(16, 185, 129, 0.1)';
+    insightBox.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+    insightTxt.style.color = 'var(--grn)';
+    insightTxt.innerHTML = '🔥 <b>Excellent performance!</b><br>You are successfully driving real, trackable foot traffic to your business.';
+  }
+
+  document.getElementById('listing-analytics').innerHTML = mine.map(l => {
+    const pop = l.popups || 0; 
+    const vis = l.visits || 0;
+	const exp = l.expiryDate ? new Date(l.expiryDate) : null;
+	const expTxt = exp ? (exp < new Date() ? '❌ Expired' : Math.ceil((exp - new Date()) / 86400000) + 'd') : '♾️ Life';
+    return `<div class="la-row"><span class="la-name">${l.emoji||'📍'} ${(l.title||'').slice(0,28)}</span><div class="la-stats"><div class="la-stat"><div class="la-sv" style="color:var(--or)">${pop}</div><div class="la-sl">views</div></div><div class="la-stat"><div class="la-sv" style="color:var(--blue)">${vis}</div><div class="la-sl">visits</div></div><div class="la-stat"><div class="la-sv" style="color:var(--gray);font-size:9px">${expTxt}</div><div class="la-sl">expiry</div></div></div></div>`;
+  }).join('');
+}
+
+function renderCards(mine) {
+  const el = document.getElementById('mcards');
+  if (!mine.length) { 
+    el.innerHTML = `
+      <div style="text-align:center; padding:50px 20px; background:var(--card); border-radius:24px; border:2px dashed var(--bdr); box-shadow:0 10px 30px rgba(0,0,0,0.05); margin: 0 16px 30px;">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:16px;">
+          <circle cx="60" cy="60" r="50" fill="rgba(255,87,34,0.1)"/>
+          <rect x="25" y="50" width="70" height="50" rx="6" fill="var(--bg-app)" stroke="var(--bdr)" stroke-width="4"/>
+          <path d="M15 50C15 44.477 19.477 40 25 40H95C100.523 40 105 44.477 105 50V55H15V50Z" fill="#FF5722"/>
+          <path d="M15 55L25 45H95L105 55H15Z" fill="rgba(255,255,255,0.2)"/>
+          <rect x="40" y="65" width="40" height="25" rx="4" fill="rgba(255,87,34,0.15)" stroke="#FF5722" stroke-width="2"/>
+          <path d="M85 30V20M80 25H90" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
+          <path d="M30 25V15M25 20H35" stroke="#3B82F6" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <h3 style="color:var(--deep); font-size:18px; font-weight:900; margin-bottom:8px; font-family:'Syne', sans-serif;">Your storefront is empty</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:600; line-height:1.5; margin-bottom:24px;">Don't let nearby customers walk past your business! Post your first deal to instantly show up on the local map.</p>
+        <button class="btn-or" onclick="window.checkPremium()" style="box-shadow:0 8px 20px rgba(255,87,34,0.3); padding:14px 28px; border-radius:14px;">🚀 Create First Listing</button>
+      </div>`; 
+    return; 
+  }
+  
+  el.innerHTML = mine.map(l => {
+    const dailyCap = parseInt(l.budget) || 100;
+    const sent = l.popupsSentToday || 0;
+    const capPctFixed = Math.min(100, Math.round((sent / dailyCap) * 100));
+    
+    const isUnlimited = !l.expiryDate; 
+    const hrsLeft = !isUnlimited ? (new Date(l.expiryDate) - new Date()) / 3600000 : null;
+    const daysLeft = !isUnlimited ? Math.ceil(hrsLeft / 24) : null;
+    
+    let expiryBadge = '';
+    if (isUnlimited) {
+      expiryBadge = `<span class="badge" style="background:rgba(16, 185, 129, 0.1);color:var(--grn)">♾️ Unlimited</span>`;
+    } else if (hrsLeft > 0 && hrsLeft <= 24) {
+      expiryBadge = `<span class="badge" style="background:#EF4444;color:#fff;animation:fomo-pulse 1.5s infinite;box-shadow: 0 4px 10px rgba(239,68,68,0.4);">🔥 Ends in ${Math.ceil(hrsLeft)}h</span>`;
+    } else if (daysLeft <= 7 && daysLeft > 0) {
+      expiryBadge = `<span class="badge" style="background:rgba(245, 158, 11, 0.1);color:var(--or)">⏰ ${daysLeft}d left</span>`;
+    } else if (hrsLeft <= 0) {
+      expiryBadge = `<span class="badge" style="background:rgba(239, 68, 68, 0.1);color:#EF4444">❌ Expired</span>`;
+    } else {
+      expiryBadge = `<span class="badge" style="background:rgba(16, 185, 129, 0.1);color:var(--grn)">✅ Active</span>`;
+    }
+    
+    return `
+      <div class="mcd">
+        <div style="display:flex; gap:12px;">
+          <div class="mcd-ic" style="overflow: hidden; padding: 0;">
+  ${l.image ? '<img src="' + l.image + '" style="width: 100%; height: 100%; object-fit: cover;">' : (l.emoji||'📍')}
+</div>
+          <div style="flex:1;">
+            <div class="mcd-t">${l.title||''}</div>
+            <div class="mcd-m">${l.radius||300}m radius · ${l.budget||25} Credits/day <span class="badge ${l.status==='paused'?'pause':'live'}">${l.status==='paused'?'⏸ PAUSED':'● LIVE'}</span> ${expiryBadge}</div>
+            ${capPctFixed > 0 ? `<div style="margin-top:5px;background:var(--light);border-radius:3px;height:3px"><div style="background:var(--or);border-radius:3px;height:3px;width:${capPctFixed}%"></div></div>` : ''}
+          </div>
+          <div class="mcd-s">
+            <div class="mcd-p">${l.visits||0}</div>
+            <div class="mcd-pl">visits</div>
+          </div>
+        </div>
+        <div class="mcd-acts">
+          <button class="act-btn act-edit" onclick="window.openEdit('${l.id}')">✏️ Edit</button>
+          <button class="act-btn act-pause" onclick="window.togglePause('${l.id}', '${l.status||'active'}')">${l.status==='paused' ? '▶️ Unpause' : '⏸️ Pause'}</button>
+          <button class="act-btn act-del" onclick="window.deleteListing('${l.id}')">🗑️ Delete</button>
+          <button class="act-btn-full" onclick="window.exportStatus('${l.id}')"><span style="font-size:16px;">📱</span> Share to WhatsApp Status</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.openEdit = (id) => { 
+  window.haptic(30);
+  const l = currentListings.find(x => x.id === id); 
+  if (!l) return; 
+  document.getElementById('edit-id').value = l.id; 
+  document.getElementById('edit-title').value = l.title || ''; 
+  document.getElementById('edit-desc').value = l.desc || ''; 
+  document.getElementById('edit-price').value = l.price || ''; 
+  document.getElementById('edit-budget').value = l.budget || 25; 
+  document.getElementById('edit-radius').value = l.radius || 300; 
+  
+  pendingEditImageB64 = null;
+  document.getElementById('edit-img-status').textContent = '';
+  
+  document.getElementById('mod-edit').classList.add('on'); 
+};
+
+window.saveEdit = async () => { 
+  window.haptic(50);
+  const id = document.getElementById('edit-id').value; 
+  const budget = parseInt(document.getElementById('edit-budget').value) || 25; 
+  
+  if (budget < 25 || budget % 25 !== 0) return toast('⚠️', 'Budget must be a multiple of 25 Credits'); 
+  
+  const btn = document.querySelector('#mod-edit .btn-or'); 
+  btn.textContent = 'Saving...'; 
+  
+  try { 
+    let updateData = { 
+      title: document.getElementById('edit-title').value.trim(), 
+      desc: document.getElementById('edit-desc').value.trim(), 
+      price: document.getElementById('edit-price').value.trim(), 
+      budget: budget, 
+      dailyPopupLimit: budget * 10, 
+      radius: parseInt(document.getElementById('edit-radius').value) || 300 
+    };
+
+    if (pendingEditImageB64) {
+       btn.textContent = 'Uploading photo...';
+       try {
+         const newImgUrl = await uploadToImgBB(pendingEditImageB64);
+         updateData.imageUrl = newImgUrl;
+         updateData.image = newImgUrl; 
+       } catch (err) {
+         toast('❌', 'Image upload failed. Saving text only.');
+       }
+    }
+
+    await updateDoc(doc(db, 'listings', id), updateData); 
+    toast('✅', 'Listing updated successfully!'); 
+    document.getElementById('mod-edit').classList.remove('on'); 
+    loadListings(true); 
+  } catch(e) { 
+    toast('❌', 'Error updating'); 
+  } 
+  
+  btn.textContent = '💾 Save Changes'; 
+};
+
+window.togglePause = async (id, currentStatus) => { 
+  window.haptic(50);
+  const newStatus = currentStatus === 'paused' ? 'active' : 'paused'; 
+  try { 
+    await updateDoc(doc(db, 'listings', id), { status: newStatus }); 
+    toast('✅', `Listing ${newStatus}!`); 
+    loadListings(true); 
+  } catch(e) { 
+    toast('❌', 'Error updating status'); 
+  } 
+};
+
+window.deleteListing = async (id) => { 
+  window.haptic(50);
+  if (!confirm("🚨 Are you sure you want to permanently delete this listing?")) return; 
+  try { 
+    await deleteDoc(doc(db, 'listings', id)); 
+    toast('🗑️', 'Listing deleted.'); 
+    loadListings(true); 
+  } catch(e) { 
+    toast('❌', 'Error deleting'); 
+  } 
+};
+
+// Dynamic WhatsApp Status Generator
+window.exportStatus = async (id) => {
+  window.haptic(30);
+  const l = currentListings.find(x => x.id === id);
+  if (!l) return;
+  
+  toast('⏳', 'Generating Status Image...');
+
+  if (!window.html2canvas) {
+      await new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          script.onload = resolve;
+          document.head.appendChild(script);
+      });
+  }
+
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  
+  const col = l.color || '#FF5722';
+  
+  // 1. Image Sizing with Max-Height and Shrink Protection
+  const imgUrl = l.imageUrl || l.image;
+  const imgHtml = imgUrl 
+    ? `<img src="${imgUrl}" crossorigin="anonymous" style="width:100%; max-height:650px; object-fit:cover; border-radius:30px; margin-bottom:30px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); flex-shrink:0;">` 
+    : `<div style="width:100%; height:500px; max-height:650px; background:${col}20; border-radius:30px; display:flex; align-items:center; justify-content:center; font-size:250px; margin-bottom:30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 4px solid ${col}40; flex-shrink:0;">${l.emoji || '🏷️'}</div>`;
+
+  // 2. Fetch Merchant Logo
+  const mLogoNode = document.getElementById('m-logo');
+  const currMerchantLogo = (mLogoNode && mLogoNode.style.display !== 'none' && mLogoNode.src) ? mLogoNode.src : null;
+  const mLogoHtml = currMerchantLogo 
+    ? `<img src="${currMerchantLogo}" crossorigin="anonymous" style="width: 110px; height: 110px; border-radius: 25px; object-fit: contain; background: #fff; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">` 
+    : `<div style="width: 110px; height: 110px; border-radius: 25px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 55px; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">🏪</div>`;
+
+  // 3. Render Canvas Template
+  container.innerHTML = `
+    <div id="status-export-wrap" style="width: 1080px; height: 1920px; background-color: #111827; background-image: radial-gradient(circle at 10% 10%, #FF572240 0%, transparent 40%), radial-gradient(circle at 90% 90%, ${col}40 0%, #111827 50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-family: 'Nunito', sans-serif; position:relative; overflow:hidden;">
+       
+       <div style="width: 86%; height: 88%; display: flex; flex-direction: column; position: relative; z-index: 2;">
+          
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 35px; flex-shrink: 0;">
+            <div style="display:flex; flex-direction: column; gap: 15px;">
+              ${mLogoHtml}
+              <div style="background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:100px; font-size:24px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:2px; border:2px solid rgba(255,255,255,0.2); display: inline-block; align-self: flex-start;">${(l.type || 'Offer')}</div>
+            </div>
+            <img src="https://nearpop.in/icons/logo.png" style="height: 60px; filter: brightness(0) invert(1);">
+          </div>
+
+          ${imgHtml}
+          
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:center; text-align:center; margin-bottom: 25px;">
+            <h1 style="font-family: 'Syne', sans-serif; color: #fff; font-size: 65px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; text-shadow: 0 4px 15px rgba(0,0,0,0.5); word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${l.title}</h1>
+            <div style="font-size: 85px; font-weight: 900; color: #FF5722; text-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 30px;">${l.price}</div>
+            <div style="font-size: 28px; color: #9CA3AF; font-weight: 700; background: rgba(0,0,0,0.3); padding: 20px 40px; border-radius: 24px; display:inline-block; margin: 0 auto; word-break: break-word; overflow-wrap: anywhere; max-width: 95%;">📍 Available at <strong style="color:#fff;">${l.owner || 'Our Store'}</strong></div>
+          </div>
+
+          <div style="margin-top: auto; background: rgba(255,255,255,0.1); padding: 30px 35px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; border: 2px solid rgba(255,255,255,0.2); flex-shrink: 0;">
+            <div>
+              <div style="color:#fff; font-size: 34px; font-weight:900; margin-bottom:6px;">Find us on NearPop</div>
+              <div style="color:#9CA3AF; font-size: 22px; font-weight:600;">Download the app & search around you!</div>
+            </div>
+            
+            <div style="background:#000; padding: 12px 20px; border-radius:15px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M3.609 1.814L13.792 12 3.61 22.186a1.981 1.981 0 0 1-.36-.088A1.91 1.91 0 0 1 2 20.316V3.684a1.91 1.91 0 0 1 1.25-1.782c.115-.043.235-.073.359-.088zM14.85 13.06l3.418 3.417-6.07 3.504-4.59-4.591 7.242-2.33zM21.576 9.176l-3.308-1.91-3.418 3.418 3.418 3.418 3.308-1.91a1.915 1.915 0 0 0 0-3.016zM18.268 7.266L14.85 10.684 7.608 8.354l6.07-3.504 4.59 4.591H18.268z"/></svg>
+              <div style="margin-left: 12px; text-align: left;">
+                <div style="font-size: 10px; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Get it on</div>
+                <div style="font-size: 16px; font-weight: 700; color: #fff; line-height: 1.1;">Google Play</div>
+              </div>
+            </div>
+          </div>
+          
+       </div>
+    </div>
+  `;
+  document.body.appendChild(container);
+
+  setTimeout(async () => {
+     try {
+        const canvas = await html2canvas(document.getElementById('status-export-wrap'), {
+           scale: 1, 
+           useCORS: true,
+           backgroundColor: null
+        });
+        
+        canvas.toBlob(async (blob) => {
+            const fileName = `NearPop_Status_${Date.now()}.jpg`;
+            const file = new File([blob], fileName, { type: 'image/jpeg' });
+            
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'My Store Status',
+                        text: 'Check out our latest deal on NearPop!'
+                    });
+                    toast('✅', 'Opening WhatsApp...');
+                } catch (shareError) {
+                    console.log('Share canceled or failed', shareError);
+                }
+            } else {
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = dataUrl;
+                link.click();
+                toast('✅', 'Image saved! Open WhatsApp to share it.');
+            }
+            document.body.removeChild(container);
+        }, 'image/jpeg', 0.85);
+
+     } catch(err) {
+        console.error(err);
+        toast('❌', 'Failed to generate image.');
+        if(container.parentNode) document.body.removeChild(container);
+     }
+  }, 1000);
+};
+
+window.claimDailyCredits = async () => {
+    window.haptic(50);
+    const lastClaim = LS('last_daily_claim');
+    const now = Date.now();
+    
+    if (lastClaim && (now - parseInt(lastClaim)) < 86400000) {
+        return toast('⏳', 'Come back tomorrow for more free credits!');
+    }
+    
+    const btn = document.getElementById('btn-claim-daily');
+    btn.textContent = '...';
+    
+    try {
+        wallet += 100;
+        SS('wallet', wallet);
+        localStorage.setItem('np_wallet', wallet);
+        localStorage.setItem('np_last_daily_claim', now);
+        
+        if (uid) { 
+          await setDoc(doc(db, 'users', uid), { wallet: increment(100) }, { merge: true }); 
+        }
+        
+        document.getElementById('mwal').textContent = Math.floor(wallet) + ' 🪙';
+        toast('🎉', '100 Daily Credits Claimed!');
+        
+        btn.textContent = 'Claimed!';
+        btn.style.background = 'var(--grn)';
+    } catch(e) {
+        toast('❌', 'Error claiming credits');
+        btn.textContent = 'Claim';
+    }
+};
+
+window.shareAppBonus = async () => {
+    window.haptic(50);
+    if (LS('share_bonus_claimed')) {
+        return toast('✅', 'You already claimed this one-time bonus!');
+    }
+    
+    const shareProcess = async () => {
+        wallet += 200;
+        SS('wallet', wallet);
+        localStorage.setItem('np_wallet', wallet);
+        localStorage.setItem('np_share_bonus_claimed', 'true');
+        
+        if (uid) { await setDoc(doc(db, 'users', uid), { wallet: increment(200) }, { merge: true }); }
+        
+        document.getElementById('mwal').textContent = Math.floor(wallet) + ' 🪙';
+        toast('🎉', '200 Bonus Credits Earned!');
+        
+        const btn = document.getElementById('btn-claim-share');
+        btn.textContent = 'Claimed!';
+        btn.style.background = 'var(--grn)';
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'NearPop Merchant',
+                text: 'I use NearPop to get local customers for free. Check it out!',
+                url: 'https://nearpop.in'
+            });
+            await shareProcess();
+        } catch(e) { }
+    } else {
+        toast('🔗', 'Share link copied to clipboard!');
+        await shareProcess();
+    }
+};
+
+window.logout = async () => { window.haptic(50); try { await signOut(auth); } catch(e) { } ['uid','role','mname','wallet','phone', 'plan', 'logoUrl'].forEach(k=>localStorage.removeItem('np_'+k)); sessionStorage.clear(); window.location.href = 'index.html'; };
+window.toast = toast;
+
+onAuthStateChanged(auth, (user) => { if (user) { loadListings(true); } });
+setInterval(()=> { if (auth.currentUser) loadListings(true); }, CACHE_TTL);
+
+window.upgradePremium = async () => { 
+  window.haptic(50);
+  if (wallet < 499) { 
+    toast('⚠️', 'Insufficient credits. Earn more first!'); 
+    document.getElementById('mod-premium').classList.remove('on'); 
+    document.getElementById('mod-credits').classList.add('on'); 
+    return; 
+  } 
+  const btn = document.querySelector('#mod-premium .btn-or'); 
+  btn.textContent = 'Upgrading...'; 
+  try { 
+    const newWallet = wallet - 499; 
+    await setDoc(doc(db, 'users', uid), { wallet: newWallet, plan: 'premium' }, { merge: true }); 
+    wallet = newWallet; 
+    SS('wallet', wallet); 
+    SS('plan', 'premium'); 
+    userPlan = 'premium'; 
+    document.getElementById('mwal').textContent = Math.floor(wallet) + ' 🪙'; 
+    document.getElementById('mbiz').innerHTML = mname + ' <span style="font-size:14px">👑</span>'; 
+    toast('👑', 'Welcome to Premium!'); 
+    document.getElementById('mod-premium').classList.remove('on'); 
+    setTimeout(() => { window.location.href = 'create.html'; }, 1200); 
+  } catch(e) { 
+    toast('❌', 'Upgrade failed.'); 
+    btn.textContent = '⚡ Upgrade for 499 Credits'; 
+  } 
+};
+
+window.checkPremium = () => { 
+  window.haptic(30); 
+  
+  if (!isDataLoaded && userPlan !== 'premium') {
+    return toast('⏳', 'Syncing your dashboard, please wait a second...');
+  }
+
+  if (userPlan === 'premium' || currentListings.length === 0) { 
+    window.location.href = 'create.html'; 
+  } else { 
+    document.getElementById('mod-premium').classList.add('on'); 
+  } 
+};
+
+window.showStoreQR = () => { window.haptic(30); const uid = LS('uid'); if(!uid) return alert("Error: Merchant not logged in."); const box = document.getElementById('qrcode-box'); box.innerHTML = ''; new QRCode(box, { text: "NEARPOP_CLAIM:" + uid, width: 220, height: 220, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H }); document.getElementById('mod-qr').classList.add('on'); };
+
+window.exportStandee = async (format) => {
+  window.haptic(30);
+  document.getElementById('mod-standee-choice').classList.remove('on');
+
+  if (format === 'print') {
+    window.generatePermanentStandee();
+    return;
+  }
+
+  toast('⏳', 'Generating high-res PDF...');
+
+  const merchantUid = LS('uid'); 
+  const targetUrl = `https://nearpop.in/store.html?mid=${merchantUid}&utm_source=qr_standee&utm_medium=offline`;
+  
+  const tempDiv = document.createElement('div');
+  new QRCode(tempDiv, {
+      text: targetUrl,
+      width: 400,
+      height: 400,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+  });
+
+  setTimeout(async () => {
+      const qrCanvas = tempDiv.querySelector('canvas');
+      const qrDataUrl = qrCanvas.toDataURL('image/png');
+
+      const mLogo = document.getElementById('m-logo');
+      const currLogoUrl = (mLogo && mLogo.style.display !== 'none' && mLogo.src) ? mLogo.src : null;
+      const shopLogoHtml = currLogoUrl 
+        ? `<img src="${currLogoUrl}" style="max-width: 100px; max-height: 100px; border-radius: 20px; object-fit: contain; background: #fff; margin-bottom: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 2px solid #e5e7eb; display: block; margin-left: auto; margin-right: auto;">` 
+        : '';
+
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.innerHTML = `
+        <div id="pdf-content" style="width: 210mm; height: 297mm; background: #e5e7eb; display: flex; align-items: center; justify-content: center; padding: 15mm; box-sizing: border-box; font-family: 'Nunito', sans-serif;">
+           <div style="width: 100%; height: 100%; background: #ffffff; border: 12px solid #FF5722; border-radius: 32px; padding: 6%; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; overflow: hidden;">
+              <img src="https://nearpop.in/icons/logo.png" style="max-height: 50px;">
+              ${shopLogoHtml}
+              <h1 style="font-family: 'Syne', sans-serif; color: #0F0F13; font-size: 34px; font-weight: 800; margin: 0; line-height: 1.2;">Welcome to <br><span style="color:#FF5722">${LS('mname') || 'Our Store'}</span></h1>
+              <div style="background: #fff; padding: 20px; border-radius: 24px; border: 6px solid #e5e7eb;">
+                 <img src="${qrDataUrl}" style="width: 280px; height: 280px; object-fit: contain;">
+              </div>
+              <h2 style="color: #FF5722; font-size: 26px; font-weight: 900; margin: 0;">Scan to see today's deals!</h2>
+              <p style="color: #6b7280; font-size: 15px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">No app download required<br>Powered by nearpop.in</p>
+           </div>
+        </div>
+      `;
+      document.body.appendChild(container);
+
+      if (!window.html2pdf) {
+          await new Promise((resolve) => {
+              const script = document.createElement('script');
+              script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+              script.onload = resolve;
+              document.head.appendChild(script);
+          });
+      }
+
+      const opt = {
+          margin:       0,
+          filename:     `NearPop_Standee_${format.split('-')[1].toUpperCase()}.pdf`,
+          image:        { type: 'jpeg', quality: 1 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'mm', format: format === 'pdf-a4' ? 'a4' : 'a5', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(container.firstElementChild).save().then(() => {
+          document.body.removeChild(container);
+          toast('✅', 'PDF Downloaded successfully!');
+      });
+  }, 100);
+};
+
+window.generatePermanentStandee = () => {
+  const merchantUid = LS('uid'); 
+  const targetUrl = `https://nearpop.in/store.html?mid=${merchantUid}&utm_source=qr_standee&utm_medium=offline`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(targetUrl)}&margin=10`;
+
+  const mLogo = document.getElementById('m-logo');
+  const currLogoUrl = (mLogo && mLogo.style.display !== 'none' && mLogo.src) ? mLogo.src : null;
+  const shopLogoHtml = currLogoUrl 
+    ? `<img src="${currLogoUrl}" class="shop-img">` 
+    : '';
+
+  const printWindow = window.open('', '_blank');
+  
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>NearPop Store Standee</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Syne:wght@800&display=swap" rel="stylesheet">
+      <style>
+        @page { size: A4 portrait; margin: 0; }
+        
+        body { 
+          font-family: 'Nunito', sans-serif; 
+          margin: 0; 
+          background: #e5e7eb; 
+          -webkit-print-color-adjust: exact; 
+          box-sizing: border-box; 
+          display: flex; 
+          justify-content: center; 
+          align-items: center; 
+          min-height: 100vh; 
+        }
+
+        .standee-container { 
+          width: 100%; 
+          height: 100vh; 
+          padding: 20px; 
+          box-sizing: border-box; 
+          display: flex; 
+          justify-content: center; 
+          align-items: center; 
+        }
+
+        .standee { 
+          width: 100%; 
+          max-width: 600px; 
+          height: 100%; 
+          background: #ffffff; 
+          border: 12px solid #FF5722; 
+          border-radius: 32px; 
+          padding: 30px 20px; 
+          text-align: center; 
+          box-sizing: border-box; 
+          box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+          display: flex; 
+          flex-direction: column; 
+          justify-content: space-evenly; /* Auto-balances all empty space */
+          align-items: center; 
+          overflow: hidden; 
+        }
+
+        .logo { max-height: 40px; max-width: 80%; object-fit: contain; } 
+        .shop-img { max-height: 90px; max-width: 80%; object-fit: contain; border-radius: 16px; }
+
+        h1 { 
+          font-family: 'Syne', sans-serif; 
+          color: #0F0F13; 
+          font-size: clamp(22px, 4vmin, 34px); 
+          font-weight: 800; 
+          margin: 0; 
+          line-height: 1.2; 
+          width: 100%;
+          word-wrap: break-word; 
+          overflow-wrap: break-word; 
+        }
+
+        .qr-box { 
+          background: #fff; 
+          padding: 15px; 
+          border-radius: 20px; 
+          display: inline-flex; 
+          justify-content: center; 
+          align-items: center; 
+          border: 4px solid #e5e7eb; 
+          box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
+        }
+
+        .qr-code { 
+          width: clamp(150px, 35vmin, 220px); 
+          height: clamp(150px, 35vmin, 220px); 
+          object-fit: contain; 
+        } 
+
+        h2 { color: #FF5722; font-size: clamp(18px, 3vmin, 24px); font-weight: 900; margin: 0; line-height: 1.3; }
+        p { color: #6b7280; font-size: clamp(11px, 2vmin, 14px); font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* 🖨️ THE FIX: Hard-coded physical measurements for the printer */
+        @media print { 
+          body { background: #fff; display: block; } 
+          .no-print { display: none !important; }
+          
+          .standee-container { 
+              padding: 10mm; /* 1cm padding from edge of paper */
+              height: 100vh; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+          }
+          
+          .standee { 
+              max-width: 100%; 
+              height: 100%; 
+              border-width: 8mm; 
+              border-radius: 12mm; 
+              padding: 5mm; 
+              box-shadow: none; 
+          } 
+          
+          /* Lock sizes to physical units so they CANNOT overflow an A4 page */
+          .logo { max-height: 15mm; } 
+          .shop-img { max-height: 25mm !important; }
+          h1 { font-size: 24pt; margin: 0; } /* pt is best for print text */
+          .qr-box { padding: 5mm; border-width: 2mm; }
+          .qr-code { width: 65mm; height: 65mm; } /* Locked to exactly 6.5cm */
+          h2 { font-size: 16pt; }
+          p { font-size: 10pt; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="standee-container">
+        <div class="standee">
+          <img src="https://nearpop.in/icons/logo.png" alt="NearPop" class="logo" onerror="this.style.display='none'">
+          ${shopLogoHtml}
+          <h1>Welcome to <br><span style="color:#FF5722">${LS('mname') || 'Our Store'}</span></h1>
+          <div class="qr-box"><img src="${qrUrl}" alt="Scan Me" class="qr-code"></div>
+          <h2>Scan to see today's deals!</h2>
+          <p>No app download required<br>Powered by nearpop.in</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+
+window.closePlayStorePopup = () => { 
+  const mod = document.getElementById('mod-playstore');
+  if (mod) mod.classList.remove('on'); 
+  localStorage.setItem('hide_playstore', 'true'); 
+};
+
+window.openPlayStore = () => {
+  window.haptic(50);
+  window.open('https://play.google.com/store/apps/details?id=in.nearpop.app', '_blank');
+  window.closePlayStorePopup();
+};
+
+setTimeout(() => {
+  if ('Notification' in window) {
+    if (Notification.permission === 'default') {
+      const notifPrompt = document.getElementById('notif-prompt');
+      if (notifPrompt) notifPrompt.style.display = 'flex';
+    } else if (Notification.permission === 'granted') { 
+      window.askForNotifs(); 
+    }
+  }
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (!isStandalone && !localStorage.getItem('hide_playstore')) { 
+    window.showPlayStorePopup(); 
+  }
+}, 3000);
+
+// 🚀 NEW: Guided Onboarding Tour Engine
+class AppTour {
+  constructor(steps, onComplete) {
+    this.steps = steps;
+    this.idx = 0;
+    this.onComplete = onComplete;
+    
+    this.backdrop = document.createElement('div');
+    this.backdrop.className = 'tour-backdrop';
+    
+    this.overlay = document.createElement('div');
+    this.overlay.className = 'tour-overlay';
+    
+    this.popover = document.createElement('div');
+    this.popover.className = 'tour-popover';
+    
+    document.body.appendChild(this.backdrop);
+    document.body.appendChild(this.overlay);
+    document.body.appendChild(this.popover);
+  }
+
+  start() {
+    this.idx = 0;
+    this.showStep();
+  }
+
+  showStep() {
+    if (this.idx >= this.steps.length) return this.end();
+    const step = this.steps[this.idx];
+    const el = document.querySelector(step.target);
+    
+    if (!el) { this.idx++; return this.showStep(); }
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      
+      this.overlay.style.top = (rect.top - 8) + 'px';
+      this.overlay.style.left = (rect.left - 8) + 'px';
+      this.overlay.style.width = (rect.width + 16) + 'px';
+      this.overlay.style.height = (rect.height + 16) + 'px';
+
+      this.popover.innerHTML = `
+        <div style="font-weight:900; font-size:17px; margin-bottom:8px; color:#111827; display:flex; align-items:center; gap:8px;">${step.icon || '💡'} ${step.title}</div>
+        <div style="font-size:13px; color:#4B5563; margin-bottom:20px; line-height:1.6; font-weight:600;">${step.desc}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button style="background:transparent; color:#9CA3AF; border:none; font-weight:800; font-size:12px; cursor:pointer; padding:8px 0;" id="t-prev">${this.idx > 0 ? '← Back' : ''}</button>
+          <div style="font-size:11px; color:#D1D5DB; font-weight:800; position:absolute; left:50%; transform:translateX(-50%);">${this.idx + 1} / ${this.steps.length}</div>
+          <button style="background:#FF5722; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(255,87,34,0.3);" id="t-next">${this.idx === this.steps.length - 1 ? 'Finish' : 'Next →'}</button>
+        </div>
+        <button style="position:absolute; top:12px; right:12px; background:transparent; border:none; font-size:18px; color:#9CA3AF; cursor:pointer;" id="t-close">×</button>
+      `;
+
+      let popTop = rect.bottom + 20;
+      if (popTop + 180 > window.innerHeight) {
+        popTop = rect.top - 180; 
+      }
+      this.popover.style.top = popTop + 'px';
+      this.popover.classList.add('visible');
+
+      const prevBtn = document.getElementById('t-prev');
+      if (this.idx === 0) prevBtn.style.visibility = 'hidden';
+      else prevBtn.onclick = () => { this.idx--; this.showStep(); };
+
+      document.getElementById('t-close').onclick = () => this.end();
+      document.getElementById('t-next').onclick = () => { this.idx++; this.showStep(); };
+    }, 400); 
+  }
+
+  end() {
+    this.backdrop.remove();
+    this.overlay.remove();
+    this.popover.remove();
+    if(this.onComplete) this.onComplete();
+  }
+}
+
+window.startMerchantTour = () => {
+  const steps = [
+    { target: '#tour-wallet', icon: '🎁', title: 'Free Promo Credits', desc: 'Use these free credits to boost your deals. You get +100 free credits every day you log in!' },
+    { target: '#tour-dashboard', icon: '📈', title: 'Customer Dashboard', desc: 'Watch your performance live. See how many people view your deals and physically visit your store.' },
+    { target: '#tour-qr', icon: '📲', title: 'Smart Storefront QR', desc: 'Print this QR code for your counter. Customers scan it to earn points, and you get valuable foot-traffic data!' },
+    { target: '#tour-fab', icon: '🚀', title: 'Create a Listing', desc: 'Tap this button to post your first deal, rental, or job directly to the local map.' }
+  ];
+  
+  new AppTour(steps, async () => {
+    localStorage.setItem('np_tour_merchant', 'true');
+    try { await updateDoc(doc(db, 'users', uid), { tourMerchant: true }); } catch(e){}
+  }).start();
+};
+
+// Automatically start tour if it's their first time
+setTimeout(() => {
+  if (!localStorage.getItem('np_tour_merchant') && currentListings.length === 0) {
+    window.startMerchantTour();
+  }
+}, 1200);
+
+</script>
+</body>
+</html>

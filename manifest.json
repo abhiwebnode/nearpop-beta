@@ -1,0 +1,124 @@
+{
+  "id": "/",
+  "name": "NearPop — Local Deals & Discovery",
+  "short_name": "NearPop",
+  "description": "Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/map.html?utm_source=pwa",
+  "scope": "/",
+  "scope_extensions": [
+    { "origin": "*.nearpop.in" },
+    { "origin": "https://nearpop.in" }
+  ],
+  "display": "fullscreen",
+  "display_override": [
+    "window-controls-overlay",
+    "tabbed",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait",
+  "theme_color": "#FF5722",
+  "background_color": "#F9FAFB",
+  "categories": ["shopping", "lifestyle", "business", "navigation"],
+  "iarc_rating_id": "eC",
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=in.nearpop.app",
+      "id": "in.nearpop.app"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot1.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "icons/screenshot2.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "icons/screenshot-desktop.jpg",
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan Store QR",
+      "short_name": "Scan QR",
+      "description": "Scan a merchant QR code to earn points",
+      "url": "/profile.html?action=scan",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Live Map",
+      "short_name": "Map",
+      "description": "See nearby deals on the map",
+      "url": "/map.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/create.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+nearpop",
+      "url": "/map.html?link=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/profile.html",
+      "accept": { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] }
+    }
+  ],
+  "note_taking": {
+    "new_note_url": "/create.html"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "widgets": [
+    {
+      "name": "NearPop Deals",
+      "description": "See nearby deals on your home screen",
+      "tag": "nearpop-widget",
+      "ms_ac_template": "icons/widget-template.json",
+      "data": "icons/widget-data.json",
+      "type": "application/json"
+    }
+  ]
+}

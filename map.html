@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="NearPop — See live listings on a map near your current location.">
+<meta name="theme-color" content="#0F0F13">
+<meta name="color-scheme" content="light dark"> 
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>NearPop — Nearby</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
+<link rel="stylesheet" href="css/shared.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<style>
+*, *::before, *::after { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent; 
+}
+
+#wrap { 
+  position: relative; 
+  height: 100vh; 
+  height: 100dvh; 
+  background: var(--bg-body); 
+  overflow: hidden; 
+}
+
+.map-wrapper { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  height: 50%; 
+  z-index: 1; 
+}
+
+#map { 
+  width: 100%; 
+  height: 100%; 
+}
+
+.map-search-wrap {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  right: 175px;
+  z-index: 900;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+  height: 46px;
+}
+
+.ms-icon { font-size: 16px; opacity: 0.6; margin-right: 6px; }
+
+#map-search {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--deep);
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+
+#map-search::placeholder { color: #4B5563; font-weight: 600; }
+
+#ms-clear {
+  background: rgba(0,0,0,0.05);
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--deep);
+  cursor: pointer;
+  display: none;
+  margin-left: 6px;
+  font-weight: 900;
+}
+
+.tbar { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  z-index: 890; 
+  padding: 13px 13px 0; 
+  display: flex; 
+  gap: 9px; 
+  justify-content: flex-end; 
+  pointer-events: none; 
+}
+
+.lbtn { 
+  pointer-events: auto; 
+  width: 46px; 
+  height: 46px; 
+  border-radius: 14px; 
+  background: rgba(255,255,255,0.9); 
+  -webkit-backdrop-filter: blur(20px); 
+  backdrop-filter: blur(20px); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 20px; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+  border: 1px solid rgba(0,0,0,0.05); 
+  color: var(--deep); 
+  cursor: pointer; 
+  transition: transform 0.2s; 
+  font-family: inherit; 
+  font-weight: 900;
+}
+
+.lbtn:active { 
+  transform: scale(0.9); 
+}
+
+@keyframes spin-anim { 
+  100% { transform: rotate(360deg); } 
+}
+
+.spinning { 
+  animation: spin-anim 1s linear infinite; 
+}
+
+.zoom-btns { 
+  position: absolute; 
+  right: 13px; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  z-index: 800; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+}
+
+.zbtn { 
+  width: 40px; 
+  height: 40px; 
+  border-radius: 12px; 
+  background: rgba(255,255,255,0.9); 
+  -webkit-backdrop-filter: blur(20px); 
+  backdrop-filter: blur(20px); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 22px; 
+  font-weight: 700; 
+  color: var(--deep); 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+  border: 1px solid rgba(0,0,0,0.05); 
+  line-height: 1; 
+  transition: transform 0.1s; 
+  cursor: pointer; 
+}
+
+.zbtn:active { 
+  transform: scale(0.9); 
+}
+
+.map-watermark {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 850;
+  pointer-events: none;
+  opacity: 0.35;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.3s;
+}
+
+.map-watermark img { 
+  height: 22px; 
+  width: auto; 
+  filter: grayscale(100%) brightness(0); 
+}
+
+.map-watermark span { 
+  font-family: 'Syne', sans-serif; 
+  font-weight: 800; 
+  font-size: 13px; 
+  color: #000; 
+  letter-spacing: 0.5px; 
+  text-transform: uppercase; 
+}
+
+.bsht { 
+  position: absolute; 
+  top: 50%; 
+  left: 0; 
+  right: 0; 
+  bottom: 0; 
+  background: #F9FAFB; 
+  border-radius: 28px 28px 0 0; 
+  padding: 10px 0 calc(90px + env(safe-area-inset-bottom)); 
+  box-shadow: 0 -8px 30px rgba(0,0,0,.15); 
+  z-index: 800; 
+  display: flex; 
+  flex-direction: column; 
+  overflow-y: auto; 
+  -webkit-overflow-scrolling: touch; 
+  overscroll-behavior-y: contain;
+  transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+}
+
+.bsht.list-mode { 
+  top: 75px; 
+}
+
+.bsht-h { 
+  width: 42px; 
+  height: 5px; 
+  background: #D1D5DB; 
+  border-radius: 3px; 
+  margin: 0 auto 10px; 
+  flex-shrink: 0; 
+}
+
+.radius-bar { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  padding: 0 16px 8px; 
+  overflow-x: auto; 
+  scrollbar-width: none; 
+  border-bottom: 1px solid #E5E7EB; 
+  margin-bottom: 8px; 
+  flex-shrink: 0; 
+  -webkit-overflow-scrolling: touch;
+}
+
+.radius-bar::-webkit-scrollbar { 
+  display: none; 
+}
+
+.radius-label { 
+  font-size: 11px; 
+  font-weight: 900; 
+  color: #6B7280; 
+  white-space: nowrap; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px; 
+  margin-right: 4px; 
+}
+
+.rdist-btn { 
+  white-space: nowrap; 
+  padding: 6px 12px; 
+  border-radius: 100px; 
+  font-size: 11px; 
+  font-weight: 800; 
+  border: 2px solid #E5E7EB; 
+  background: #fff; 
+  color: #4B5563; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+  font-family: inherit; 
+}
+
+.rdist-btn.on { 
+  background: rgba(255,87,34,0.1); 
+  border-color: #FF5722; 
+  color: #FF5722; 
+}
+
+.cat-pills { 
+  display: flex; 
+  gap: 6px; 
+  padding: 0 16px 8px; 
+  overflow-x: auto; 
+  scrollbar-width: none; 
+  flex-shrink: 0; 
+  -webkit-overflow-scrolling: touch;
+}
+
+.cat-pills::-webkit-scrollbar { 
+  display: none; 
+}
+
+.pill { 
+  padding: 6px 12px; 
+  border-radius: 100px; 
+  font-size: 11px; 
+  font-weight: 800; 
+  background: #fff; 
+  border: 2px solid #E5E7EB; 
+  color: #4B5563; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+  white-space: nowrap; 
+  font-family: inherit; 
+}
+
+.pill.on { 
+  background: #111827; 
+  border-color: #111827; 
+  color: #fff; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+}
+
+.hscr { 
+  display: flex; 
+  gap: 12px; 
+  padding: 0 16px 12px; 
+  overflow-x: auto; 
+  scrollbar-width: none; 
+  flex-shrink: 0; 
+  cursor: grab; 
+  user-select: none; 
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.hscr::-webkit-scrollbar { 
+  display: none; 
+}
+
+.hscr:active { 
+  cursor: grabbing; 
+}
+
+.hcd { 
+  background: #fff; 
+  border-radius: 18px; 
+  padding: 14px; 
+  cursor: pointer; 
+  flex-shrink: 0; 
+  border: 1px solid rgba(0,0,0,0.05); 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+  transition: all 0.15s; 
+  position: relative; 
+  overflow: hidden; 
+  pointer-events: auto; 
+}
+
+.hcd:active { 
+  transform: scale(0.97); 
+  border-color: #FF5722; 
+}
+
+.deals-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 12px; 
+  padding: 0 16px 16px; 
+}
+
+.deal-card { 
+  border-radius: 20px; 
+  padding: 12px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+  border: 1px solid rgba(0,0,0,0.04); 
+  box-shadow: 0 6px 16px rgba(0,0,0,0.04); 
+  text-decoration: none; 
+  cursor: pointer; 
+  position: relative; 
+  overflow: hidden; 
+  background: #fff; 
+}
+
+.deal-card:nth-child(4n+1) { background: #FFF5F2; border-color: #FFE4D6; } 
+.deal-card:nth-child(4n+2) { background: #F0F9FF; border-color: #DBEAFE; } 
+.deal-card:nth-child(4n+3) { background: #F5F3FF; border-color: #EDE9FE; } 
+.deal-card:nth-child(4n+4) { background: #F0FDF4; border-color: #D1FAE5; } 
+
+.deal-card:active { 
+  transform: scale(0.96); 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+}
+
+.d-ic { 
+  width: 100%; 
+  height: 100px; 
+  background: #fff; 
+  border-radius: 14px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 42px; 
+  flex-shrink: 0; 
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.04); 
+}
+
+.d-inf { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.d-ti { 
+  font-size: 13.5px; 
+  font-weight: 800; 
+  color: #111827; 
+  margin-bottom: 4px; 
+  line-height: 1.3; 
+  display: -webkit-box; 
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical; 
+  overflow: hidden; 
+}
+
+.d-pr { 
+  font-size: 15px; 
+  font-weight: 900; 
+  color: #FF5722; 
+  margin-top: auto; 
+}
+
+.dc-bot { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  border-top: 1px dashed rgba(0,0,0,0.1); 
+  padding-top: 10px; 
+  margin-top: auto; 
+}
+
+.d-tag { 
+  font-size: 10px; 
+  font-weight: 900; 
+  padding: 4px 8px; 
+  border-radius: 8px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px; 
+}
+
+.d-arrow { 
+  background: #fff; 
+  width: 24px; 
+  height: 24px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 12px; 
+  color: #111827; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+  font-weight: 900; 
+}
+
+.mnotif { 
+  position: fixed; 
+  top: 74px; 
+  left: 12px; 
+  right: 12px; 
+  background: #fff; 
+  border-radius: 20px; 
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
+  padding: 16px; 
+  z-index: 950; 
+  display: none; 
+  border: 1px solid rgba(0,0,0,0.05); 
+}
+
+.mnotif.on { 
+  display: block; 
+  animation: pon 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+}
+
+@keyframes pon { 
+  from { opacity: 0; transform: translateY(-16px) scale(0.93); } 
+  to { opacity: 1; transform: none; } 
+}
+
+.mn-row { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  margin-bottom: 8px; 
+}
+
+.mn-badge { 
+  padding: 4px 10px; 
+  border-radius: 100px; 
+  font-size: 10px; 
+  font-weight: 900; 
+  color: #fff; 
+  letter-spacing: 0.5px; 
+}
+
+.mn-dist { 
+  margin-left: auto; 
+  background: #F3F4F6; 
+  color: #4B5563; 
+  font-size: 11px; 
+  font-weight: 800; 
+  padding: 4px 10px; 
+  border-radius: 100px; 
+}
+
+.mn-title { 
+  font-size: 16px; 
+  font-weight: 900; 
+  color: var(--deep); 
+  margin-bottom: 4px; 
+  line-height: 1.2; 
+}
+
+.mn-body { 
+  font-size: 13px; 
+  color: #6B7280; 
+  line-height: 1.5; 
+  margin-bottom: 14px; 
+  font-weight: 600; 
+}
+
+.mn-btns { 
+  display: flex; 
+  gap: 10px; 
+}
+
+.mn-btn { 
+  flex: 1; 
+  padding: 12px; 
+  border-radius: 12px; 
+  font-size: 14px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  border: none; 
+  font-family: inherit; 
+}
+
+.mn-btn.p { 
+  background: #FF5722; 
+  color: #fff; 
+  box-shadow: 0 4px 12px rgba(255,87,34,0.25); 
+}
+
+.mn-btn.s { 
+  background: #F3F4F6; 
+  color: #4B5563; 
+}
+
+.pin-preview { 
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%) scale(0.9);
+  width: calc(100% - 32px);
+  max-width: 360px;
+  z-index: 9999; 
+  background: #fff; 
+  border-radius: 28px; 
+  padding: 24px; 
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+}
+
+.pin-preview.on { 
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+.pp-close { 
+  position: absolute; 
+  top: 16px; 
+  right: 16px; 
+  background: #F3F4F6; 
+  border: none; 
+  width: 34px; 
+  height: 34px; 
+  border-radius: 17px; 
+  font-size: 16px; 
+  font-weight: 900; 
+  color: #4B5563; 
+  cursor: pointer; 
+}
+
+.pp-top { 
+  display: flex; 
+  gap: 16px; 
+  align-items: center; 
+  padding-right: 40px; 
+}
+
+.pp-ic { 
+  width: 64px; 
+  height: 64px; 
+  border-radius: 20px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 32px; 
+  flex-shrink: 0; 
+}
+
+.pp-title { 
+  font-size: 19px; 
+  font-weight: 900; 
+  color: #111827; 
+  line-height: 1.2; 
+  margin-bottom: 4px; 
+}
+
+.pp-price { 
+  font-size: 17px; 
+  font-weight: 900; 
+  color: #FF5722; 
+}
+
+.pp-mid { 
+  display: flex; 
+  gap: 10px; 
+  align-items: center; 
+}
+
+.pp-badge { 
+  padding: 4px 12px; 
+  border-radius: 8px; 
+  font-size: 11px; 
+  font-weight: 900; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px; 
+}
+
+.pp-dist { 
+  font-size: 12px; 
+  font-weight: 800; 
+  color: #6B7280; 
+  background: #F3F4F6; 
+  padding: 4px 10px; 
+  border-radius: 8px; 
+}
+
+.pp-btn { 
+  background: #FF5722; 
+  color: #fff; 
+  border: none; 
+  padding: 16px; 
+  border-radius: 16px; 
+  font-size: 16px; 
+  font-weight: 900; 
+  cursor: pointer; 
+  font-family: inherit; 
+  box-shadow: 0 4px 15px rgba(255,87,34,0.3); 
+  transition: transform 0.2s; 
+}
+
+.pp-btn:active { 
+  transform: scale(0.97); 
+}
+
+.np-cluster { 
+  width: 46px; 
+  height: 46px; 
+  background: linear-gradient(135deg, #FF5722, #D97706); 
+  color: #fff; 
+  border-radius: 50%; 
+  border: 3px solid #fff; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 16px; 
+  font-weight: 900; 
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4); 
+  font-family: 'Nunito', sans-serif; 
+  transition: transform 0.2s; 
+}
+
+.custom-cluster { 
+  background: transparent; 
+  border: none; 
+}
+
+@keyframes radar-pulse { 
+  0% { transform: scale(0.8); opacity: 0.8; } 
+  100% { transform: scale(2.5); opacity: 0; } 
+}
+
+.user-radar { 
+  position: absolute; 
+  width: 100%; 
+  height: 100%; 
+  background: #FF5722; 
+  border-radius: 50%; 
+  animation: radar-pulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1); 
+  z-index: 1; 
+}
+
+.custom-pin { 
+  width: 38px; 
+  height: 38px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+  position: relative; 
+  border: 3px solid #fff; 
+}
+
+.pin-emo { 
+  font-size: 18px; 
+}
+
+.pin-caret { 
+  position: absolute; 
+  bottom: -8px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  border-left: 7px solid transparent; 
+  border-right: 7px solid transparent; 
+  border-top: 8px solid; 
+}
+
+.wlc-em { 
+  font-size: 44px; 
+  text-align: center; 
+  margin-bottom: 8px; 
+}
+
+.wlc-t { 
+  font-family: 'Syne', sans-serif; 
+  font-size: 21px; 
+  font-weight: 800; 
+  color: var(--deep); 
+  text-align: center; 
+  margin-bottom: 5px; 
+}
+
+.wlc-s { 
+  font-size: 13px; 
+  color: var(--gray); 
+  text-align: center; 
+  line-height: 1.6; 
+  margin-bottom: 18px; 
+  font-weight: 500; 
+}
+
+.wtypes { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 8px; 
+  margin-bottom: 16px; 
+}
+
+.wtype { 
+  padding: 13px 8px; 
+  border-radius: 14px; 
+  border: 2px solid var(--bdr); 
+  background: var(--cream); 
+  text-align: center; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+  font-family: inherit; 
+}
+
+.wtype .wi { 
+  font-size: 24px; 
+  margin-bottom: 4px; 
+}
+
+.wtype .wl { 
+  font-size: 12px; 
+  font-weight: 800; 
+  color: var(--deep); 
+}
+
+.wtype .ws { 
+  font-size: 9px; 
+  color: var(--gray); 
+  font-weight: 500; 
+  margin-top: 1px; 
+}
+
+.wtype.on { 
+  border-color: var(--or); 
+  background: rgba(255,87,34,.05); 
+}
+
+.gps-note { 
+  display: flex; 
+  align-items: flex-start; 
+  gap: 9px; 
+  background: rgba(16,185,129,.1); 
+  border: 1px solid rgba(16,185,129,.3); 
+  border-radius: 12px; 
+  padding: 11px 13px; 
+  margin-bottom: 16px; 
+}
+
+.gps-note p { 
+  font-size: 12px; 
+  color: var(--grn); 
+  font-weight: 600; 
+  line-height: 1.5; 
+}
+
+.btn-skip { 
+  width: 100%; 
+  padding: 12px; 
+  border-radius: 13px; 
+  background: var(--light); 
+  color: var(--deep); 
+  font-size: 13px; 
+  font-weight: 700; 
+  border: none; 
+  cursor: pointer; 
+}
+
+#geo-error-banner { 
+  display: none; 
+  position: fixed; 
+  top: env(safe-area-inset-top, 0px); 
+  left: 0; 
+  right: 0; 
+  background: #EF4444; 
+  color: #fff; 
+  font-size: 13px; 
+  font-weight: 700; 
+  padding: 12px 16px; 
+  z-index: 9999; 
+  text-align: center; 
+}
+
+.skeleton {
+  background: #E5E7EB;
+  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+
+@keyframes shimmer { 
+  0% { background-position: 200% 0; } 
+  100% { background-position: -200% 0; } 
+}
+
+.fomo-badge {
+  position: absolute; 
+  top: 10px; 
+  left: 10px;
+  background: #EF4444; 
+  color: #fff; 
+  font-size: 10px; 
+  font-weight: 900;
+  padding: 4px 8px; 
+  border-radius: 6px; 
+  z-index: 5; 
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 10px rgba(239,68,68,0.4);
+  animation: fomo-pulse 1.5s infinite;
+}
+
+@keyframes fomo-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .bsht { background: #111827; }
+  .bsht-h { background: #374151; }
+  .radius-bar, .cat-pills, .hscr, .deals-grid { border-color: #374151; }
+  
+  .rdist-btn, .pill { background: #1F2937; color: #D1D5DB; border-color: #374151; }
+  .rdist-btn.on, .pill.on { background: #FF5722; color: #fff; border-color: #FF5722; }
+
+  .hcd { background: #1F2937; border-color: #374151; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  .deal-card { box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+  
+  .deal-card:nth-child(4n+1) { background: #2A1A15; border-color: #3D261D; } 
+  .deal-card:nth-child(4n+2) { background: #15222E; border-color: #1E3142; } 
+  .deal-card:nth-child(4n+3) { background: #1C1929; border-color: #2B263D; } 
+  .deal-card:nth-child(4n+4) { background: #16271D; border-color: #213A2B; } 
+  
+  .d-ti, .hcd-title, .pp-title, #notif-prompt div:first-child { color: #F9FAFB !important; }
+  .d-arrow { background: #374151; color: #F9FAFB; }
+  .custom-pin { border-color: #111827; }
+  
+  .pin-preview { background: #111827; }
+  .mnotif { background: #1F2937; border-color: #374151; }
+  .mn-title { color: #F9FAFB; }
+  .mn-btn.s { background: #374151; color: #D1D5DB; }
+  .mn-dist { background: #374151; color: #D1D5DB; }
+  
+  .view-toggle-btn { background: #1F2937 !important; color: #D1D5DB !important; border-color: #374151 !important; }
+  .view-toggle-btn.on { background: #FF5722 !important; color: #fff !important; border-color: #FF5722 !important; }
+
+  .map-watermark img { filter: invert(1) brightness(100%); }
+  .map-watermark span { color: #fff; }
+
+  .map-search-wrap { background: rgba(31, 41, 55, 0.9); border-color: #374151; }
+  #map-search { color: #F9FAFB; }
+  #map-search::placeholder { color: #6B7280; }
+  #ms-clear { color: #D1D5DB; background: rgba(255,255,255,0.1); }
+}
+</style>
+</head>
+<body>
+<div id="hard-geo-block" style="display:none; position:fixed; inset:0; background:var(--bg-body); color:var(--deep); z-index:99999; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;">
+  <div style="font-size:64px; margin-bottom:20px; filter: drop-shadow(0 10px 20px rgba(255,87,34,0.3));">📍</div>
+  <h2 style="font-family:'Syne', sans-serif; font-size:26px; margin-bottom:12px; font-weight:800;" data-en="Location Required" data-hi="स्थान आवश्यक है">Location Required</h2>
+  <p style="color:var(--gray); font-size:15px; margin-bottom:24px; line-height:1.6;" data-en="NearPop is a proximity engine. We need your GPS to find live deals on the streets around you." data-hi="NearPop एक निकटता इंजन है। आपके आस-पास की डील्स खोजने के लिए हमें आपके GPS की आवश्यकता है।">NearPop is a proximity engine. We need your GPS to find live deals on the streets around you.</p>
+  
+  <div style="background:var(--cream); border:1px solid var(--bdr); padding:18px; border-radius:14px; font-size:13px; color:var(--deep); text-align:left; line-height:1.7; margin-bottom:24px; width:100%; max-width:320px;">
+    <b style="font-size:14px;" data-en="How to unblock:" data-hi="अनब्लॉक कैसे करें:">How to unblock:</b><br>
+    <span data-en="1. Tap the Lock icon 🔒 or Settings icon ⚙️ in your browser's address bar." data-hi="1. अपने ब्राउज़र के एड्रेस बार में लॉक 🔒 या सेटिंग ⚙️ आइकन पर टैप करें।">1. Tap the <b>Lock icon 🔒</b> or <b>Settings icon ⚙️</b> in your browser's address bar.</span><br>
+    <span data-en="2. Tap Permissions → Location." data-hi="2. अनुमतियां (Permissions) → स्थान (Location) पर टैप करें।">2. Tap <b>Permissions</b> → <b>Location</b>.</span><br>
+    <span data-en="3. Change the setting to Allow." data-hi="3. सेटिंग को 'अनुमति दें' (Allow) में बदलें।">3. Change the setting to <b>Allow</b>.</span><br>
+    <span data-en="4. Reload this page." data-hi="4. इस पेज को फिर से लोड करें।">4. Reload this page.</span>
+  </div>
+  
+  <button onclick="window.location.reload()" style="background:var(--or); color:#fff; padding:16px 32px; border-radius:14px; border:none; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 4px 14px rgba(255,87,34,.25);" data-en="🔄 Reload Page" data-hi="🔄 पेज रीलोड करें">🔄 Reload Page</button>
+  
+  <button onclick="window.dismissGeoBlock()" style="background:transparent; color:var(--gray); padding:16px 32px; border:none; font-weight:800; font-size:14px; cursor:pointer; margin-top:8px;" data-en="Continue without GPS" data-hi="GPS के बिना जारी रखें">Continue without GPS</button>
+</div>
+
+<div id="geo-error-banner" role="alert" aria-live="assertive"></div>
+
+<div id="app-shell">
+  <div id="wrap">
+    
+    <div class="map-wrapper">
+      <div id="map"></div>
+
+      <div class="map-search-wrap">
+        <span class="ms-icon">🔍</span>
+        <input type="text" id="map-search" placeholder="Search restaurant, grocery, tuition..." oninput="window.handleSearch(this.value)">
+        <button id="ms-clear" onclick="window.clearSearch()">✕</button>
+      </div>
+
+      <div class="map-watermark">
+        <img src="https://nearpop.in/icons/logo.png" alt="NearPop">
+      </div>
+      
+      <div class="tbar">
+        <button class="lbtn" id="lang-btn" onclick="window.toggleLang()" title="Toggle Language">अ/A</button>
+        <button class="lbtn" id="refresh-btn" onclick="window.forceRefresh()" title="Refresh Live Deals">🔄</button>
+        <button class="lbtn" onclick="window.recenterMap()" title="Current Location">🎯</button>
+      </div>
+
+      <div class="zoom-btns">
+        <button class="zbtn" onclick="window._map.zoomIn()">＋</button>
+        <button class="zbtn" onclick="window._map.zoomOut()">－</button>
+      </div>
+    </div>
+
+    <div class="bsht">
+      <div class="bsht-h"></div>
+      <div class="radius-bar">
+        <span class="radius-label" data-en="📡 Radius:" data-hi="📡 दायरा:">📡 Radius:</span>
+        <button class="rdist-btn on" onclick="setR(1,this)">1 km</button>
+        <button class="rdist-btn" onclick="setR(2,this)">2 km</button>
+        <button class="rdist-btn" onclick="setR(5,this)">5 km</button>
+        <button class="rdist-btn" onclick="setR(10,this)">10 km</button>
+        <button class="rdist-btn" onclick="setR(25,this)">25 km</button>
+        <button class="rdist-btn" onclick="setR(999,this)" data-en="Anywhere" data-hi="कहीं भी">Anywhere</button>
+      </div>
+      <div class="cat-pills" id="cat-pills">
+        <button class="pill" onclick="setCat('all',this)" data-en="All" data-hi="सभी">All</button>
+        <button class="pill on" onclick="setCat('deal',this)" data-en="🏷️ Deals" data-hi="🏷️ डील्स">🏷️ Deals</button>
+        <button class="pill" onclick="setCat('rental',this)" data-en="🏠 Flats" data-hi="🏠 फ्लैट">🏠 Flats</button>
+        <button class="pill" onclick="setCat('pg',this)" data-en="🛋️ PG" data-hi="🛋️ पीजी">🛋️ PG</button>
+        <button class="pill" onclick="setCat('job',this)" data-en="💼 Jobs" data-hi="💼 नौकरियां">💼 Jobs</button>
+      </div>
+      
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px; flex-shrink:0;">
+        <div class="mcnt" id="mcnt" style="font-size:11px; font-weight:800; color:#6B7280;" data-en="Finding local deals..." data-hi="स्थानीय डील्स खोजी जा रही हैं...">Finding local deals...</div>
+        <div style="display:flex; gap:6px;">
+          <button id="list-btn" class="view-toggle-btn" onclick="toggleListView()" style="display:flex;align-items:center;gap:4px;padding:4px 12px;border-radius:100px;border:2px solid #E5E7EB;background:#fff;font-size:11px;font-weight:800;color:#4B5563;font-family:inherit;transition:all 0.2s;cursor:pointer" data-en="📋 List" data-hi="📋 सूची">📋 List</button>
+          <button id="disc-btn" class="view-toggle-btn" onclick="toggleDiscovery()" style="display:flex;align-items:center;gap:4px;padding:4px 12px;border-radius:100px;border:2px solid #E5E7EB;background:#fff;font-size:11px;font-weight:800;color:#4B5563;font-family:inherit;transition:all 0.2s;cursor:pointer" data-en="🔍 Discover" data-hi="🔍 खोजें">🔍 Discover</button>
+        </div>
+      </div>
+
+      <div id="notif-prompt" style="display:none; background: #FFF5F2; border: 1px solid #FFE4D6; padding: 12px 16px; border-radius: 16px; margin: 0 16px 12px; align-items: center; justify-content: space-between; flex-shrink:0;">
+        <div>
+          <div style="font-size: 13px; font-weight: 800; color: #111827;" data-en="🔔 Turn on Alerts" data-hi="🔔 अलर्ट चालू करें">🔔 Turn on Alerts</div>
+          <div style="font-size: 11px; color: #6B7280; font-weight: 600;" data-en="Get a lock-screen buzz when near a deal." data-hi="डील के पास होने पर लॉक-स्क्रीन अलर्ट पाएं।">Get a lock-screen buzz when near a deal.</div>
+        </div>
+        <button onclick="askForNotifs()" style="background: #FF5722; color: #fff; border: none; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; flex-shrink:0; transition: transform 0.2s;" data-en="Allow" data-hi="अनुमति दें">Allow</button>
+      </div>
+      
+      <div class="hscr" id="hscr">
+        <div class="hcd skeleton" style="min-width:200px; height:80px; border:none;"></div>
+        <div class="hcd skeleton" style="min-width:200px; height:80px; border:none;"></div>
+      </div>
+      
+      <div class="deals-grid" id="vgrid" style="display:none;"></div>
+    </div>
+
+    <div id="pin-preview" class="pin-preview">
+        <button class="pp-close" onclick="closePreview()">✕</button>
+        <div class="pp-top">
+            <div id="pp-ic" class="pp-ic"></div>
+            <div class="pp-info">
+                <div id="pp-title" class="pp-title">Title</div>
+                <div id="pp-price" class="pp-price">Price</div>
+            </div>
+        </div>
+        <div class="pp-mid">
+            <span id="pp-type" class="pp-badge">DEAL</span>
+            <span id="pp-fomo"></span>
+            <span id="pp-dist" class="pp-dist">📍 500m</span>
+        </div>
+        <button id="pp-btn" class="pp-btn" data-en="View Offer →" data-hi="ऑफर देखें →">View Offer →</button>
+    </div>
+
+  </div> 
+  <div id="nav-placeholder"></div>
+
+  <div class="mnotif" id="notif">
+    <div style="display:flex; gap:12px; margin-bottom:10px;">
+      <div id="n-ic" style="width:48px; height:48px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:24px; border:1px solid #E5E7EB;"></div>
+      <div style="flex:1; overflow:hidden;">
+        <div class="mn-row" style="margin-bottom:4px;">
+          <div class="mn-badge" id="n-badge">DEAL</div>
+          <span class="mn-dist" id="n-dist" style="margin-left:auto;">—</span>
+        </div>
+        <div class="mn-title" id="n-title2" style="font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+    </div>
+    <div class="mn-body" id="n-body"></div>
+    <div class="mn-btns">
+      <button class="mn-btn p" id="n-view" data-en="View Details →" data-hi="विवरण देखें →">View Details →</button>
+      <button class="mn-btn s" onclick="hideNotif()" data-en="✕ Dismiss" data-hi="✕ हटाएं">✕ Dismiss</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
+</div> 
+
+<div class="modal" id="mod-playstore" onclick="if(event.target===this)window.closePlayStorePopup()">
+  <div class="msht">
+    <div class="mh"></div>
+    <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+      <img src="icons/icon-192.png" style="width:64px; height:64px; border-radius:14px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
+      <div>
+        <div style="font-size:18px; font-weight:800; color:var(--deep); font-family:'Syne', sans-serif;">Get the NearPop App</div>
+        <div style="font-size:12px; color:var(--gray); font-weight:600; line-height:1.4; margin-top:2px;">Experience faster speeds, background deal alerts, and smoother navigation.</div>
+      </div>
+    </div>
+    <button class="btn-or" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; font-size: 15px; margin-bottom: 10px;" onclick="window.openPlayStore()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3.609 1.814L13.792 12 3.61 22.186a1.981 1.981 0 0 1-.36-.088A1.91 1.91 0 0 1 2 20.316V3.684a1.91 1.91 0 0 1 1.25-1.782c.115-.043.235-.073.359-.088zM14.85 13.06l3.418 3.417-6.07 3.504-4.59-4.591 7.242-2.33zM21.576 9.176l-3.308-1.91-3.418 3.418 3.418 3.418 3.308-1.91a1.915 1.915 0 0 0 0-3.016zM18.268 7.266L14.85 10.684 7.608 8.354l6.07-3.504 4.59 4.591H18.268z"/></svg>
+      Get it on Google Play
+    </button>
+    <button class="btn-lt" style="width:100%;" onclick="window.closePlayStorePopup()">Continue on Web</button>
+  </div>
+</div>
+
+<div class="modal" id="modal-welcome">
+  <div class="msht">
+    <div class="mh"></div>
+    <div class="wlc-em">👋</div>
+    <div class="wlc-t" data-en="What are you looking for?" data-hi="आप क्या खोज रहे हैं?">What are you looking for?</div>
+    <div class="wlc-s" data-en="Pick your interest — we'll show the most relevant listings near you first." data-hi="अपनी रुचि चुनें — हम सबसे पहले आपके पास के प्रासंगिक लिस्टिंग दिखाएंगे।">Pick your interest — we'll show the most relevant listings near you first.</div>
+    <div class="wtypes">
+	  <button class="wtype" onclick="window.pickType('all',this)"><div class="wi">🗺️</div><div class="wl" data-en="Show All" data-hi="सभी दिखाएं">Show All</div><div class="ws" data-en="Everything nearby" data-hi="आसपास सब कुछ">Everything nearby</div></button>
+      <button class="wtype on" onclick="window.pickType('deal',this)"><div class="wi">🏷️</div><div class="wl" data-en="Deals & Offers" data-hi="डील्स और ऑफर्स">Deals & Offers</div><div class="ws" data-en="Shop discounts" data-hi="दुकान की छूट">Shop discounts</div></button>
+	  <button class="wtype" onclick="window.pickType('rental',this)"><div class="wi">🏠</div><div class="wl" data-en="Flat / Room" data-hi="फ्लैट / कमरा">Flat / Room</div><div class="ws" data-en="Rent near me" data-hi="मेरे पास किराया">Rent near me</div></button>
+      <button class="wtype" onclick="window.pickType('pg',this)"><div class="wi">🛋️</div><div class="wl" data-en="PG / Hostel" data-hi="पीजी / हॉस्टल">PG / Hostel</div><div class="ws" data-en="Affordable stay" data-hi="सस्ता ठहरना">Affordable stay</div></button>
+      <button class="wtype" onclick="window.pickType('job',this)"><div class="wi">💼</div><div class="wl" data-en="Jobs" data-hi="नौकरियां">Jobs</div><div class="ws" data-en="Work near me" data-hi="मेरे पास काम">Work near me</div></button>
+    </div>
+    <div class="gps-note">
+      <span style="font-size:20px;flex-shrink:0">📍</span>
+      <p data-en="NearPop uses your GPS to show listings near you. Please tap Allow when your browser asks for location access." data-hi="NearPop आपके पास की लिस्टिंग दिखाने के लिए आपके GPS का उपयोग करता है। कृपया 'अनुमति दें' पर टैप करें।">NearPop uses your GPS to show listings near you. Please tap <strong>Allow</strong> when your browser asks for location access.</p>
+    </div>
+    <button class="btn-or" onclick="window.startApp()" data-en="🚀 Find Near Me Now!" data-hi="🚀 अभी मेरे पास खोजें!">🚀 Find Near Me Now!</button>
+    <button class="btn-skip" onclick="window.skipWelcome()" data-en="Skip — Browse All" data-hi="छोड़ें — सभी ब्राउज़ करें">Skip — Browse All</button>
+  </div>
+</div>
+
+<script type="module">
+import { app, db, LS, SS, TC, TE, distM, isExpired, toast, cacheGet, cacheSet, cacheClear, loadNavigation } from './js/app.js';
+import { ghEncode, ghNeighbors, ghFilter } from './js/geohash.js';
+import { setLoc, setListings, checkProximity, dist, getPrefs, notifsToday, notifsThisHour, logNotif, inMarketZone, vendorCapReached, budgetThrottled, markVendorCapUsed, markBudgetUsed, markGeofenceNotified, applyDensityControl, getNotifType, showSoftBanner, trackEng, updateSpeed } from './js/notifications.js';
+import { getDocs, query, collection, orderBy, where, doc, updateDoc, increment, limit } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
+
+window.lang = localStorage.getItem('app_lang') || 'en';
+
+window.haptic = (ms = 50) => {
+  try { 
+    if (navigator.vibrate) navigator.vibrate(ms); 
+  } catch (e) {}
+};
+
+let liveSearchQuery = '';
+
+window.handleSearch = (val) => {
+  liveSearchQuery = val.trim().toLowerCase();
+  document.getElementById('ms-clear').style.display = liveSearchQuery.length > 0 ? 'flex' : 'none';
+  redraw();
+};
+
+window.clearSearch = () => {
+  document.getElementById('map-search').value = '';
+  liveSearchQuery = '';
+  document.getElementById('ms-clear').style.display = 'none';
+  redraw();
+};
+
+window.toggleLang = () => {
+  window.haptic(30);
+  window.lang = window.lang === 'en' ? 'hi' : 'en';
+  try { 
+    localStorage.setItem('app_lang', window.lang); 
+  } catch(e){}
+  
+  window.applyLang();
+  redraw(); 
+};
+
+window.applyLang = () => {
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.innerHTML = el.getAttribute(`data-${window.lang}`);
+  });
+  
+  const searchInput = document.getElementById('map-search');
+  if (searchInput) {
+    searchInput.placeholder = window.lang === 'hi' 
+      ? 'रेस्टोरेंट, किराना, ट्यूशन खोजें...' 
+      : 'Search restaurant, grocery, tuition...';
+  }
+
+  if (isListView) {
+    document.getElementById('list-btn').innerHTML = window.lang === 'hi' ? '🗺️ नक्शा' : '🗺️ Map View';
+  }
+  if (discoveryMode) {
+    document.getElementById('disc-btn').textContent = window.lang === 'hi' ? '✕ खोज बंद करें' : '✕ Exit Discovery';
+  }
+};
+
+setTimeout(window.applyLang, 100);
+
+function initDragToScroll() {
+  const slider = document.getElementById('hscr');
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  let isDragging = false;
+
+  slider.addEventListener('mousedown', (e) => {
+    isDown = true; 
+    isDragging = false; 
+    slider.style.cursor = 'grabbing';
+    startX = e.pageX - slider.offsetLeft; 
+    scrollLeft = slider.scrollLeft;
+  });
+  
+  slider.addEventListener('mouseleave', () => { 
+    isDown = false; 
+    slider.style.cursor = 'grab'; 
+  });
+  
+  slider.addEventListener('mouseup', () => { 
+    isDown = false; 
+    slider.style.cursor = 'grab'; 
+  });
+  
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault(); 
+    isDragging = true;
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 2; 
+    slider.scrollLeft = scrollLeft - walk;
+  });
+
+  slider.addEventListener('click', (e) => {
+    if (isDragging) { 
+      e.preventDefault(); 
+      e.stopPropagation(); 
+    }
+  }, true);
+}
+
+window.askForNotifs = async () => {
+  window.haptic(50);
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      document.getElementById('notif-prompt').style.display = 'none';
+      const swRegistration = await navigator.serviceWorker.register('/sw.js');
+      const messaging = getMessaging(app);
+
+      onMessage(messaging, (payload) => {
+        swRegistration.showNotification(payload.notification.title, {
+          body: payload.notification.body, 
+          icon: '/icons/icon-192.png'
+        });
+      });
+
+      const currentToken = await getToken(messaging, { 
+        vapidKey: 'BKybN5UdJys9wB137592emPk83awpfTy_97V45LeM3MByP6FZA3fPhXqY6N1k5vP5--CUKXrnWUmeyG7dFLJMwQ',
+        serviceWorkerRegistration: swRegistration
+      });
+
+      if (currentToken) {
+        if (LS('uid')) { 
+          await updateDoc(doc(db, 'users', LS('uid')), { fcmToken: currentToken }); 
+        }
+      }
+    } else {
+      document.getElementById('notif-prompt').style.display = 'none';
+    }
+  } catch (error) { 
+    console.error(error); 
+  }
+};
+
+function handleGeoError(err) {
+  if (err.code === 1) { 
+    document.getElementById('hard-geo-block').style.display = 'flex'; 
+  } else { 
+    toast('📍', window.lang === 'hi' ? 'स्थान उपलब्ध नहीं है। GPS जांचें।' : 'Location unavailable. Check GPS signal.'); 
+    setFallback(); 
+  }
+}
+
+if (!LS('uid')) { 
+  window.location.href = 'index.html'; 
+}
+
+window.onerror = (msg, src, line) => {
+  if (!window.go) window.go = href => window.location.href = href;
+  if (!window.skipWelcome) window.skipWelcome = () => {
+    window.haptic(30);
+    document.getElementById('modal-welcome')?.classList.remove('on');
+    setTimeout(() => { if (window._map) window._map.invalidateSize(); }, 300); 
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(() => {}, handleGeoError, { enableHighAccuracy: true, timeout: 10000 });
+    }
+  };
+  if (!window.startApp) window.startApp = window.skipWelcome;
+  return false;
+};
+
+const savedLoc = LS('lastLoc'); 
+let markers = [];
+let listings = [];
+let loc = savedLoc;
+let cat = 'deal';
+let radiusKm = LS('searchRadius') || 1;
+let filteredList = [];
+let welcomeType = 'deal';
+let hasLiveCentered = false; 
+
+const initCenter = savedLoc && savedLoc.lat ? [savedLoc.lat, savedLoc.lng] : [28.4089, 77.3178];
+window._map = L.map('map', { 
+  center: initCenter, 
+  zoom: savedLoc ? 15 : 13, 
+  zoomControl: false, 
+  attributionControl: false 
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(window._map);
+
+window._markerCluster = L.markerClusterGroup({
+  maxClusterRadius: 45, 
+  showCoverageOnHover: false,
+  iconCreateFunction: function(cluster) {
+    return L.divIcon({ 
+      html: `<div class="np-cluster">${cluster.getChildCount()}</div>`, 
+      className: 'custom-cluster', 
+      iconSize: [42, 42] 
+    });
+  }
+});
+window._map.addLayer(window._markerCluster);
+
+document.querySelectorAll('.rdist-btn').forEach(b => {
+  const v = b.textContent === 'Anywhere' || b.textContent === 'कहीं भी' ? 999 : parseInt(b.textContent);
+  b.classList.toggle('on', v === radiusKm);
+});
+
+let watchId = null;
+let lastProcLat = null;
+let lastProcLng = null;
+const MIN_MOVE_M = 10;
+
+function gpsDistM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLa = (lat2 - lat1) * Math.PI / 180;
+  const dLo = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLa / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLo / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function startWatch() {
+  if (!navigator.geolocation) { 
+    setFallback(); 
+    return; 
+  }
+  navigator.geolocation.getCurrentPosition( 
+    p => onPosition(p, true), 
+    (err) => handleGeoError(err), 
+    { enableHighAccuracy: true, timeout: 12000 } 
+  );
+  watchId = navigator.geolocation.watchPosition( 
+    p => onPosition(p, false), 
+    (err) => handleGeoError(err), 
+    { enableHighAccuracy: false, maximumAge: 20000, timeout: 10000 } 
+  );
+}
+
+function onPosition(p, forceProcess = false) {
+  const lat = p.coords.latitude;
+  const lng = p.coords.longitude;
+  const newTime = p.timestamp || Date.now();
+  const speed = updateSpeed({ lat, lng }, newTime);
+
+  if (!forceProcess && loc && lastProcLat !== null) {
+    const moved = gpsDistM(lat, lng, lastProcLat, lastProcLng);
+    if (moved < MIN_MOVE_M) {
+      loc = { lat, lng };
+      if (window.userMarker) window.userMarker.setLatLng([lat, lng]);
+      return;
+    }
+  }
+
+  lastProcLat = lat; 
+  lastProcLng = lng;
+  loc = { lat, lng };
+  setLoc(loc); 
+  SS('lastLoc', loc); 
+
+  if (window.userMarker) {
+    window.userMarker.setLatLng([loc.lat, loc.lng]);
+  }
+  
+  if (!hasLiveCentered) {
+    window._map.flyTo([loc.lat, loc.lng], 15, { duration: 0.5 }); 
+    hasLiveCentered = true; 
+    redraw();
+  } else { 
+    redraw(); 
+  }
+  checkProximity(showNotif, (zone, cnt) => console.log('Market zone alert:', zone.name, cnt));
+}
+
+function getLoc() { 
+  startWatch(); 
+}
+
+function setFallback() { 
+  loc = LS('lastLoc') || { lat: 28.4089, lng: 77.3178 }; 
+  window._map.setView([loc.lat, loc.lng], 14); 
+  redraw(); 
+}
+
+function fmtDist(l) {
+  if (!loc || !l.lat || !l.lng) return '—';
+  const safeLat = parseFloat(l.lat);
+  const safeLng = parseFloat(l.lng);
+  if (isNaN(safeLat) || isNaN(safeLng)) return '—';
+  const d = distM(loc.lat, loc.lng, safeLat, safeLng);
+  return d < 1000 ? Math.round(d) + 'm' : (d / 1000).toFixed(1) + 'km';
+}
+
+window.forceRefresh = async () => {
+  window.haptic(50);
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  
+  toast('⏳', window.lang === 'hi' ? 'लाइव डील्स ताज़ा हो रही हैं...' : 'Refreshing live deals...');
+  cacheClear(); 
+  await loadListings();
+  
+  if (btn) btn.classList.remove('spinning');
+  toast('✅', window.lang === 'hi' ? 'नक्शा अपडेट किया गया!' : 'Map updated!');
+};
+
+window.recenterMap = () => {
+  window.haptic(50);
+  if (loc && loc.lat) { 
+    window._map.flyTo([loc.lat, loc.lng], 15, { duration: 0.5 }); 
+    toast('🎯', window.lang === 'hi' ? 'आपके स्थान पर वापस' : 'Centered on your location'); 
+  } else { 
+    getLoc(); 
+  }
+};
+
+async function loadListings() {
+  try {
+    let q = collection(db, 'listings');
+    const filters = [];
+    const userLoc = LS('lastLoc');
+    const currentRadius = parseInt(SS('searchRadius') || LS('searchRadius')) || radiusKm || 1;
+
+    if (userLoc && currentRadius <= 5) {
+      const safeLat = +parseFloat(userLoc.lat).toFixed(6);
+      const safeLng = +parseFloat(userLoc.lng).toFixed(6);
+      const userHash5 = ghEncode(safeLat, safeLng, 5);
+      const activeCells = ghNeighbors(userHash5); 
+      filters.push(where('geohash5', 'in', activeCells));
+    }
+    
+    filters.push(where('status', '==', 'active'));
+
+    if (filters.length > 0) { 
+      q = query(q, ...filters, limit(150)); 
+    } else { 
+      q = query(q, limit(150)); 
+    }
+
+    const snap = await getDocs(q);
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    cacheSet(all); 
+    listings = all; 
+    setListings(all); 
+    redraw();
+  } catch(e) {
+    const c = cacheGet(); 
+    if (c) { 
+      listings = c; 
+      setListings(c); 
+      redraw(); 
+    }
+  }
+}
+
+function redraw() {
+  let list = listings.filter(l => {
+    try {
+      if (!l || typeof l !== 'object') return false;
+      if (cat !== 'all' && l.type !== cat) return false;
+      if (isExpired(l)) return false;
+      
+      if (liveSearchQuery) {
+        const textToSearch = `${l.title || ''} ${l.desc || ''} ${l.type || ''}`.toLowerCase();
+        if (!textToSearch.includes(liveSearchQuery)) return false;
+      }
+
+      if (radiusKm < 999) {
+          const safeLat = parseFloat(l.lat);
+          const safeLng = parseFloat(l.lng);
+          if (isNaN(safeLat) || isNaN(safeLng)) return false; 
+          const d = loc && loc.lat ? distM(loc.lat, loc.lng, safeLat, safeLng) : Infinity;
+          if (isNaN(d) || d > radiusKm * 1000) return false;
+      }
+      return true;
+    } catch (e) { 
+      return false; 
+    }
+  });
+
+  if (list.length === 0 && radiusKm < 999 && loc && listings.length > 0 && !liveSearchQuery) {
+    const tiers = [1, 2, 5, 10, 25, 999];
+    let foundRadius = null;
+    for (let r of tiers) {
+      if (r <= radiusKm) continue;
+      const hasItems = listings.some(l => {
+        if (cat !== 'all' && l.type !== cat) return false;
+        if (isExpired(l)) return false;
+        if (r < 999) {
+          const safeLat = parseFloat(l.lat);
+          const safeLng = parseFloat(l.lng);
+          if (isNaN(safeLat) || isNaN(safeLng)) return false;
+          const d = loc.lat ? distM(loc.lat, loc.lng, safeLat, safeLng) : Infinity;
+          if (isNaN(d) || d > r * 1000) return false;
+        }
+        return true;
+      });
+      if (hasItems) { 
+        foundRadius = r; 
+        break; 
+      }
+    }
+    
+    const nextR = foundRadius || 999;
+    setR(nextR, Array.from(document.querySelectorAll('.rdist-btn')).find(b => parseInt(b.textContent) === nextR || (nextR === 999 && (b.textContent === 'Anywhere' || b.textContent === 'कहीं भी'))));
+    const rTxt = nextR === 999 ? (window.lang === 'hi' ? 'कहीं भी' : 'Anywhere') : nextR + 'km';
+    toast('🔍', window.lang === 'hi' ? `आसपास कोई डील नहीं। दायरा बढ़ाकर ${rTxt} किया गया!` : `No deals nearby. Auto-expanded to ${rTxt}!`);
+    return; 
+  }
+
+  list.sort((a, b) => {
+      const aLat = parseFloat(a.lat);
+      const aLng = parseFloat(a.lng);
+      const bLat = parseFloat(b.lat);
+      const bLng = parseFloat(b.lng);
+      const da = loc && !isNaN(aLat) && !isNaN(aLng) ? distM(loc.lat, loc.lng, aLat, aLng) : Infinity;
+      const db_dist = loc && !isNaN(bLat) && !isNaN(bLng) ? distM(loc.lat, loc.lng, bLat, bLng) : Infinity;
+      return da - db_dist;
+  });
+  
+  filteredList = list;
+  window._markerCluster.clearLayers();
+  let newMarkers = [];
+
+  list.forEach(l => {
+    const safeLat = parseFloat(l.lat);
+    const safeLng = parseFloat(l.lng);
+    if (isNaN(safeLat) || isNaN(safeLng)) return;
+    
+    const col = l.color || TC(l.type);
+    const imgUrl = l.imageUrl || l.image;
+    
+    const pinInner = imgUrl 
+      ? `<div style="width:100%;height:100%;border-radius:50%;background:#fff url('${imgUrl}') center/cover no-repeat;"></div>` 
+      : `<div class="pin-emo">${l.emoji || TE(l.type)}</div>`;
+      
+    const ico = L.divIcon({ 
+      className: '', 
+      html: `<div class="custom-pin" style="background:${col};">${pinInner}<div class="pin-caret" style="border-top-color:${col};"></div></div>`, 
+      iconSize: [38, 46], 
+      iconAnchor: [19, 46] 
+    });
+    
+    const m = L.marker([safeLat, safeLng], { icon: ico }).on('click', () => window.previewPin(l));
+    newMarkers.push(m);
+  });
+  
+  window._markerCluster.addLayers(newMarkers);
+  
+  if (loc) {
+    const userHtml = `
+      <div style="position:relative; width:40px; height:40px; display:flex; align-items:center; justify-content:center;">
+        <div class="user-radar"></div>
+        <img src="https://nearpop.in/icons/icon-512.png" onerror="this.style.display='none'" style="width:28px; height:28px; border-radius:50%; border:3px solid #fff; background:#0F0F13; object-fit:contain; padding:2px; position:relative; z-index:2; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+      </div>`;
+      
+    const ui = L.divIcon({ 
+      className: '', 
+      html: userHtml, 
+      iconSize: [40, 40], 
+      iconAnchor: [20, 20] 
+    });
+    
+    if (!window.userMarker) { 
+      window.userMarker = L.marker([loc.lat, loc.lng], { icon: ui, zIndexOffset: 1000 }).addTo(window._map); 
+    } else { 
+      window.userMarker.setLatLng([loc.lat, loc.lng]); 
+      window.userMarker.setIcon(ui); 
+    }
+  }
+
+  renderCards();
+  
+  if (!sessionStorage.getItem('welcome_popups_done') && loc && filteredList.length > 0 && !liveSearchQuery) {
+    sessionStorage.setItem('welcome_popups_done', 'true'); 
+    const popupsToShow = Math.min(3, filteredList.length); 
+    for (let i = 0; i < popupsToShow; i++) { 
+      setTimeout(() => { showNotif(filteredList[i]); }, 1200 + (i * 8500)); 
+    }
+  }
+}
+
+window.previewPin = (l) => {
+  window.haptic(50);
+  const safeLat = parseFloat(l.lat);
+  const safeLng = parseFloat(l.lng);
+  const d = loc && !isNaN(safeLat) ? distM(loc.lat, loc.lng, safeLat, safeLng) : Infinity;
+  const distTxt = d < 1000 ? Math.round(d) + 'm' : (d / 1000).toFixed(1) + 'km';
+  
+  const col = l.color || TC(l.type);
+  const imgUrl = l.imageUrl || l.image;
+  const ppIc = document.getElementById('pp-ic');
+  
+  if (imgUrl) { 
+    ppIc.textContent = ''; 
+    ppIc.style.background = `#ffffff url('${imgUrl}') center/contain no-repeat`; 
+    ppIc.style.border = `1px solid #E5E7EB`; 
+  } else { 
+    ppIc.textContent = l.emoji || TE(l.type); 
+    ppIc.style.background = `${col}20`; 
+    ppIc.style.border = `1px solid ${col}40`; 
+  }
+  
+  document.getElementById('pp-title').textContent = l.title || 'Special Offer';
+  document.getElementById('pp-price').textContent = l.price || 'View Details';
+  document.getElementById('pp-dist').textContent = window.lang === 'hi' ? `📍 आपसे ${distTxt} दूर` : `📍 ${distTxt} from you`;
+  
+  document.getElementById('pp-type').textContent = (l.type || 'Offer').toUpperCase();
+  document.getElementById('pp-type').style.color = col; 
+  document.getElementById('pp-type').style.background = `${col}20`;
+  
+  if (l.expiryDate) {
+    const hrs = (new Date(l.expiryDate) - new Date()) / 3600000;
+    if (hrs > 0 && hrs <= 24) { 
+      document.getElementById('pp-fomo').innerHTML = `<span class="fomo-badge" style="position:static; animation:fomo-pulse 1.5s infinite; font-size:10px; margin-right:4px;">🔥 ${Math.ceil(hrs)}h left</span>`; 
+    } else { 
+      document.getElementById('pp-fomo').innerHTML = ''; 
+    }
+  } else { 
+    document.getElementById('pp-fomo').innerHTML = ''; 
+  }
+  
+  document.getElementById('pp-btn').onclick = () => window.openListing(l.id);
+  document.getElementById('pin-preview').classList.add('on');
+  
+  if (!isNaN(safeLat) && !isNaN(safeLng)) { 
+    window._map.flyTo([safeLat, safeLng], 16, { duration: 0.4 }); 
+  }
+};
+
+window.closePreview = () => { 
+  window.haptic(30); 
+  document.getElementById('pin-preview').classList.remove('on'); 
+};
+
+function renderCards() {
+  const total = filteredList.length;
+  
+  let resultText = window.lang === 'hi' 
+      ? `${total} लिस्टिंग${radiusKm < 999 ? ` ${radiusKm}km के भीतर` : ''} · सबसे करीब पहले` 
+      : `${total} listing${total === 1 ? '' : 's'}${radiusKm < 999 ? ` within ${radiusKm} km` : ''} · nearest first`;
+      
+  if(liveSearchQuery && total > 0) {
+      resultText = window.lang === 'hi' ? `खोज के लिए ${total} परिणाम` : `${total} results for your search`;
+  }
+
+  document.getElementById('mcnt').textContent = resultText;
+
+  const vgrid = document.getElementById('vgrid');
+  
+  if (total === 0) {
+    const emptyMsg = liveSearchQuery 
+      ? (window.lang === 'hi' ? 'खोज से कुछ नहीं मिला' : 'No search results found') 
+      : (window.lang === 'hi' ? 'कोई ऑफ़र नहीं मिला' : 'No deals found nearby');
+      
+    document.getElementById('hscr').innerHTML = `
+      <div style="width:100%; text-align:center; padding:20px; background:var(--card); border-radius:18px; border:1px dashed var(--bdr); color:var(--gray); font-size:12px; font-weight:800;">
+        ${emptyMsg}
+      </div>
+    `;
+    
+    vgrid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align:center; padding: 50px 20px; display:flex; flex-direction:column; align-items:center; background:var(--card); border-radius:24px; border:1px solid var(--bdr); box-shadow:0 10px 30px rgba(0,0,0,0.03);">
+        <svg width="100" height="100" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:16px;">
+          <rect x="20" y="20" width="80" height="80" rx="16" fill="var(--bg-app)" stroke="var(--bdr)" stroke-width="4"/>
+          <path d="M45 20V100M75 20V100M20 45H100M20 75H100" stroke="var(--bdr)" stroke-width="2" stroke-dasharray="4 4"/>
+          <circle cx="60" cy="60" r="24" fill="var(--card)" stroke="#FF5722" stroke-width="6"/>
+          <path d="M78 78L95 95" stroke="#FF5722" stroke-width="8" stroke-linecap="round"/>
+          <path d="M50 55H54M66 55H70" stroke="var(--gray)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M55 65C55 65 58 62 65 62C72 62 75 65 75 65" stroke="var(--gray)" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <h3 style="color:var(--deep); font-size:18px; font-weight:900; margin-bottom:6px; font-family:'Syne', sans-serif;">${emptyMsg}</h3>
+        <p style="color:var(--gray); font-weight:600; font-size:13px; line-height:1.5; max-width:280px; margin-bottom:20px;">${window.lang === 'hi' ? 'इस क्षेत्र में आपके फ़िल्टर से मेल खाने वाला कुछ भी नहीं है। कोई अन्य श्रेणी या बड़ा दायरा आज़माएँ।' : 'Nothing matches your filters in this exact area. Try a different category or expand your search radius.'}</p>
+        <button onclick="setR(999, Array.from(document.querySelectorAll('.rdist-btn')).find(b => b.textContent === 'Anywhere' || b.textContent === 'कहीं भी'))" style="background:var(--bg-body); border:2px solid var(--bdr); color:var(--deep); padding:12px 24px; border-radius:100px; font-size:13px; font-weight:800; font-family:inherit; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.05); transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">${window.lang === 'hi' ? 'कहीं भी खोजें' : 'Search Anywhere'}</button>
+      </div>
+    `;
+  } else {
+    document.getElementById('hscr').innerHTML = filteredList.map(l => {
+      const imgUrl = l.imageUrl || l.image;
+      
+      let fomoHtml = '';
+      if (l.expiryDate) {
+        const hrs = (new Date(l.expiryDate) - new Date()) / 3600000;
+        if (hrs > 0 && hrs <= 24) {
+          fomoHtml = `<div class="fomo-badge" style="top:-4px; left:-4px; font-size:8px; padding:3px 6px;">🔥 ${Math.ceil(hrs)}h</div>`;
+        }
+      }
+      
+      const thumb = imgUrl 
+        ? `<div style="position:relative; width:44px;height:44px;border-radius:12px;background:#fff url('${imgUrl}') center/contain no-repeat; border:1px solid #E5E7EB; flex-shrink:0;">${fomoHtml}</div>` 
+        : `<div style="position:relative; width:44px;height:44px;border-radius:12px;background:${l.color||TC(l.type)}20; display:flex;align-items:center;justify-content:center;font-size:20px; flex-shrink:0;">${l.emoji||TE(l.type)}${fomoHtml}</div>`;
+      
+      return `
+        <div class="hcd" onclick="openListing('${l.id}')" style="min-width:200px; max-width:200px;">
+          <div style="display:flex; gap:10px; margin-bottom:8px; align-items:flex-start;">
+            ${thumb}
+            <div style="flex:1; overflow:hidden;">
+              <div class="hcd-type" style="color:${l.color||TC(l.type)}; margin-bottom:2px; text-transform: capitalize;">${l.type||''}</div>
+              <div class="hcd-title" style="margin-bottom:0; font-size:13px;">${(l.title||'').slice(0,35)}</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="hcd-price" style="font-size:14px; font-weight:900; color:#FF5722;">${l.price||''}</div>
+            <div class="hcd-dist" style="margin-top:0; font-size:11px; color:#6B7280; font-weight:700; background:#F3F4F6; padding:2px 6px; border-radius:6px;">📍 ${fmtDist(l)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    vgrid.innerHTML = filteredList.map(l => {
+      const imgUrl = l.imageUrl || l.image;
+      
+      const iconHtml = imgUrl 
+        ? `<div class="d-ic" style="background: #ffffff url('${imgUrl}') center/contain no-repeat; border: 1px solid #E5E7EB;"></div>` 
+        : `<div class="d-ic">${l.emoji || TE(l.type)}</div>`;
+      
+      const col = l.color || TC(l.type);
+      
+      let fomoHtml = '';
+      if (l.expiryDate) {
+        const hrs = (new Date(l.expiryDate) - new Date()) / 3600000;
+        if (hrs > 0 && hrs <= 24) {
+          fomoHtml = `<div class="fomo-badge">🔥 ${window.lang === 'hi' ? `${Math.ceil(hrs)} घंटे में समाप्त!` : `Ends in ${Math.ceil(hrs)}h!`}</div>`;
+        }
+      }
+      
+      return `
+        <div class="deal-card" onclick="window.openListing('${l.id}')">
+          ${fomoHtml} 
+          ${iconHtml}
+          <div class="d-inf">
+            <div class="d-ti">${l.title}</div>
+            <div class="d-pr">${l.price || 'Special Deal'}</div>
+          </div>
+          <div class="dc-bot">
+            <div class="d-tag" style="background:${col}20; color:${col};">${(l.type || 'Offer').toUpperCase()}</div>
+            <div class="d-arrow">➔</div>
+          </div>
+          <div style="position:absolute; top:8px; right:8px; background:rgba(255,255,255,0.9); padding:2px 6px; border-radius:6px; font-size:9px; font-weight:800; color:#4B5563; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📍 ${fmtDist(l)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+let isListView = false;
+window.toggleListView = () => {
+  window.haptic(50);
+  isListView = !isListView;
+  
+  const bsht = document.querySelector('.bsht');
+  const hscr = document.getElementById('hscr');
+  const vgrid = document.getElementById('vgrid');
+  const listBtn = document.getElementById('list-btn');
+  const discBtn = document.getElementById('disc-btn');
+
+  if (isListView) {
+    bsht.classList.add('list-mode'); 
+    hscr.style.display = 'none'; 
+    vgrid.style.display = 'grid'; 
+    discBtn.style.display = 'none';
+    
+    listBtn.classList.add('on'); 
+    listBtn.innerHTML = window.lang === 'hi' ? '🗺️ नक्शा' : '🗺️ Map View';
+  } else {
+    bsht.classList.remove('list-mode'); 
+    hscr.style.display = 'flex'; 
+    vgrid.style.display = 'none'; 
+    discBtn.style.display = 'flex';
+    
+    listBtn.classList.remove('on'); 
+    listBtn.innerHTML = window.lang === 'hi' ? '📋 सूची' : '📋 List View';
+  }
+};
+
+function showNotif(l) {
+  if (!LS('pop_seen_' + l.id)) {
+    SS('pop_seen_' + l.id, Date.now()); 
+    try {
+      updateDoc(doc(db, 'listings', l.id), { popups: increment(1), popupsSentToday: increment(1) });
+      if (l.uid) updateDoc(doc(db, 'users', l.uid), { wallet: increment(-0.1) });
+    } catch(e) {}
+  }
+  
+  const col = l.color || TC(l.type);
+  document.getElementById('n-badge').textContent = (l.type || '').toUpperCase(); 
+  document.getElementById('n-badge').style.background = col;
+  
+  const imgUrl = l.imageUrl || l.image;
+  const nic = document.getElementById('n-ic');
+  
+  if (imgUrl) { 
+    nic.textContent = ''; 
+    nic.style.background = `#ffffff url('${imgUrl}') center/contain no-repeat`; 
+  } else { 
+    nic.textContent = l.emoji || TE(l.type); 
+    nic.style.background = `${col}20`; 
+  }
+
+  document.getElementById('n-dist').textContent = fmtDist(l);
+  document.getElementById('n-title2').textContent = (l.title || '').slice(0, 60);
+  document.getElementById('n-body').textContent = (l.desc || '').slice(0, 100) + '…';
+  
+  document.getElementById('n-view').onclick = () => {
+    window.haptic(50);
+    trackEng(l.id, 8);
+    if (typeof window.gtag === 'function') gtag('event', 'funnel_step', { step_name: 'popup_clicked', listing_id: l.id });
+    try { updateDoc(doc(db, 'listings', l.id), { visits: increment(1) }); } catch(e) {}
+    hideNotif(); 
+    openListing(l.id);
+  };
+  
+  document.querySelector('#notif .mn-btn.s').onclick = () => { 
+    window.haptic(30); 
+    trackEng(l.id, -5); 
+    hideNotif(); 
+  };
+  
+  document.getElementById('notif').classList.add('on');
+  clearTimeout(window._nt); 
+  window._nt = setTimeout(hideNotif, 8000);
+}
+
+window.trackEng = trackEng; 
+
+window.pickType = (t, btn) => { 
+  window.haptic(30); 
+  welcomeType = t; 
+  document.querySelectorAll('.wtype').forEach(b => b.classList.remove('on')); 
+  btn.classList.add('on'); 
+};
+
+window.startApp = () => {
+  window.haptic(50);
+  cat = welcomeType;
+  
+  document.querySelectorAll('#cat-pills .pill').forEach(b => {
+    const txt = b.getAttribute('data-en');
+    const match = txt === 'All' ? 'all' : txt.includes('Deals') ? 'deal' : txt.includes('Flats') ? 'rental' : txt.includes('PG') ? 'pg' : txt.includes('Jobs') ? 'job' : '';
+    b.classList.toggle('on', match === cat);
+  });
+  
+  const interestMap = {
+    'all':['deal','rental','pg','job'],
+    'deal':['deal'],
+    'rental':['rental'],
+    'pg':['pg'],
+    'job':['job']
+  };
+  
+  SS('pref_interests', interestMap[welcomeType] || ['deal','rental','pg','job']);
+  
+  localStorage.setItem('welcome_timestamp', Date.now().toString());
+  document.getElementById('modal-welcome').classList.remove('on');
+  
+  setTimeout(() => { 
+    if (window._map) window._map.invalidateSize(); 
+  }, 300); 
+  
+  getLoc();
+};
+
+window.skipWelcome = () => { 
+  window.haptic(30); 
+  
+  localStorage.setItem('welcome_timestamp', Date.now().toString()); 
+  welcomeType = 'deal'; 
+  document.getElementById('modal-welcome').classList.remove('on'); 
+  
+  setTimeout(() => { 
+    if (window._map) window._map.invalidateSize(); 
+  }, 300); 
+  
+  getLoc(); 
+};
+
+let discoveryMode = false;
+window.toggleDiscovery = () => {
+  window.haptic(50);
+  discoveryMode = !discoveryMode;
+  const btn = document.getElementById('disc-btn');
+  
+  if (discoveryMode) {
+    btn.classList.add('on'); 
+    btn.textContent = window.lang === 'hi' ? '✕ खोज बंद करें' : '✕ Exit Discovery'; 
+    redraw();
+    
+    if (filteredList.length) {
+      const bounds = L.latLngBounds(filteredList.filter(l => l.lat).map(l => [l.lat, l.lng]));
+      if (bounds.isValid()) window._map.fitBounds(bounds, { padding: [40, 40] });
+    }
+    
+    toast('🔍', window.lang === 'hi' ? 'डिस्कवरी मोड: ऑफर देखने के लिए किसी भी मार्कर पर टैप करें' : 'Discovery Mode: tap any marker to view offer');
+  } else {
+    btn.classList.remove('on'); 
+    btn.textContent = window.lang === 'hi' ? '🔍 खोजें' : '🔍 Discover'; 
+    redraw(); 
+    
+    toast('📍', window.lang === 'hi' ? 'ऑटो-अलर्ट फिर से शुरू' : 'Auto-alerts resumed');
+  }
+};
+
+window.hideNotif = () => { 
+  window.haptic(30); 
+  document.getElementById('notif').classList.remove('on'); 
+};
+
+window.go = href => window.location.href = href;
+
+window.openListing = id => { 
+  window.haptic(50); 
+  SS('viewId', id); 
+  window.location.href = 'detail.html?id=' + encodeURIComponent(id); 
+};
+
+window.setCat = async (c, btn) => { 
+  window.haptic(50); 
+  cat = c; 
+  document.querySelectorAll('#cat-pills .pill').forEach(b => b.classList.remove('on')); 
+  btn.classList.add('on'); 
+  redraw(); 
+};
+
+window.setR = async (km, btn) => { 
+  window.haptic(50);
+  const oldKm = radiusKm; 
+  radiusKm = km; 
+  SS('searchRadius', km); 
+  
+  document.querySelectorAll('.rdist-btn').forEach(b => b.classList.remove('on')); 
+  if (btn) btn.classList.add('on'); 
+  
+  if (oldKm <= 5 && km > 5) { 
+    await window.forceRefresh(); 
+  } else { 
+    redraw(); 
+  }
+};
+
+async function initApp() {
+  await loadNavigation(); 
+  initDragToScroll();
+  
+  const _cached = cacheGet(); 
+  if (_cached) { 
+    listings = _cached; 
+    setListings(_cached); 
+    redraw(); 
+  }
+  
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => { 
+    if (user) { loadListings(); } 
+  });
+  
+  setInterval(() => { 
+    if (auth.currentUser) loadListings(); 
+  }, 5 * 60 * 1000);
+  
+  const lastSeen = localStorage.getItem('welcome_timestamp');
+  const oneHour = 60 * 60 * 1000; 
+  
+  if (lastSeen && (Date.now() - parseInt(lastSeen) < oneHour)) {
+    setTimeout(() => { 
+      if (window._map) window._map.invalidateSize(); 
+    }, 500);
+    getLoc();
+  } else {
+    document.getElementById('modal-welcome').classList.add('on');
+  }
+}
+
+// 🚀 NEW: Play Store Prompt Logic
+window.showPlayStorePopup = () => {
+  const mod = document.getElementById('mod-playstore');
+  if (mod) mod.classList.add('on');
+};
+
+window.closePlayStorePopup = () => { 
+  const mod = document.getElementById('mod-playstore');
+  if (mod) mod.classList.remove('on'); 
+  // 🚀 CHANGED TO LOCALSTORAGE: Will permanently remember their choice
+  localStorage.setItem('hide_playstore', 'true'); 
+};
+
+window.openPlayStore = () => {
+  window.haptic(50);
+  window.open('https://play.google.com/store/apps/details?id=in.nearpop.app', '_blank');
+  window.closePlayStorePopup();
+};
+
+setTimeout(() => {
+  if ('Notification' in window) {
+    if (Notification.permission === 'default') {
+      const notifPrompt = document.getElementById('notif-prompt');
+      if (notifPrompt) notifPrompt.style.display = 'flex';
+    } else if (Notification.permission === 'granted') { 
+      window.askForNotifs(); 
+    }
+  }
+  // 🚀 CHANGED TO LOCALSTORAGE: Checks permanent memory
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (!isStandalone && !localStorage.getItem('hide_playstore')) { 
+    window.showPlayStorePopup(); 
+  }
+}, 3000);
+
+// 🚀 NEW: Let users bypass the hard block and browse manually
+window.dismissGeoBlock = () => {
+  window.haptic(30);
+  document.getElementById('hard-geo-block').style.display = 'none';
+  setFallback(); // Loads default location so the map doesn't break
+  toast('🗺️', window.lang === 'hi' ? 'मैन्युअल रूप से ब्राउज़ कर रहे हैं' : 'Browsing map manually');
+};
+
+initApp();
+
+document.addEventListener('visibilitychange', () => { 
+  if (document.visibilityState === 'visible' && typeof loadListings === 'function') loadListings(true); 
+});
+</script>
+</body>
+</html>

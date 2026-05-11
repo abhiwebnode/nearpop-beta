@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="NearPop — Post a deal, rental, PG or job listing for customers nearby.">
+<meta name="theme-color" content="#0F0F13">
+<meta name="color-scheme" content="light dark"> <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>NearPop — Post</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script>
+function validateForm() {
+  const title  = document.querySelector('[name=title]')?.value?.trim();
+  const type   = document.querySelector('.tb.on')?.dataset?.type;
+  const lat    = parseFloat(document.getElementById('c-lat')?.value || '');
+  const lng    = parseFloat(document.getElementById('c-lng')?.value || '');
+
+  if (!type) { window.toast('⚠️', 'Please select a listing type'); return false; }
+  if (!title || title.length < 3) { window.toast('⚠️', 'Title must be at least 3 characters'); return false; }
+  if (isNaN(lat) || isNaN(lng)) { window.toast('📍', 'Please pick a location on the map'); return false; }
+  if (lat < 8.4 || lat > 37.6 || lng < 68.7 || lng > 97.4) {
+    window.toast('📍', 'Location must be within India'); return false;
+  }
+  return true;
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
+<link rel="stylesheet" href="css/shared.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+#wrap{display:flex;flex-direction:column;height:100vh;height:100dvh;height:100svh;background:var(--bg-body)}
+
+.hdr{background:var(--bg-app);padding:13px 15px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:11px;flex-shrink:0}
+
+.hdr h2{font-size:17px;font-weight:800;color:var(--deep)}
+
+.bk{height:44px;border-radius:10px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;border:none;cursor:pointer;color:var(--deep)}
+
+.body{flex:1;overflow-y:auto;padding:13px}
+
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+
+.tb{border:2px solid var(--bdr);border-radius:13px;padding:14px;text-align:center;background:var(--card);transition:all .2s;cursor:pointer}
+
+.tb.on{border-color:var(--or);background:rgba(255,87,34,.05)}
+
+.tb .ti{font-size:26px;margin-bottom:4px}
+
+.tb .tl{font-size:12px;font-weight:800;color:var(--deep)}
+
+.rslide input {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #E5E7EB; 
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+}
+
+.rslide input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--or);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255,87,34,0.4);
+}
+
+.rslide input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--or);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(255,87,34,0.4);
+}
+
+.rv{text-align:center;font-size:20px;font-weight:900;color:var(--or);margin-top:6px}
+
+.bbrow{display:flex;gap:8px;flex-wrap:wrap}
+
+.bb{padding:9px 14px;border-radius:100px;border:2px solid var(--bdr);background:var(--card);font-size:13px;font-weight:700;color:var(--deep);cursor:pointer;font-family:inherit;transition:all .2s}
+
+.bb.on{border-color:var(--or);background:rgba(255,87,34,.08);color:var(--or)}
+
+.mapwrap{height:170px;border-radius:13px;overflow:hidden;border:2px solid var(--bdr); margin-bottom: 8px;}
+
+#pick-map{height:100%}
+
+.map-hint{font-size:11px;color:var(--gray);font-weight:600;margin-top:5px;text-align:center}
+
+.foot{padding:13px;padding-bottom:calc(18px + env(safe-area-inset-bottom));background:var(--bg-app);border-top:1px solid var(--bdr);flex-shrink:0}
+
+.img-up { width: 100%; height: 160px; border: 2px dashed var(--bdr); border-radius: 13px; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s; margin-bottom: 10px;}
+.img-up.has-img { border-style: solid; border-color: var(--or); }
+.img-ic { font-size: 32px; margin-bottom: 8px; opacity: 0.5; }
+.img-tx { font-size: 13px; font-weight: 700; color: var(--deep); }
+#preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+
+/* 🚀 NEW: Onboarding Guided Tour Engine CSS */
+.tour-backdrop { position: fixed; inset: 0; z-index: 9997; pointer-events: auto; }
+.tour-overlay { position: fixed; z-index: 9998; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.75); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.tour-popover { position: fixed; z-index: 9999; left: 50%; width: calc(100% - 32px); max-width: 340px; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translate(-50%, 20px); border: 1px solid rgba(0,0,0,0.1); }
+.tour-popover.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+</style>
+</head>
+<body>
+<div id="app-shell"><div id="wrap">
+  <div class="hdr">
+    <button class="bk" style="width:44px;" onclick="window.location.href='merchant.html'" aria-label="Go back">←</button>
+    <h2>Create New Listing</h2>
+    <button class="bk" style="margin-left:auto; background:transparent; width:auto; padding:0 12px; font-size:13px; font-weight:800;" onclick="window.startCreateTour()">❓ Help</button>
+  </div>
+
+  <div class="body">
+    <div class="fg">
+      <label class="fl">Listing Type *</label>
+      <div class="tgrid" id="tour-type">
+        <button class="tb on" id="tb-deal" onclick="setType('deal')"><div class="ti">🏷️</div><div class="tl">Shop Deal</div></button>
+        <button class="tb" id="tb-rental" onclick="setType('rental')"><div class="ti">🏠</div><div class="tl">Flat / Room</div></button>
+        <button class="tb" id="tb-pg" onclick="setType('pg')"><div class="ti">🛋️</div><div class="tl">PG / Hostel</div></button>
+        <button class="tb" id="tb-job" onclick="setType('job')"><div class="ti">💼</div><div class="tl">Job Opening</div></button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Add Photo (Optional)</label>
+      <div class="img-up" id="img-box" onclick="document.getElementById('mod-photo-choice').classList.add('on')">
+        <div class="img-ic">📷</div>
+        <div class="img-tx" id="img-lbl">Tap to add picture</div>
+        <div style="font-size: 10px; color: var(--gray); margin-top: 4px;" id="img-sub">Auto-compresses large photos</div>
+        <img id="preview">
+      </div>
+    </div>
+
+    <div class="fg" id="tour-title">
+      <label class="fl">Title *</label>
+      <input class="fc" id="c-title" placeholder="e.g. 30% Off Today! or 2BHK Flat ₹12,000/mo">
+    </div>
+
+    <div class="fg">
+      <label class="fl">Description *</label>
+      <textarea class="fc" id="c-desc" placeholder="Tell people what makes this special. Be specific — it gets more customers."></textarea>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Price / Offer *</label>
+      <input class="fc" id="c-price" placeholder="e.g. ₹12,000 or 30% OFF or FREE with combo">
+    </div>
+
+    <div class="fg">
+      <label class="fl">Contact Number</label>
+      <input class="fc" id="c-contact" type="tel" placeholder="+91 98765 43210">
+    </div>
+
+    <div class="fg">
+      <label class="fl">Notification Radius — how far to send popups to users</label>
+      <div class="rslide">
+        <input type="range" min="50" max="2000" value="250" id="c-radius" oninput="updR(this.value)">
+      </div>
+      <div class="rv" id="rval">250 metres</div>
+    </div>
+
+    <div class="fg" id="tour-budget">
+      <label class="fl">Daily Budget (Credits) — e.g. 25, 50, 100...</label>
+      <input type="number" class="fc" id="c-budget" value="25" placeholder="e.g. 25, 50, 100..." min="25" step="25" required>
+      <div style="font-size:11px; color:var(--gray); margin-top:6px; font-weight:600; line-height:1.4;">
+        Must be a multiple of 25. Each popup shown to a nearby customer costs exactly 0.1 Credits. <br>
+        <span style="color: var(--or); font-weight: 800;">🎁 100% Free. No real money or bank account required!</span>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Offer Valid Until *</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div>
+          <label class="fl" style="margin-bottom:4px">Start Date</label>
+          <input class="fc" type="date" id="c-start">
+        </div>
+        <div>
+          <label class="fl" style="margin-bottom:4px">Expiry Date</label>
+          <input class="fc" type="date" id="c-expiry">
+        </div>
+      </div>
+      <div style="margin-top:6px;display:flex;gap:7px;flex-wrap:wrap">
+        <button class="bb" onclick="setExpiry(7,this)">7 days</button>
+        <button class="bb on" onclick="setExpiry(30,this)">30 days</button>
+        <button class="bb" onclick="setExpiry(60,this)">60 days</button>
+        <button class="bb" onclick="setExpiry(90,this)">90 days</button>
+        <button class="bb" style="color:var(--or); border-color:var(--or);" onclick="setExpiry('unlimited',this)">♾️ Unlimited</button>
+      </div>
+    </div>
+
+    <div class="fg" id="tour-map">
+      <label class="fl">Your Location — drag pin or tap map</label>
+      <div class="mapwrap"><div id="pick-map"></div></div>
+      <div style="display:flex; gap:10px; margin-bottom: 8px;">
+        <div style="flex:1">
+          <label class="fl" style="margin-bottom:4px; font-size:11px;">Latitude</label>
+          <input class="fc" id="c-lat" type="number" step="any" placeholder="e.g. 28.4089" oninput="window.updatePinFromInput()">
+        </div>
+        <div style="flex:1">
+          <label class="fl" style="margin-bottom:4px; font-size:11px;">Longitude</label>
+          <input class="fc" id="c-lng" type="number" step="any" placeholder="e.g. 77.3178" oninput="window.updatePinFromInput()">
+        </div>
+      </div>
+      <div class="map-hint">📍 Drag the orange pin or type coordinates above to set exact shop location</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button class="btn-or" id="tour-publish" onclick="doCreate()" style="width:100%">🚀 Go Live Now!</button>
+  </div>
+</div>
+
+<div class="modal" id="mod-photo-choice" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="msht" style="padding-bottom: 30px;">
+    <div class="mh"></div>
+    <div style="text-align: center; margin-bottom: 10px; font-weight: 800; font-size: 16px; color: var(--deep);">Upload Photo</div>
+    
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 16px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--or); margin-bottom: 4px;">⚠️ Note / ध्यान दें:</div>
+      <div style="font-size: 10px; color: var(--deep); line-height: 1.4;">If the camera restarts your app, please take the photo first and choose "Gallery".<br><span style="color: var(--gray);">यदि कैमरा ऐप को रीस्टार्ट करता है, तो कृपया पहले फोटो लें और "Gallery" चुनें।</span></div>
+    </div>
+    
+    <button class="btn-or" onclick="document.getElementById('img-camera').click(); document.getElementById('mod-photo-choice').classList.remove('on');" style="width: 100%; margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span style="font-size: 20px;">📸</span> Take Live Photo
+    </button>
+    
+    <button class="btn-lt" onclick="document.getElementById('img-gallery').click(); document.getElementById('mod-photo-choice').classList.remove('on');" style="width: 100%; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span style="font-size: 20px;">🖼️</span> Choose from Gallery
+    </button>
+
+    <input type="file" id="img-camera" accept="image/*" capture="environment" style="display:none;">
+    <input type="file" id="img-gallery" accept="image/*" style="display:none;">
+  </div>
+</div>
+
+<div class="loader" id="loader"><div class="spin"></div><p id="l-txt">Saving listing…</p></div>
+<div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
+
+</div>
+
+<script type="module">
+import { db, LS, SS, TC, TE, toast, distM, app } from './js/app.js';
+import { ghEncode } from './js/geohash.js';
+import { getDocs, addDoc, collection, query, where, doc, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+
+window.toast = toast;
+
+if (!LS('uid') || LS('role') !== 'merchant') { window.location.href = 'index.html'; }
+
+let compressedImageB64 = null;
+let selType='deal', pickLat=28.4089, pickLng=77.3178, pickMap=null, pickMarker=null;
+
+function updateInputBoxes(lat, lng) {
+  document.getElementById('c-lat').value = lat.toFixed(6);
+  document.getElementById('c-lng').value = lng.toFixed(6);
+}
+
+window.updatePinFromInput = () => {
+  const newLat = parseFloat(document.getElementById('c-lat').value);
+  const newLng = parseFloat(document.getElementById('c-lng').value);
+  
+  if (!isNaN(newLat) && !isNaN(newLng)) {
+    pickLat = newLat;
+    pickLng = newLng;
+    if (pickMap && pickMarker) {
+      pickMarker.setLatLng([pickLat, pickLng]);
+      pickMap.setView([pickLat, pickLng], 15);
+    }
+  }
+};
+
+function initMap() {
+  const loc = LS('lastLoc') || {lat:28.4089, lng:77.3178};
+  pickLat = loc.lat; pickLng = loc.lng;
+  updateInputBoxes(pickLat, pickLng); 
+  
+  pickMap = L.map('pick-map', {center:[pickLat,pickLng], zoom:15, zoomControl:false, attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pickMap);
+  const ico = L.divIcon({className:'',html:`<div style="width:36px;height:36px;border-radius:50%;background:#FF5722;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(255,87,34,.4)">📍</div>`,iconSize:[36,36],iconAnchor:[18,18]});
+  pickMarker = L.marker([pickLat,pickLng],{icon:ico,draggable:true}).addTo(pickMap);
+  
+  pickMarker.on('dragend', e => { 
+    const p=e.target.getLatLng(); 
+    pickLat=p.lat; 
+    pickLng=p.lng; 
+    updateInputBoxes(pickLat, pickLng); 
+  });
+  
+  pickMap.on('click', e => { 
+    pickLat=e.latlng.lat; 
+    pickLng=e.latlng.lng; 
+    pickMarker.setLatLng(e.latlng); 
+    updateInputBoxes(pickLat, pickLng); 
+  });
+}
+setTimeout(initMap, 200);
+
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(p => {
+    pickLat=p.coords.latitude; pickLng=p.coords.longitude;
+    SS('lastLoc',{lat:pickLat,lng:pickLng});
+    if(pickMap){ 
+      pickMap.setView([pickLat,pickLng],15); 
+      pickMarker.setLatLng([pickLat,pickLng]); 
+      updateInputBoxes(pickLat, pickLng); 
+    }
+  });
+}
+
+window.setType = t => {
+  selType = t;
+  ['deal','rental','pg','job'].forEach(x => document.getElementById('tb-'+x).classList.toggle('on', x===t));
+};
+
+window.updR = v => {
+  document.getElementById('rval').textContent = v>=1000?(v/1000).toFixed(1)+'km':v+' metres';
+};
+
+const TYPE_EXTRAS = {
+  deal:   {bg:'linear-gradient(135deg,#f7971e,#ffd200)',color:'#FF5722',emoji:'🏷️',amenities:[{ic:'🏷️',lb:'Discount'},{ic:'📅',lb:'Limited Time'},{ic:'💳',lb:'Cards OK'}]},
+  rental: {bg:'linear-gradient(135deg,#667eea,#764ba2)',color:'#3B82F6',emoji:'🏠',amenities:[{ic:'🏠',lb:'For Rent'},{ic:'📶',lb:'WiFi Ready'},{ic:'🔑',lb:'Keys Ready'}]},
+  pg:     {bg:'linear-gradient(135deg,#8B5CF6,#6D28D9)',color:'#8B5CF6',emoji:'🛋️',amenities:[{ic:'🍽️',lb:'Meals'},{ic:'🔒',lb:'Security'},{ic:'📶',lb:'WiFi'}]},
+  job:    {bg:'linear-gradient(135deg,#10B981,#059669)',color:'#10B981',emoji:'💼',amenities:[{ic:'💰',lb:'Good Pay'},{ic:'📚',lb:'Training'},{ic:'🎯',lb:'Apply Now'}]},
+};
+
+window.setExpiry = (days, btn) => {
+  const expInput = document.getElementById('c-expiry');
+  const startInput = document.getElementById('c-start');
+  
+  if (days === 'unlimited') {
+    expInput.value = '';
+    expInput.disabled = true;
+    expInput.style.opacity = '0.4';
+  } else {
+    expInput.disabled = false;
+    expInput.style.opacity = '1';
+    const now   = new Date();
+    const start = now.toISOString().split('T')[0];
+    const exp   = new Date(now.getTime()+days*86400000).toISOString().split('T')[0];
+    startInput.value  = start;
+    expInput.value = exp;
+  }
+  
+  document.querySelectorAll('.bb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+};
+
+(()=>{
+  const now=new Date();
+  document.getElementById('c-start').value =now.toISOString().split('T')[0];
+  document.getElementById('c-expiry').value=new Date(now.getTime()+30*86400000).toISOString().split('T')[0];
+})();
+
+const auth = getAuth();
+const getSecureUser = () => new Promise((resolve) => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    unsubscribe();
+    resolve(user);
+  });
+});
+
+const handleImageSelection = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  toast('⏳', 'Processing photo...');
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 800; 
+      
+      let scaleSize = MAX_WIDTH / img.width;
+      if (scaleSize > 1) scaleSize = 1; 
+
+      canvas.width = img.width * scaleSize;
+      canvas.height = img.height * scaleSize;
+
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      compressedImageB64 = canvas.toDataURL('image/webp', 0.8); 
+      
+      const preview = document.getElementById('preview');
+      preview.src = compressedImageB64;
+      preview.style.display = 'block';
+      document.getElementById('img-box').classList.add('has-img');
+      document.getElementById('img-lbl').style.display = 'none';
+      
+      const subLbl = document.getElementById('img-sub');
+      if (subLbl) subLbl.style.display = 'none';
+      
+      toast('✅', 'Photo attached successfully!');
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+document.getElementById('img-camera').addEventListener('change', handleImageSelection);
+document.getElementById('img-gallery').addEventListener('change', handleImageSelection);
+
+window.doCreate = async () => {
+  const title    = document.getElementById('c-title').value.trim();
+  const desc     = document.getElementById('c-desc').value.trim();
+  const price    = document.getElementById('c-price').value.trim();
+  const contact  = document.getElementById('c-contact').value.trim();
+  const radius   = parseInt(document.getElementById('c-radius').value);
+  const budget   = parseInt(document.getElementById('c-budget').value);
+  const startDate  = document.getElementById('c-start').value;
+  let expiryDate = document.getElementById('c-expiry').value;
+
+  if (!title)      { toast('⚠️','Please enter a title'); return; }
+  if (!desc)       { toast('⚠️','Please enter a description'); return; }
+  if (!price)      { toast('⚠️','Please enter the price or offer'); return; }
+  
+  if (!budget || budget < 25 || budget % 25 !== 0) {
+    toast('⚠️', 'Daily budget must be a multiple of 25 (e.g., 25, 50)');
+    return;
+  }
+
+  const finalLat = parseFloat(document.getElementById('c-lat').value);
+  const finalLng = parseFloat(document.getElementById('c-lng').value);
+  if (isNaN(finalLat) || isNaN(finalLng)) {
+    toast('📍', 'Invalid map coordinates');
+    return;
+  }
+
+  const isUnlimited = document.getElementById('c-expiry').disabled;
+  if (isUnlimited) {
+    if (LS('plan') !== 'premium') {
+      toast('👑', 'Unlimited listings are for Premium merchants only!');
+      return;
+    }
+    expiryDate = null; 
+  } else {
+    if (!expiryDate) { toast('⚠️','Please set an expiry date'); return; }
+    if(new Date(expiryDate)<new Date()){ toast('⚠️','Expiry date must be in the future'); return; }
+  }
+
+  showLdr('Verifying secure session...');
+  
+  const secureUser = await getSecureUser();
+  if (!secureUser) {
+    hideLdr();
+    toast('⚠️', 'Session expired. Redirecting to login...');
+    setTimeout(() => {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }, 2000);
+    return;
+  }
+  
+  const isPremiumMerchant = LS('plan') === 'premium' || budget >= 500;
+
+  showLdr('Checking for duplicate listings…');
+  try {
+    const snap = await getDocs(query(collection(db,'listings'),
+      where('uid','==', secureUser.uid),
+      where('type','==',selType),
+      where('status','==','active')
+    ));
+    for(const doc of snap.docs){
+      const ex=doc.data();
+      if(!ex.lat||!ex.lng) continue;
+      const R=6371000,dLa=(ex.lat-finalLat)*Math.PI/180,dLo=(ex.lng-finalLng)*Math.PI/180;
+      const a=Math.sin(dLa/2)**2+Math.cos(finalLat*Math.PI/180)*Math.cos(ex.lat*Math.PI/180)*Math.sin(dLo/2)**2;
+      const d=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      
+      if(!isPremiumMerchant && d<300){
+        hideLdr();
+        toast('⚠️', 'Free accounts are limited to one active listing per 300m. Upgrade to Premium!');
+        return;
+      }
+    }
+  } catch(e){ /* allow on error */ }
+
+  showLdr('Saving listing…');
+  try {
+    let imageUrl = '';
+    if (compressedImageB64) {
+      showLdr('Uploading photo...');
+      try {
+        const apiKey = "4dd5a19986e0ffeabe66a2eb0114d358";
+        const formData = new FormData();
+        formData.append("image", compressedImageB64.split(',')[1]); 
+        
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { 
+          method: "POST", 
+          body: formData 
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          imageUrl = data.data.url;
+        } else {
+          throw new Error("ImgBB rejection");
+        }
+        showLdr('Finalizing listing...');
+      } catch(err) {
+         hideLdr();
+         return toast('❌', 'Image upload failed. Please check network.');
+      }
+    }
+
+    const geohash6 = ghEncode(finalLat, finalLng, 6); 
+    const geohash5 = ghEncode(finalLat, finalLng, 5); 
+
+    const ext = TYPE_EXTRAS[selType];
+    const listing = {
+      type:selType, title, desc, price,
+      priceLabel: selType==='deal'?'':selType==='job'?'/month':'/month',
+      emoji:ext.emoji, bg:ext.bg, color:ext.color, amenities:ext.amenities,
+      owner: LS('mname')||'Business Owner',
+      ownerEmoji:'🏪', ownerTag:'NearPop Merchant', verified:true,
+      contact, 
+      lat: finalLat, 
+      lng: finalLng,
+      geohash6, geohash5,
+      radius, 
+      budget: budget, 
+      status:'active', popups:0, visits:0, claims:0, redemptions:0,
+      uid: secureUser.uid,
+      startDate, 
+      expiryDate,
+      dailyPopupLimit: budget * 10,
+      popupsSentToday: 0,
+      image: imageUrl
+    };
+
+    await addDoc(collection(db,'listings'), {...listing, createdAt:serverTimestamp()});
+    hideLdr();
+    toast('🎉','Listing is LIVE! Nearby users will see it now!');
+    setTimeout(()=>window.location.href='merchant.html',1500);
+  } catch(e) {
+    hideLdr();
+    toast('❌','Failed to save: '+e.message);
+  }
+};
+function showLdr(t) { document.getElementById('l-txt').textContent=t; document.getElementById('loader').classList.add('on'); }
+function hideLdr() { document.getElementById('loader').classList.remove('on'); }
+
+
+// 🚀 NEW: Guided Onboarding Tour Engine
+class AppTour {
+  constructor(steps, onComplete) {
+    this.steps = steps;
+    this.idx = 0;
+    this.onComplete = onComplete;
+    
+    this.backdrop = document.createElement('div');
+    this.backdrop.className = 'tour-backdrop';
+    
+    this.overlay = document.createElement('div');
+    this.overlay.className = 'tour-overlay';
+    
+    this.popover = document.createElement('div');
+    this.popover.className = 'tour-popover';
+    
+    document.body.appendChild(this.backdrop);
+    document.body.appendChild(this.overlay);
+    document.body.appendChild(this.popover);
+  }
+
+  start() {
+    this.idx = 0;
+    this.showStep();
+  }
+
+  showStep() {
+    if (this.idx >= this.steps.length) return this.end();
+    const step = this.steps[this.idx];
+    const el = document.querySelector(step.target);
+    
+    if (!el) { this.idx++; return this.showStep(); }
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      
+      this.overlay.style.top = (rect.top - 8) + 'px';
+      this.overlay.style.left = (rect.left - 8) + 'px';
+      this.overlay.style.width = (rect.width + 16) + 'px';
+      this.overlay.style.height = (rect.height + 16) + 'px';
+
+      this.popover.innerHTML = `
+        <div style="font-weight:900; font-size:17px; margin-bottom:8px; color:#111827; display:flex; align-items:center; gap:8px;">${step.icon || '💡'} ${step.title}</div>
+        <div style="font-size:13px; color:#4B5563; margin-bottom:20px; line-height:1.6; font-weight:600;">${step.desc}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button style="background:transparent; color:#9CA3AF; border:none; font-weight:800; font-size:12px; cursor:pointer; padding:8px 0;" id="t-prev">${this.idx > 0 ? '← Back' : ''}</button>
+          <div style="font-size:11px; color:#D1D5DB; font-weight:800; position:absolute; left:50%; transform:translateX(-50%);">${this.idx + 1} / ${this.steps.length}</div>
+          <button style="background:#FF5722; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(255,87,34,0.3);" id="t-next">${this.idx === this.steps.length - 1 ? 'Finish' : 'Next →'}</button>
+        </div>
+        <button style="position:absolute; top:12px; right:12px; background:transparent; border:none; font-size:18px; color:#9CA3AF; cursor:pointer;" id="t-close">×</button>
+      `;
+
+      let popTop = rect.bottom + 20;
+      if (popTop + 180 > window.innerHeight) {
+        popTop = rect.top - 180; 
+      }
+      this.popover.style.top = popTop + 'px';
+      this.popover.classList.add('visible');
+
+      const prevBtn = document.getElementById('t-prev');
+      if (this.idx === 0) prevBtn.style.visibility = 'hidden';
+      else prevBtn.onclick = () => { this.idx--; this.showStep(); };
+
+      document.getElementById('t-close').onclick = () => this.end();
+      document.getElementById('t-next').onclick = () => { this.idx++; this.showStep(); };
+    }, 400); 
+  }
+
+  end() {
+    this.backdrop.remove();
+    this.overlay.remove();
+    this.popover.remove();
+    if(this.onComplete) this.onComplete();
+  }
+}
+
+window.startCreateTour = () => {
+  const steps = [
+    { target: '#tour-type', icon: '📋', title: 'Pick a Category', desc: 'Select what you are offering. You can post shop deals, real estate rentals, or job openings.' },
+    { target: '#img-box', icon: '📷', title: 'Add a Catchy Photo', desc: 'Listings with photos get 3x more views! Tap here to upload your shop logo or a product picture.' },
+    { target: '#tour-title', icon: '✍️', title: 'Write a Title', desc: 'Make it exciting! For example: "30% Off Entire Menu Today!"' },
+    { target: '#tour-budget', icon: '🪙', title: 'Set Daily Limit', desc: 'Control how many people see your deal. This costs Promo Credits, NOT real money!' },
+    { target: '#tour-map', icon: '📍', title: 'Pinpoint Location', desc: 'Drag the pin to your exact shop location so customers can find your door easily.' },
+    { target: '#tour-publish', icon: '🚀', title: 'Go Live', desc: 'Hit this button and your deal will instantly appear on the map for everyone nearby!' }
+  ];
+  
+  new AppTour(steps, async () => {
+    localStorage.setItem('np_tour_create', 'true');
+    // Optional: Sync completion to firestore here if needed
+  }).start();
+};
+
+// Automatically start tour if it's their first time
+setTimeout(() => {
+  if (!localStorage.getItem('np_tour_create')) {
+    window.startCreateTour();
+  }
+}, 800);
+
+</script>
+</body>
+</html>
