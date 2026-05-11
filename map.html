@@ -1098,10 +1098,18 @@
 <script type="module">
 import { app, db, LS, SS, TC, TE, distM, isExpired, toast, cacheGet, cacheSet, cacheClear, loadNavigation } from './js/app.js';
 import { ghEncode, ghNeighbors, ghFilter } from './js/geohash.js';
-import { setLoc, setListings, checkProximity, dist, getPrefs, notifsToday, notifsThisHour, logNotif, inMarketZone, vendorCapReached, budgetThrottled, markVendorCapUsed, markBudgetUsed, markGeofenceNotified, applyDensityControl, getNotifType, showSoftBanner, trackEng, updateSpeed } from './js/notifications.js';
+// 🚀 NEW: Import the SmartNotificationEngine
+import { NotificationEngine } from './js/notifications.js';
 import { getDocs, query, collection, orderBy, where, doc, updateDoc, increment, limit } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
+
+// 🚀 SAFETY FALLBACK: Recreate trackEng locally so old button clicks don't break
+window.trackEng = window.trackEng || function(id, value) {
+  try {
+    if (LS('uid')) updateDoc(doc(db, 'users', LS('uid')), { ['eng_' + id]: increment(value) }).catch(()=>{});
+  } catch(e) {}
+};
 
 window.lang = localStorage.getItem('app_lang') || 'en';
 
@@ -1333,8 +1341,6 @@ function startWatch() {
 function onPosition(p, forceProcess = false) {
   const lat = p.coords.latitude;
   const lng = p.coords.longitude;
-  const newTime = p.timestamp || Date.now();
-  const speed = updateSpeed({ lat, lng }, newTime);
 
   if (!forceProcess && loc && lastProcLat !== null) {
     const moved = gpsDistM(lat, lng, lastProcLat, lastProcLng);
@@ -1348,7 +1354,6 @@ function onPosition(p, forceProcess = false) {
   lastProcLat = lat; 
   lastProcLng = lng;
   loc = { lat, lng };
-  setLoc(loc); 
   SS('lastLoc', loc); 
 
   if (window.userMarker) {
@@ -1362,7 +1367,11 @@ function onPosition(p, forceProcess = false) {
   } else { 
     redraw(); 
   }
-  checkProximity(showNotif, (zone, cnt) => console.log('Market zone alert:', zone.name, cnt));
+  
+  // 🚀 NEW: Feed the Smart Notification Engine
+  if (filteredList && filteredList.length > 0) {
+      NotificationEngine.evaluate(p, filteredList);
+  }
 }
 
 function getLoc() { 
@@ -1435,13 +1444,11 @@ async function loadListings() {
     
     cacheSet(all); 
     listings = all; 
-    setListings(all); 
     redraw();
   } catch(e) {
     const c = cacheGet(); 
     if (c) { 
       listings = c; 
-      setListings(c); 
       redraw(); 
     }
   }
@@ -1767,6 +1774,7 @@ window.toggleListView = () => {
   }
 };
 
+// 🚀 Bind showNotif so the new Engine can trigger it properly
 function showNotif(l) {
   if (!LS('pop_seen_' + l.id)) {
     SS('pop_seen_' + l.id, Date.now()); 
@@ -1797,7 +1805,7 @@ function showNotif(l) {
   
   document.getElementById('n-view').onclick = () => {
     window.haptic(50);
-    trackEng(l.id, 8);
+    window.trackEng(l.id, 8);
     if (typeof window.gtag === 'function') gtag('event', 'funnel_step', { step_name: 'popup_clicked', listing_id: l.id });
     try { updateDoc(doc(db, 'listings', l.id), { visits: increment(1) }); } catch(e) {}
     hideNotif(); 
@@ -1806,7 +1814,7 @@ function showNotif(l) {
   
   document.querySelector('#notif .mn-btn.s').onclick = () => { 
     window.haptic(30); 
-    trackEng(l.id, -5); 
+    window.trackEng(l.id, -5); 
     hideNotif(); 
   };
   
@@ -1814,8 +1822,7 @@ function showNotif(l) {
   clearTimeout(window._nt); 
   window._nt = setTimeout(hideNotif, 8000);
 }
-
-window.trackEng = trackEng; 
+window.showNotif = showNotif; 
 
 window.pickType = (t, btn) => { 
   window.haptic(30); 
@@ -1938,7 +1945,6 @@ async function initApp() {
   const _cached = cacheGet(); 
   if (_cached) { 
     listings = _cached; 
-    setListings(_cached); 
     redraw(); 
   }
   
@@ -1964,7 +1970,6 @@ async function initApp() {
   }
 }
 
-// 🚀 NEW: Play Store Prompt Logic
 window.showPlayStorePopup = () => {
   const mod = document.getElementById('mod-playstore');
   if (mod) mod.classList.add('on');
@@ -1973,7 +1978,6 @@ window.showPlayStorePopup = () => {
 window.closePlayStorePopup = () => { 
   const mod = document.getElementById('mod-playstore');
   if (mod) mod.classList.remove('on'); 
-  // 🚀 CHANGED TO LOCALSTORAGE: Will permanently remember their choice
   localStorage.setItem('hide_playstore', 'true'); 
 };
 
@@ -1992,18 +1996,16 @@ setTimeout(() => {
       window.askForNotifs(); 
     }
   }
-  // 🚀 CHANGED TO LOCALSTORAGE: Checks permanent memory
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if (!isStandalone && !localStorage.getItem('hide_playstore')) { 
     window.showPlayStorePopup(); 
   }
 }, 3000);
 
-// 🚀 NEW: Let users bypass the hard block and browse manually
 window.dismissGeoBlock = () => {
   window.haptic(30);
   document.getElementById('hard-geo-block').style.display = 'none';
-  setFallback(); // Loads default location so the map doesn't break
+  setFallback(); 
   toast('🗺️', window.lang === 'hi' ? 'मैन्युअल रूप से ब्राउज़ कर रहे हैं' : 'Browsing map manually');
 };
 
