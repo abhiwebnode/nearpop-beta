@@ -218,6 +218,10 @@ window.go = href => window.location.href = href;
 const uid = LS('uid');
 if (!uid) { window.location.href = 'index.html'; }
 
+window.haptic = (ms = 50) => {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+};
+
 // ── Render stats header ────────────────────────────────────
 function renderHeader(data) {
   const d = data || {};
@@ -372,25 +376,22 @@ async function loadSavedListings() {
   }
 }
 
-// ─── NOTIFICATION PREFS INTEGRATION ───
+// ─── SAFE NATIVE NOTIFICATION PREFS ───
 function loadPrefs(data) {
   const d = data || {};
-  
-  const maxDay    = d.pref_maxDay ?? parseInt(localStorage.getItem('pref_maxDay')) || 3;
-  const maxHour   = d.pref_maxHour ?? parseInt(localStorage.getItem('pref_maxHour')) || 1;
-  const paused    = d.pref_paused ?? (localStorage.getItem('pref_paused') === 'true');
-  
-  let interests;
-  try {
-    interests = d.pref_interests ?? JSON.parse(localStorage.getItem('pref_interests') || '["deal","rental","pg","job"]');
-  } catch(e) {
-    interests = ['deal','rental','pg','job'];
-  }
+  const maxDay    = d.pref_maxDay    || LS('pref_maxDay')    || 5;
+  const maxHour   = d.pref_maxHour   || LS('pref_maxHour')   || 1;
+  const paused    = d.pref_paused    || LS('pref_paused')    || false;
+  const interests = d.pref_interests || LS('pref_interests') || ['deal', 'rental', 'pg', 'job'];
 
   const tog = document.getElementById('tog-pause');
-  paused ? tog.classList.add('on') : tog.classList.remove('on');
-  document.getElementById('lbl-day').textContent  = maxDay  === 999 ? 'No limit' : maxDay;
-  document.getElementById('lbl-hour').textContent = maxHour === 999 ? 'No limit' : maxHour;
+  if (tog) { paused ? tog.classList.add('on') : tog.classList.remove('on'); }
+
+  const lblDay = document.getElementById('lbl-day');
+  if (lblDay) lblDay.textContent = maxDay === 999 ? 'No limit' : maxDay;
+
+  const lblHour = document.getElementById('lbl-hour');
+  if (lblHour) lblHour.textContent = maxHour === 999 ? 'No limit' : maxHour;
 
   document.querySelectorAll('[onclick^="window.setMaxDay"]').forEach(b => {
     const v = parseInt(b.textContent) || 999;
@@ -408,15 +409,17 @@ function loadPrefs(data) {
 }
 
 window.togglePause = tog => {
+  window.haptic(30);
   tog.classList.toggle('on');
   const v = tog.classList.contains('on');
-  localStorage.setItem('pref_paused', v.toString());
+  LS('pref_paused', v);
   syncField(uid, 'pref_paused', v);
   toast(v ? '⏸️' : '▶️', v ? 'Notifications paused' : 'Notifications resumed');
 };
 
 window.setMaxDay = (n, btn) => {
-  localStorage.setItem('pref_maxDay', n.toString());
+  window.haptic(30);
+  LS('pref_maxDay', n);
   syncField(uid, 'pref_maxDay', n);
   document.getElementById('lbl-day').textContent = n === 999 ? 'No limit' : n;
   document.querySelectorAll('[onclick^="window.setMaxDay"]').forEach(b => b.classList.remove('on'));
@@ -425,7 +428,8 @@ window.setMaxDay = (n, btn) => {
 };
 
 window.setMaxHour = (n, btn) => {
-  localStorage.setItem('pref_maxHour', n.toString());
+  window.haptic(30);
+  LS('pref_maxHour', n);
   syncField(uid, 'pref_maxHour', n);
   document.getElementById('lbl-hour').textContent = n === 999 ? 'No limit' : n;
   document.querySelectorAll('[onclick^="window.setMaxHour"]').forEach(b => b.classList.remove('on'));
@@ -434,14 +438,8 @@ window.setMaxHour = (n, btn) => {
 };
 
 window.toggleInterest = (cat, btn) => {
-  let interestsArray;
-  try {
-    interestsArray = JSON.parse(localStorage.getItem('pref_interests') || '["deal","rental","pg","job"]');
-  } catch(e) {
-    interestsArray = ['deal','rental','pg','job'];
-  }
-  
-  const interests = new Set(interestsArray);
+  window.haptic(30);
+  const interests = new Set(LS('pref_interests') || ['deal', 'rental', 'pg', 'job']);
   interests.has(cat) ? interests.delete(cat) : interests.add(cat);
   
   if (!interests.size) { 
@@ -450,7 +448,7 @@ window.toggleInterest = (cat, btn) => {
     return; 
   }
   
-  localStorage.setItem('pref_interests', JSON.stringify([...interests]));
+  LS('pref_interests', [...interests]);
   syncField(uid, 'pref_interests', [...interests]);
   btn.classList.toggle('on', interests.has(cat));
   toast('🎯', 'Interests saved');
