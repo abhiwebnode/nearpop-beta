@@ -30,20 +30,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 <style>
-/* Add html, and force absolute height! */
-  html, body { 
-    height: 100%; /* 📏 THIS IS MANDATORY FOR ANDROID WEBVIEWS */
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    display:flex; 
-    flex-direction:column; 
-    align-items:center; 
-    justify-content:center; 
-    background-color: var(--bg-body); 
-    overflow:hidden; 
-    position: relative;
-  }
   body { 
     display:flex; 
     flex-direction:column; 
@@ -224,7 +210,7 @@
 
 <script type="module">
 import { db, LS, SS, toast, cacheClear } from './js/app.js';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { app } from './js/app.js';
 
@@ -249,6 +235,7 @@ window.setRole = (r) => {
   document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
   document.getElementById('rt-mer').classList.toggle('on', r === 'merchant');
   
+  // Physically slide the pill background
   const pill = document.getElementById('role-pill');
   if(r === 'merchant') {
     pill.style.transform = 'translateX(100%)';
@@ -264,6 +251,7 @@ if (urlP.get('qr') === '1') {
   document.getElementById('role-box').style.display = 'none'; 
 }
 
+// 🚀 JS for Inline Button Loading
 function showLdr(msg) {
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'none';
@@ -273,6 +261,7 @@ function showLdr(msg) {
   btn.style.opacity = '0.9';
 }
 
+// 🚀 Safety Reset for Button if Login Fails/Cancels
 function resetLdr() {
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'block';
@@ -282,99 +271,94 @@ function resetLdr() {
   btn.style.opacity = '1';
 }
 
-// 🚀 THE MOBILE FIX: Check if we just came back from the Google Login page
-async function checkRedirectLogin() {
+window.loginWithGoogle = async () => {
+  if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
+
   try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      showLdr('Completing Sign In...');
-      const user = result.user; 
-      const uid = user.uid; 
-      const gName = user.displayName || 'User';
+    showLdr('Connecting to Google...');
+    
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user; 
+    const uid = user.uid; 
+    const gName = user.displayName || 'User';
+    
+    SS('uid', uid); SS('name', gName); SS('role', window.loginRole);
+    
+    showLdr('Signing in...'); 
+    
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    const isNewUser = !userSnap.exists(); 
+    
+    if (!isNewUser) {
+      const existingRole = userSnap.data().role || 'consumer';
       
-      // Get the role they chose BEFORE they clicked login
-      const savedRole = sessionStorage.getItem('np_pending_role') || 'consumer';
-      sessionStorage.removeItem('np_pending_role');
-
-      SS('uid', uid); SS('name', gName); SS('role', savedRole);
-      
-      const userRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userRef);
-      const isNewUser = !userSnap.exists(); 
-      
-      if (!isNewUser) {
-        const existingRole = userSnap.data().role || 'consumer';
+      if (existingRole !== window.loginRole) {
+        await auth.signOut(); 
+        resetLdr(); // 🚀 Resets the inline button perfectly
         
-        if (existingRole !== savedRole) {
-          await auth.signOut(); 
-          resetLdr(); 
-          if (existingRole === 'consumer') {
-            return toast('⚠️', 'This Google account is registered as a Customer. You cannot log in as a Merchant.');
-          } else {
-            return toast('⚠️', 'This Google account is registered as a Merchant. You cannot log in as a Customer.');
-          }
-        }
-      }
-
-      if (savedRole === 'merchant') {
-        let bname = gName + "'s Business";
-        if (isNewUser) {
-          bname = prompt('What is your business / shop name?') || bname;
-          SS('mname', bname); SS('wallet', 500); 
-          await setDoc(userRef, { name: gName, role: 'merchant', mname: bname, wallet: 500, points: 0, liked: [], createdAt: Date.now() });
+        if (existingRole === 'consumer') {
+          return toast('⚠️', 'This Google account is registered as a Customer. You cannot log in as a Merchant.');
         } else {
-          if (userSnap.data().mname) { bname = userSnap.data().mname; SS('mname', bname); } 
-          else { bname = prompt('What is your business / shop name?') || bname; SS('mname', bname); await updateDoc(userRef, { role: 'merchant', mname: bname }); }
-          SS('wallet', userSnap.data().wallet !== undefined ? userSnap.data().wallet : 500);
-          if (userSnap.data().plan) SS('plan', userSnap.data().plan);
+          return toast('⚠️', 'This Google account is registered as a Merchant. You cannot log in as a Customer.');
         }
-      } else {
-        if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
-      }
-      
-      cacheClear();
-      const savedIntent = sessionStorage.getItem('np_intent');
-      
-      const qrMid = urlP.get('mid');
-      if (qrMid) {
-        try {
-          if (isNewUser) {
-            await updateDoc(doc(db, 'users', qrMid), { qrNew: increment(1), qrScans: increment(1) });
-          } else {
-            await updateDoc(doc(db, 'users', qrMid), { qrRet: increment(1), qrScans: increment(1) });
-          }
-          sessionStorage.setItem('np_qr_logged_' + qrMid, 'true'); 
-        } catch (err) { console.warn("Rules blocked analytics:", err); }
-      }
-      
-      if (savedIntent) {
-        sessionStorage.removeItem('np_intent');
-        window.location.href = savedIntent;
-      } else {
-        window.location.href = savedRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
       }
     }
+
+    if (window.loginRole === 'merchant') {
+      let bname = gName + "'s Business";
+      if (isNewUser) {
+        bname = prompt('What is your business / shop name?') || bname;
+        SS('mname', bname); SS('wallet', 500); 
+        await setDoc(userRef, { name: gName, role: 'merchant', mname: bname, wallet: 500, points: 0, liked: [], createdAt: Date.now() });
+      } else {
+        if (userSnap.data().mname) { bname = userSnap.data().mname; SS('mname', bname); } 
+        else { bname = prompt('What is your business / shop name?') || bname; SS('mname', bname); await updateDoc(userRef, { role: 'merchant', mname: bname }); }
+        SS('wallet', userSnap.data().wallet !== undefined ? userSnap.data().wallet : 500);
+        if (userSnap.data().plan) SS('plan', userSnap.data().plan);
+      }
+    } else {
+      if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
+    }
+    
+    cacheClear();
+    const savedIntent = sessionStorage.getItem('np_intent');
+    
+    const qrMid = urlP.get('mid');
+    if (qrMid) {
+      try {
+        if (isNewUser) {
+          await updateDoc(doc(db, 'users', qrMid), { qrNew: increment(1), qrScans: increment(1) });
+        } else {
+          await updateDoc(doc(db, 'users', qrMid), { qrRet: increment(1), qrScans: increment(1) });
+        }
+        sessionStorage.setItem('np_qr_logged_' + qrMid, 'true'); 
+      } catch (err) { console.warn("Rules blocked analytics:", err); }
+    } else if (savedIntent && savedIntent.includes('utm_source=qr_standee')) {
+      try {
+        const urlStr = savedIntent.startsWith('http') ? savedIntent : window.location.origin + '/' + savedIntent;
+        const intentUrl = new URL(urlStr);
+        const merchantId = intentUrl.searchParams.get('mid');
+        if (merchantId) {
+          if (isNewUser) await updateDoc(doc(db, 'users', merchantId), { qrNew: increment(1), qrScans: increment(1) });
+          else await updateDoc(doc(db, 'users', merchantId), { qrRet: increment(1), qrScans: increment(1) });
+          sessionStorage.setItem('np_qr_logged_' + merchantId, 'true');
+        }
+      } catch (err) { console.warn("Rules blocked fallback analytics:", err); }
+    }
+    
+    if (savedIntent) {
+      sessionStorage.removeItem('np_intent');
+      window.location.href = savedIntent;
+    } else {
+      window.location.href = window.loginRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
+    }
+
   } catch(e) {
     console.error("Firebase Auth Error:", e);
     toast('❌', 'Login failed. Please try again.');
-    resetLdr();
+    resetLdr(); // 🚀 Resets button if the user closes the Google pop-up
   }
-}
-
-// Fire the check immediately on page load
-checkRedirectLogin();
-
-// 🚀 THE NEW LOGIN BUTTON
-window.loginWithGoogle = () => {
-  if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
-  
-  showLdr('Connecting to Google...');
-  
-  // Save the user's role choice to memory so we remember it when they come back
-  sessionStorage.setItem('np_pending_role', window.loginRole);
-  
-  // Navigate away using the mobile-safe redirect method
-  signInWithRedirect(auth, provider);
 };
 </script>
 <div style="text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative;">
