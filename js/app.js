@@ -8,7 +8,7 @@
 import { initializeApp }  from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { initializeFirestore, persistentLocalCache, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
+import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
 
 // ── Firebase config ──────────────────────────────────────
 const FB_CONFIG = {
@@ -28,7 +28,24 @@ export const db = initializeFirestore(app, {
 });
 
 export const auth = getAuth(app);
-export const messaging = getMessaging(app);
+
+// 🛡️ SAFE START: Only turn on messaging if the browser/app allows it
+export let messaging = null;
+
+isSupported().then((supported) => {
+  if (supported) {
+    messaging = getMessaging(app);
+    console.log("Web Push is supported! Messaging initialized.");
+    
+    // Move the foreground listener here so it only runs if supported!
+    onMessage(messaging, (payload) => {
+      console.log('Foreground Push Received:', payload);
+      toast('🔔', payload.notification?.title || "New Offer Nearby!", 5000);
+    });
+  } else {
+    console.log("Running inside Android App - Skipping Web Push!");
+  }
+}).catch(console.error);
 
 // 🚀 1. ENFORCE INDEFINITE SESSION PERSISTENCE
 setPersistence(auth, browserLocalPersistence)
@@ -248,7 +265,6 @@ export async function requestPushPermissions(uid) {
     
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      // 🚀 PROCESS MADE SILENT: Removed the success toast here
       fetchAndSaveToken(uid);
     } else {
       toast('⚠️', 'Alerts blocked. You can enable them in your browser settings later.');
@@ -262,6 +278,8 @@ export async function requestPushPermissions(uid) {
 }
 
 async function fetchAndSaveToken(uid) {
+  if (!messaging) return; // 🛡️ SAFETY NET: Stop here if running in Android app
+  
   try {
     const vapidKey = "BJWz7jdnCy1hb-E8M-7-Q2wanQdNY46Rw7T9I8g_EPr02m-AYAxhGCM7QBm7DpL0WgE-nSnud5mqBK6MWd4w6T0"; 
     const currentToken = await getToken(messaging, { vapidKey });
@@ -277,13 +295,6 @@ async function fetchAndSaveToken(uid) {
     console.warn("Failed to get FCM token:", error);
   }
 }
-
-try {
-  onMessage(messaging, (payload) => {
-    console.log('Foreground Push Received:', payload);
-    toast('🔔', payload.notification?.title || "New Offer Nearby!", 5000);
-  });
-} catch(e) { console.warn("Messaging not supported."); }
 
 export async function triggerLocalBuzz(title, body, url) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
