@@ -190,41 +190,22 @@
 <script>
   function setTimeBasedBackground() {
     const hour = new Date().getHours();
-    
-    // Fallback: If 'dynamic-bg' doesn't exist, apply it directly to the body
-    const bgElement = document.getElementById('dynamic-bg') || document.body;
+    const bgElement = document.getElementById('dynamic-bg');
     
     let bgUrl = '';
     
-    // Morning (6 AM - 11:59 AM)
     if (hour >= 6 && hour < 12) {
       bgUrl = 'url("https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop")';
-    } 
-    // Afternoon (12 PM - 5:59 PM)
-    else if (hour >= 12 && hour < 18) {
+    } else if (hour >= 12 && hour < 18) {
       bgUrl = 'url("https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=80&w=1080&auto=format&fit=crop")';
-    } 
-    // Night (6 PM - 5:59 AM)
-    else {
+    } else {
       bgUrl = 'url("https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop")';
     }
     
-    // Apply the image
     bgElement.style.backgroundImage = bgUrl;
-    
-    // 🔒 THE WEBVIEW SHIELD: Force the CSS layout rules via JavaScript
-    // This guarantees the Unsplash image shrinks to fit the phone screen
-    bgElement.style.backgroundSize = "cover";
-    bgElement.style.backgroundPosition = "center";
-    bgElement.style.backgroundRepeat = "no-repeat";
-    bgElement.style.backgroundAttachment = "fixed";
-    
-    // Ensure the container is exactly the height of the screen
-    bgElement.style.minHeight = "100dvh"; 
   }
   
-  // Wait for the HTML to fully load before trying to find the background element
-  document.addEventListener("DOMContentLoaded", setTimeBasedBackground);
+  setTimeBasedBackground();
 </script>
 
 <script type="module">
