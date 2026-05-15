@@ -1098,6 +1098,7 @@
 <script type="module">
 import { app, db, LS, SS, TC, TE, distM, isExpired, toast, cacheGet, cacheSet, cacheClear, loadNavigation } from './js/app.js';
 import { ghEncode, ghNeighbors, ghFilter } from './js/geohash.js';
+import { esc, safeUrl } from './js/sanitizer.js';
 // 🚀 NEW: Import the SmartNotificationEngine
 import { NotificationEngine } from './js/notifications.js';
 import { getDocs, query, collection, orderBy, where, doc, updateDoc, increment, limit } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
@@ -1311,7 +1312,15 @@ document.querySelectorAll('.rdist-btn').forEach(b => {
 let watchId = null;
 let lastProcLat = null;
 let lastProcLng = null;
-const MIN_MOVE_M = 10;
+const GPS_CONFIG = {
+  MIN_ACCURACY: 50,
+  MIN_MOVE_M: 15,
+  STATIONARY_THRESHOLD_MPS: 0.5,
+  STATIONARY_TIMEOUT_MS: 120000
+};
+let recentPositions = [];
+let isStationary = false;
+let stationaryStartTime = null;
 
 function gpsDistM(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -1334,18 +1343,46 @@ function startWatch() {
   watchId = navigator.geolocation.watchPosition( 
     p => onPosition(p, false), 
     (err) => handleGeoError(err), 
-    { enableHighAccuracy: false, maximumAge: 20000, timeout: 10000 } 
+    { enableHighAccuracy: true, maximumAge: 10000, timeout: 12000 } 
   );
 }
 
 function onPosition(p, forceProcess = false) {
   const lat = p.coords.latitude;
   const lng = p.coords.longitude;
+  const accuracy = p.coords.accuracy || 999;
+  if (!forceProcess && accuracy > GPS_CONFIG.MIN_ACCURACY) {
+    console.warn('Ignoring low-accuracy GPS fix:', accuracy);
+    return;
+  }
+
+  const now = Date.now();
+  recentPositions.push({ lat, lng, ts: now });
+  if (recentPositions.length > 5) recentPositions.shift();
+
+  let calculatedSpeed = p.coords.speed;
+  if ((calculatedSpeed === null || calculatedSpeed === undefined) && recentPositions.length >= 3) {
+    const oldest = recentPositions[0];
+    const dt = Math.max(1, (now - oldest.ts) / 1000);
+    calculatedSpeed = gpsDistM(lat, lng, oldest.lat, oldest.lng) / dt;
+  }
+
+  const movingSpeed = calculatedSpeed || 0;
+  if (movingSpeed < GPS_CONFIG.STATIONARY_THRESHOLD_MPS && !forceProcess) {
+    if (!isStationary) {
+      isStationary = true;
+      stationaryStartTime = now;
+    }
+  } else {
+    isStationary = false;
+    stationaryStartTime = null;
+  }
 
   if (!forceProcess && loc && lastProcLat !== null) {
     const moved = gpsDistM(lat, lng, lastProcLat, lastProcLng);
-    if (moved < MIN_MOVE_M) {
-      loc = { lat, lng };
+    const moveThreshold = Math.max(GPS_CONFIG.MIN_MOVE_M, accuracy * 0.5);
+    if (moved < moveThreshold) {
+      loc = { lat, lng, accuracy, speed: movingSpeed, isStationary };
       if (window.userMarker) window.userMarker.setLatLng([lat, lng]);
       return;
     }
@@ -1353,7 +1390,7 @@ function onPosition(p, forceProcess = false) {
 
   lastProcLat = lat; 
   lastProcLng = lng;
-  loc = { lat, lng };
+  loc = { lat, lng, accuracy, speed: movingSpeed, isStationary };
   SS('lastLoc', loc); 
 
   if (window.userMarker) {
@@ -1370,7 +1407,13 @@ function onPosition(p, forceProcess = false) {
   
   // 🚀 NEW: Feed the Smart Notification Engine
   if (filteredList && filteredList.length > 0) {
-      NotificationEngine.evaluate(p, filteredList);
+      NotificationEngine.evaluate(p, filteredList, {
+        isStationary,
+        speed: movingSpeed,
+        accuracy,
+        densityLevel: filteredList.length > 10 ? 'high' : 'normal',
+        stationaryDurationMs: stationaryStartTime ? now - stationaryStartTime : 0
+      });
   }
 }
 
@@ -1421,7 +1464,7 @@ async function loadListings() {
     let q = collection(db, 'listings');
     const filters = [];
     const userLoc = LS('lastLoc');
-    const currentRadius = parseInt(SS('searchRadius') || LS('searchRadius')) || radiusKm || 1;
+    const currentRadius = parseInt(LS('searchRadius')) || radiusKm || 1;
 
     if (userLoc && currentRadius <= 5) {
       const safeLat = +parseFloat(userLoc.lat).toFixed(6);
@@ -1529,11 +1572,11 @@ function redraw() {
     if (isNaN(safeLat) || isNaN(safeLng)) return;
     
     const col = l.color || TC(l.type);
-    const imgUrl = l.imageUrl || l.image;
+    const imgUrl = safeUrl(l.imageUrl || l.image);
     
     const pinInner = imgUrl 
       ? `<div style="width:100%;height:100%;border-radius:50%;background:#fff url('${imgUrl}') center/cover no-repeat;"></div>` 
-      : `<div class="pin-emo">${l.emoji || TE(l.type)}</div>`;
+      : `<div class="pin-emo">${esc(l.emoji || TE(l.type), 16)}</div>`;
       
     const ico = L.divIcon({ 
       className: '', 
@@ -1589,7 +1632,7 @@ window.previewPin = (l) => {
   const distTxt = d < 1000 ? Math.round(d) + 'm' : (d / 1000).toFixed(1) + 'km';
   
   const col = l.color || TC(l.type);
-  const imgUrl = l.imageUrl || l.image;
+  const imgUrl = safeUrl(l.imageUrl || l.image);
   const ppIc = document.getElementById('pp-ic');
   
   if (imgUrl) { 
@@ -1677,7 +1720,7 @@ function renderCards() {
     `;
   } else {
     document.getElementById('hscr').innerHTML = filteredList.map(l => {
-      const imgUrl = l.imageUrl || l.image;
+      const imgUrl = safeUrl(l.imageUrl || l.image);
       
       let fomoHtml = '';
       if (l.expiryDate) {
@@ -1696,12 +1739,12 @@ function renderCards() {
           <div style="display:flex; gap:10px; margin-bottom:8px; align-items:flex-start;">
             ${thumb}
             <div style="flex:1; overflow:hidden;">
-              <div class="hcd-type" style="color:${l.color||TC(l.type)}; margin-bottom:2px; text-transform: capitalize;">${l.type||''}</div>
-              <div class="hcd-title" style="margin-bottom:0; font-size:13px;">${(l.title||'').slice(0,35)}</div>
+              <div class="hcd-type" style="color:${l.color||TC(l.type)}; margin-bottom:2px; text-transform: capitalize;">${esc(l.type || '', 24)}</div>
+              <div class="hcd-title" style="margin-bottom:0; font-size:13px;">${esc(l.title || '', 35)}</div>
             </div>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="hcd-price" style="font-size:14px; font-weight:900; color:#FF5722;">${l.price||''}</div>
+            <div class="hcd-price" style="font-size:14px; font-weight:900; color:#FF5722;">${esc(l.price || '', 80)}</div>
             <div class="hcd-dist" style="margin-top:0; font-size:11px; color:#6B7280; font-weight:700; background:#F3F4F6; padding:2px 6px; border-radius:6px;">📍 ${fmtDist(l)}</div>
           </div>
         </div>
@@ -1709,7 +1752,7 @@ function renderCards() {
     }).join('');
 
     vgrid.innerHTML = filteredList.map(l => {
-      const imgUrl = l.imageUrl || l.image;
+      const imgUrl = safeUrl(l.imageUrl || l.image);
       
       const iconHtml = imgUrl 
         ? `<div class="d-ic" style="background: #ffffff url('${imgUrl}') center/contain no-repeat; border: 1px solid #E5E7EB;"></div>` 
@@ -1730,11 +1773,11 @@ function renderCards() {
           ${fomoHtml} 
           ${iconHtml}
           <div class="d-inf">
-            <div class="d-ti">${l.title}</div>
-            <div class="d-pr">${l.price || 'Special Deal'}</div>
+            <div class="d-ti">${esc(l.title || '', 120)}</div>
+            <div class="d-pr">${esc(l.price || 'Special Deal', 80)}</div>
           </div>
           <div class="dc-bot">
-            <div class="d-tag" style="background:${col}20; color:${col};">${(l.type || 'Offer').toUpperCase()}</div>
+            <div class="d-tag" style="background:${col}20; color:${col};">${esc((l.type || 'Offer').toUpperCase(), 24)}</div>
             <div class="d-arrow">➔</div>
           </div>
           <div style="position:absolute; top:8px; right:8px; background:rgba(255,255,255,0.9); padding:2px 6px; border-radius:6px; font-size:9px; font-weight:800; color:#4B5563; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📍 ${fmtDist(l)}</div>
@@ -1778,17 +1821,13 @@ window.toggleListView = () => {
 function showNotif(l) {
   if (!LS('pop_seen_' + l.id)) {
     SS('pop_seen_' + l.id, Date.now()); 
-    try {
-      updateDoc(doc(db, 'listings', l.id), { popups: increment(1), popupsSentToday: increment(1) });
-      if (l.uid) updateDoc(doc(db, 'users', l.uid), { wallet: increment(-0.1) });
-    } catch(e) {}
   }
   
   const col = l.color || TC(l.type);
   document.getElementById('n-badge').textContent = (l.type || '').toUpperCase(); 
   document.getElementById('n-badge').style.background = col;
   
-  const imgUrl = l.imageUrl || l.image;
+  const imgUrl = safeUrl(l.imageUrl || l.image);
   const nic = document.getElementById('n-ic');
   
   if (imgUrl) { 

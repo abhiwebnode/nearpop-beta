@@ -101,6 +101,7 @@ input{font-family:inherit;outline:none;border:none}
 <script type="module">
 import { db, LS, SS, TC, TE, distM, fmtDist, isExpired, cacheGet, cacheSet, loadNavigation, toast, requestPushPermissions } from './js/app.js';
 import { ghFilter } from './js/geohash.js';
+import { esc, safeUrl } from './js/sanitizer.js';
 import { getDocs, query, collection, orderBy } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 
 // 1. Authentication Check
@@ -154,23 +155,23 @@ function render() {
   
   // 🚀 FIX: Uses #ffffff background and 'contain' to show the full image without cropping
   el.innerHTML = `<div class="grid">` + list.map(l => {
-    const imgUrl = l.imageUrl || l.image;
+    const imgUrl = safeUrl(l.imageUrl || l.image);
     const bgStyle = imgUrl ? `background: #ffffff url('${imgUrl}') center/contain no-repeat;` : `background: ${l.bg || 'linear-gradient(135deg,#667eea,#764ba2)'};`;
-    const emojiOrEmpty = imgUrl ? '' : `<span style="position:relative;z-index:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25))">${l.emoji || TE(l.type)}</span>`;
+    const emojiOrEmpty = imgUrl ? '' : `<span style="position:relative;z-index:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25))">${esc(l.emoji || TE(l.type), 16)}</span>`;
 
     return `
     <div class="fcd" onclick="window.openListing('${l.id}')">
       <div class="fcd-img" style="${bgStyle}">
         ${emojiOrEmpty}
         <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.4))"></div>
-        <div class="fcd-badge" style="background:${l.color || TC(l.type)}">${(l.type||'').toUpperCase()}</div>
+        <div class="fcd-badge" style="background:${l.color || TC(l.type)}">${esc((l.type || '').toUpperCase(), 24)}</div>
         <div class="fcd-dist">📍 ${fmtDist(l)}</div>
       </div>
       <div class="fcd-body">
-        <div class="fcd-title">${l.title||''}</div>
+        <div class="fcd-title">${esc(l.title || '', 160)}</div>
         <div>
-          <div class="fcd-price">${l.price||''}<span>${l.priceLabel||''}</span></div>
-          <div class="fcd-by" style="color:${l.color||TC(l.type)}">🏪 ${l.owner||'Local Business'}</div>
+          <div class="fcd-price">${esc(l.price || '', 80)}<span>${esc(l.priceLabel || '', 40)}</span></div>
+          <div class="fcd-by" style="color:${l.color||TC(l.type)}">Shop ${esc(l.owner || 'Local Business', 120)}</div>
         </div>
       </div>
     </div>`;

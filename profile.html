@@ -209,6 +209,7 @@
 <script type="module">
 import { db, LS, SS, TC, TE, toast, cacheClear, loadNavigation, requestPushPermissions } from './js/app.js';
 import { pushUserData, pullUserData, watchUserData, isRealAuthUser, syncField } from './js/userSync.js';
+import { esc } from './js/sanitizer.js';
 import { doc, getDoc, getDocs, query, collection, where, updateDoc, increment, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { getAuth, signOut, onAuthStateChanged, deleteUser } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js';
@@ -364,9 +365,9 @@ async function loadSavedListings() {
     all.forEach(l => {
       const col = TC(l.type);
       html += `<div class="scard" onclick="window.go('detail.html?id=${encodeURIComponent(l.id)}')">
-        <div class="scard-type" style="color:${col}">${TE(l.type)} ${(l.type||'').toUpperCase()}</div>
-        <div class="scard-title">${l.title||''}</div>
-        <div class="scard-price">${l.price||'—'}</div>
+        <div class="scard-type" style="color:${col}">${esc(TE(l.type), 16)} ${esc((l.type || '').toUpperCase(), 24)}</div>
+        <div class="scard-title">${esc(l.title || '', 160)}</div>
+        <div class="scard-price">${esc(l.price || '—', 80)}</div>
       </div>`;
     });
     html += '</div>';

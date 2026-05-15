@@ -19,20 +19,44 @@ const messaging = firebase.messaging();
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function canShowNotification(notificationId) {
   const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour in milliseconds
-  const cache = await caches.open('nearpop-cooldowns');
-  const cacheKey = `/cooldown/${notificationId}`;
-  
-  const existingRecord = await cache.match(cacheKey);
-  if (existingRecord) {
-    const lastPing = await existingRecord.json();
-    if (Date.now() - lastPing < COOLDOWN_MS) {
-      return false; // Still in cooldown period, block notification
-    }
-  }
-  
-  // Update the cache with the new timestamp
-  await cache.put(cacheKey, new Response(JSON.stringify(Date.now())));
+  const db = await openCooldownDB();
+  const existingRecord = await idbGet(db, notificationId);
+  if (existingRecord && Date.now() - existingRecord.lastShownAt < COOLDOWN_MS) return false;
+  await idbPut(db, { id: notificationId, lastShownAt: Date.now() });
   return true;
+}
+
+function openCooldownDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('NearPopNotificationCooldowns', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('cooldowns')) {
+        db.createObjectStore('cooldowns', { keyPath: 'id' });
+      }
+    };
+  });
+}
+
+function idbGet(db, id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('cooldowns', 'readonly');
+    const req = tx.objectStore('cooldowns').get(id);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => resolve(req.result || null);
+  });
+}
+
+function idbPut(db, record) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('cooldowns', 'readwrite');
+    const store = tx.objectStore('cooldowns');
+    const req = store.put(record);
+    req.onerror = () => reject(req.error);
+    tx.oncomplete = () => resolve();
+  });
 }
 
 // 🚀 THE UNIFIED BACKGROUND MESSAGE HANDLER
@@ -99,6 +123,7 @@ const ASSETS = [
   '/profile.html',
   '/css/shared.css',
   '/js/app.js',
+  '/js/sanitizer.js',
   '/js/notifications.js',
   '/js/geohash.js',
   '/js/userSync.js'

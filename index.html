@@ -3,21 +3,17 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- Mobile -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0F0F13">
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <title>NearPop Login</title>
 
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link rel="stylesheet"
-href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 
 <style>
@@ -26,941 +22,363 @@ href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&f
   --safe-bottom: env(safe-area-inset-bottom);
 }
 
-html,
-body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100%;
-  min-height:100%;
-  overflow-x:hidden;
-  overflow-y:auto;
+html, body {
+  margin:0; padding:0;
+  width:100%; min-height:100%;
+  overflow-x:hidden; overflow-y:auto;
   background:var(--bg-body);
   -webkit-overflow-scrolling:touch;
   font-family:'Nunito',sans-serif;
 }
 
 /* Background */
-.premium-bg{
-  position:fixed;
-  inset:0;
-  z-index:1;
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
+.premium-bg {
+  position:fixed; inset:0; z-index:1;
+  background-size:cover; background-position:center; background-repeat:no-repeat;
   transform:scale(1.03);
 }
-
-.premium-bg::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,0.50);
-  backdrop-filter:blur(2px);
+.premium-bg::after {
+  content:''; position:absolute; inset:0;
+  background:rgba(0,0,0,0.50); backdrop-filter:blur(2px);
 }
 
 /* Layout */
-.scroll-wrapper{
-  position:relative;
-  z-index:10;
-  width:100%;
-  min-height:100dvh;
+.scroll-wrapper {
+  position:relative; z-index:10;
+  width:100%; min-height:100dvh;
   box-sizing:border-box;
-
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-
-  padding:
-    calc(24px + var(--safe-top))
-    16px
-    calc(32px + var(--safe-bottom));
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  padding: calc(24px + var(--safe-top)) 16px calc(32px + var(--safe-bottom));
 }
 
 /* Card */
-.card{
-  width:100%;
-  max-width:420px;
-  background:#ffffff;
-  border-radius:30px;
-  padding:34px 24px;
-  box-sizing:border-box;
+.card {
+  width:100%; max-width:420px;
+  background:#ffffff; border-radius:30px;
+  padding:34px 24px; box-sizing:border-box;
   border:1px solid #e5e7eb;
-  box-shadow:
-    0 10px 40px rgba(0,0,0,0.35),
-    0 2px 10px rgba(0,0,0,0.08);
-
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.08);
   animation:fadeUp .45s ease;
 }
 
 @keyframes fadeUp{
-  from{
-    opacity:0;
-    transform:translateY(18px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
+  from{ opacity:0; transform:translateY(18px); }
+  to{ opacity:1; transform:translateY(0); }
 }
 
 @media(prefers-color-scheme:dark){
-  .card{
-    background:#111827;
-    border-color:#1F2937;
-  }
-
-  .premium-bg::after{
-    background:rgba(0,0,0,0.72);
-  }
+  .card{ background:#111827; border-color:#1F2937; }
+  .premium-bg::after{ background:rgba(0,0,0,0.72); }
 }
 
-.brand{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.logo{
-  max-height:72px;
-  width:auto;
-  filter:drop-shadow(0 8px 20px rgba(0,0,0,0.12));
-}
-
-.tagline{
-  text-align:center;
-  font-size:14px;
-  line-height:1.5;
-  font-weight:700;
-  color:var(--gray);
-  margin-bottom:28px;
-}
+.brand { display:flex; justify-content:center; align-items:center; margin-bottom:20px; }
+.logo { max-height:72px; width:auto; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.12)); }
+.tagline { text-align:center; font-size:14px; line-height:1.5; font-weight:700; color:var(--gray); margin-bottom:28px; }
 
 /* Role Toggle */
-.role-tog{
-  position:relative;
-  display:flex;
-  align-items:center;
-
-  background:var(--cream);
-  border:1px solid var(--bdr);
-
-  border-radius:16px;
-  padding:4px;
-  margin-bottom:24px;
-
-  overflow:hidden;
-}
-
-.sliding-pill{
-  position:absolute;
-  top:4px;
-  left:4px;
-  bottom:4px;
-  width:calc(50% - 4px);
-
-  background:var(--bg-app);
-  border-radius:12px;
-
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
-
-  transition:transform .30s cubic-bezier(.34,1.56,.64,1);
-}
-
-.rtb{
-  position:relative;
-  z-index:2;
-
-  flex:1;
-  border:none;
-  background:transparent;
-
-  padding:12px 10px;
-  border-radius:12px;
-
-  font-size:13px;
-  font-weight:900;
-  color:var(--gray);
-
-  cursor:pointer;
-  transition:.2s;
-}
-
-.rtb.on{
-  color:var(--deep);
-}
+.role-tog { position:relative; display:flex; align-items:center; background:var(--cream); border:1px solid var(--bdr); border-radius:16px; padding:4px; margin-bottom:24px; overflow:hidden; }
+.sliding-pill { position:absolute; top:4px; left:4px; bottom:4px; width:calc(50% - 4px); background:var(--bg-app); border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); transition:transform .30s cubic-bezier(.34,1.56,.64,1); }
+.rtb { position:relative; z-index:2; flex:1; border:none; background:transparent; padding:12px 10px; border-radius:12px; font-size:13px; font-weight:900; color:var(--gray); cursor:pointer; transition:.2s; }
+.rtb.on { color:var(--deep); }
 
 /* Checkbox */
-.checkbox-wrapper{
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  margin-bottom:22px;
-}
-
-.custom-checkbox{
-  width:20px;
-  height:20px;
-  margin-top:2px;
-  accent-color:#FF5722;
-  cursor:pointer;
-  flex-shrink:0;
-}
-
-.checkbox-label{
-  font-size:12px;
-  line-height:1.5;
-  font-weight:700;
-  color:var(--deep);
-}
-
-.checkbox-label a{
-  color:#FF5722;
-  font-weight:900;
-}
+.checkbox-wrapper { display:flex; align-items:flex-start; gap:10px; margin-bottom:22px; }
+.custom-checkbox { width:20px; height:20px; margin-top:2px; accent-color:#FF5722; cursor:pointer; flex-shrink:0; }
+.checkbox-label { font-size:12px; line-height:1.5; font-weight:700; color:var(--deep); }
+.checkbox-label a { color:#FF5722; font-weight:900; }
 
 /* Login Button */
-.btn-google{
-  width:100%;
-  border:none;
-  outline:none;
-  cursor:pointer;
+.btn-google { width:100%; border:none; outline:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; padding:15px; border-radius:14px; background:#ffffff; border:2px solid var(--bdr); font-size:15px; font-weight:900; font-family:inherit; transition:.2s; box-shadow:0 5px 18px rgba(0,0,0,0.08); }
+.btn-google:hover { transform:translateY(-1px); }
+.btn-google:active { transform:scale(.98); }
+.btn-google:disabled { opacity:.7; pointer-events:none; }
+.btn-google img { width:20px; height:20px; }
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-
-  padding:15px;
-
-  border-radius:14px;
-
-  background:#ffffff;
-  border:2px solid var(--bdr);
-
-  font-size:15px;
-  font-weight:900;
-  font-family:inherit;
-
-  transition:.2s;
-  box-shadow:0 5px 18px rgba(0,0,0,0.08);
-}
-
-.btn-google:hover{
-  transform:translateY(-1px);
-}
-
-.btn-google:active{
-  transform:scale(.98);
-}
-
-.btn-google:disabled{
-  opacity:.7;
-  pointer-events:none;
-}
-
-.btn-google img{
-  width:20px;
-  height:20px;
-}
-
-.spinner{
-  width:20px;
-  height:20px;
-  border-radius:50%;
-  border:3px solid rgba(0,0,0,0.15);
-  border-top-color:#111;
-  animation:spin .8s linear infinite;
-  display:none;
-}
-
-@keyframes spin{
-  to{
-    transform:rotate(360deg);
-  }
-}
+.spinner { width:20px; height:20px; border-radius:50%; border:3px solid rgba(0,0,0,0.15); border-top-color:#111; animation:spin .8s linear infinite; display:none; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
 
 /* Footer */
-.footer-links{
-  margin-top:24px;
-  text-align:center;
-  font-size:12px;
-  font-weight:800;
-}
-
-.footer-links a{
-  color:rgba(255,255,255,.92);
-  text-decoration:none;
-  text-shadow:0 1px 4px rgba(0,0,0,0.5);
-}
+.footer-links { margin-top:24px; text-align:center; font-size:12px; font-weight:800; }
+.footer-links a { color:rgba(255,255,255,.92); text-decoration:none; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
 
 /* Merchant Modal */
-.modal-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.65);
-
-  display:none;
-  align-items:center;
-  justify-content:center;
-
-  z-index:9999;
-  padding:20px;
-}
-
-.modal{
-  width:100%;
-  max-width:400px;
-
-  background:#fff;
-  border-radius:24px;
-
-  padding:24px;
-  box-sizing:border-box;
-}
-
-.modal h3{
-  margin:0 0 10px;
-  font-size:22px;
-}
-
-.modal p{
-  margin:0 0 20px;
-  color:#6B7280;
-  font-size:14px;
-}
-
-.modal input{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid #d1d5db;
-  font-size:15px;
-  box-sizing:border-box;
-  margin-bottom:18px;
-}
-
-.modal button{
-  width:100%;
-  border:none;
-  padding:14px;
-  border-radius:14px;
-  background:#FF5722;
-  color:#fff;
-  font-size:15px;
-  font-weight:900;
-  cursor:pointer;
-}
-
-@media(prefers-reduced-motion:reduce){
-  *{
-    animation:none !important;
-    transition:none !important;
-  }
-}
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.65); display:none; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+.modal { width:100%; max-width:400px; background:#fff; border-radius:24px; padding:24px; box-sizing:border-box; }
+.modal h3 { margin:0 0 10px; font-size:22px; }
+.modal p { margin:0 0 20px; color:#6B7280; font-size:14px; }
+.modal input { width:100%; padding:14px; border-radius:14px; border:1px solid #d1d5db; font-size:15px; box-sizing:border-box; margin-bottom:18px; }
+.modal button { width:100%; border:none; padding:14px; border-radius:14px; background:#FF5722; color:#fff; font-size:15px; font-weight:900; cursor:pointer; }
 </style>
 </head>
 
 <body>
 
-<!-- Background -->
 <div class="premium-bg" id="dynamic-bg"></div>
 
-<!-- Main -->
 <div class="scroll-wrapper">
-
   <div class="card">
-
     <div class="brand">
-      <img src="icons/logo.png"
-           class="logo"
-           alt="NearPop Logo">
+      <img src="icons/logo.png" class="logo" alt="NearPop Logo">
     </div>
-
     <div class="tagline" id="tag-line">
       Sign in to discover nearby deals instantly.
     </div>
 
-    <!-- Role -->
     <div class="role-tog" id="role-box">
-
       <div class="sliding-pill" id="role-pill"></div>
-
-      <button class="rtb on"
-              id="rt-con"
-              type="button">
-        📱 Customer
-      </button>
-
-      <button class="rtb"
-              id="rt-mer"
-              type="button">
-        🏪 Merchant
-      </button>
-
+      <button class="rtb on" id="rt-con" type="button">📱 Customer</button>
+      <button class="rtb" id="rt-mer" type="button">🏪 Merchant</button>
     </div>
 
-    <!-- Terms -->
     <div class="checkbox-wrapper">
-
-      <input type="checkbox"
-             id="agree-check"
-             class="custom-checkbox">
-
-      <label for="agree-check"
-             class="checkbox-label">
-
+      <input type="checkbox" id="agree-check" class="custom-checkbox">
+      <label for="agree-check" class="checkbox-label">
         By checking this, you agree to NearPop's
-
-        <a href="terms.html">Terms</a>
-        &
-        <a href="privacy.html">Privacy</a>.
-
+        <a href="terms.html">Terms</a> & <a href="privacy.html">Privacy</a>.
       </label>
-
     </div>
 
-    <!-- Login -->
-    <button class="btn-google"
-            id="btn-login"
-            type="button">
-
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-           alt="Google"
-           id="google-icon">
-
+    <button class="btn-google" id="btn-login" type="button">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" id="google-icon">
       <div class="spinner" id="spinner"></div>
-
-      <span id="btn-text">
-        Continue with Google
-      </span>
-
+      <span id="btn-text">Continue with Google</span>
     </button>
 
-    <div style="
-      margin-top:22px;
-      text-align:center;
-      font-size:11px;
-      color:var(--gray);
-      font-weight:700;
-    ">
+    <div style="margin-top:22px; text-align:center; font-size:11px; color:var(--gray); font-weight:700;">
       © 2026 NearPop. All rights reserved.
     </div>
-
   </div>
 
-  <!-- Footer -->
   <div class="footer-links">
-
     <a href="/privacy.html">Privacy Policy</a>
-
-    <span style="margin:0 8px; color:rgba(255,255,255,.5)">
-      |
-    </span>
-
+    <span style="margin:0 8px; color:rgba(255,255,255,.5)">|</span>
     <a href="/terms.html">Terms of Service</a>
-
   </div>
-
 </div>
 
-<!-- Merchant Modal -->
 <div class="modal-overlay" id="merchant-modal">
-
   <div class="modal">
-
     <h3>Business Setup</h3>
-
-    <p>
-      Enter your business/shop name to continue.
-    </p>
-
-    <input type="text"
-           id="business-name"
-           placeholder="Example: Sharma Electronics">
-
-    <button id="save-business-btn">
-      Continue
-    </button>
-
+    <p>Enter your business/shop name to continue.</p>
+    <input type="text" id="business-name" placeholder="Example: Sharma Electronics">
+    <button id="save-business-btn">Continue</button>
   </div>
-
 </div>
 
-<!-- Scripts -->
 <script type="module">
-
-import {
-  app,
-  db,
-  toast,
-  cacheClear,
-  LS,
-  SS
-} from './js/app.js';
-
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence
+import { app, db, toast, cacheClear, LS, SS } from './js/app.js';
+import { 
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, 
+  getRedirectResult, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 /* -------------------------------- */
-/* Background */
+/* 1. DOM Elements & State First    */
 /* -------------------------------- */
-
-function setTimeBasedBackground(){
-
-  const hour = new Date().getHours();
-  const bg = document.getElementById('dynamic-bg');
-
-  let url = '';
-
-  if(hour >= 6 && hour < 12){
-
-    url = 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=70&w=900&auto=format&fit=crop';
-
-  }else if(hour >= 12 && hour < 18){
-
-    url = 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=70&w=900&auto=format&fit=crop';
-
-  }else{
-
-    url = 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=70&w=900&auto=format&fit=crop';
-  }
-
-  bg.style.backgroundImage = `url("${url}")`;
-}
-
-setTimeBasedBackground();
-
-/* -------------------------------- */
-/* Firebase */
-/* -------------------------------- */
-
-const auth = getAuth(app);
-
-await setPersistence(auth, browserLocalPersistence);
-
-const provider = new GoogleAuthProvider();
-
-provider.setCustomParameters({
-  prompt: 'select_account'
-});
-
-/* -------------------------------- */
-/* Environment */
-/* -------------------------------- */
-
-const UA = navigator.userAgent;
-
-const isStandalone =
-  window.matchMedia('(display-mode: standalone)').matches;
-
-const isMobileLike =
-  /Android|iPhone|iPad|Mobile/i.test(UA) ||
-  isStandalone ||
-  UA.includes('NearPopApp');
-
-/* -------------------------------- */
-/* State */
-/* -------------------------------- */
-
 let loginRole = 'consumer';
 let isProcessing = false;
-
-/* -------------------------------- */
-/* Elements */
-/* -------------------------------- */
 
 const btnLogin = document.getElementById('btn-login');
 const btnText = document.getElementById('btn-text');
 const spinner = document.getElementById('spinner');
 const googleIcon = document.getElementById('google-icon');
-
 const rtCon = document.getElementById('rt-con');
 const rtMer = document.getElementById('rt-mer');
 const rolePill = document.getElementById('role-pill');
-
-const merchantModal =
-  document.getElementById('merchant-modal');
-
-const businessInput =
-  document.getElementById('business-name');
-
-const saveBusinessBtn =
-  document.getElementById('save-business-btn');
+const merchantModal = document.getElementById('merchant-modal');
+const businessInput = document.getElementById('business-name');
+const saveBusinessBtn = document.getElementById('save-business-btn');
 
 /* -------------------------------- */
-/* Role Toggle */
+/* 2. Bind UI Events Immediately    */
 /* -------------------------------- */
-
 function setRole(role){
-
+  if(isProcessing) return;
   loginRole = role;
-
   rtCon.classList.toggle('on', role === 'consumer');
   rtMer.classList.toggle('on', role === 'merchant');
-
-  rolePill.style.transform =
-    role === 'merchant'
-      ? 'translateX(100%)'
-      : 'translateX(0)';
+  rolePill.style.transform = role === 'merchant' ? 'translateX(100%)' : 'translateX(0)';
 }
 
-rtCon.addEventListener('click', () => {
-  setRole('consumer');
-});
-
-rtMer.addEventListener('click', () => {
-  setRole('merchant');
-});
-
-/* -------------------------------- */
-/* QR Intent */
-/* -------------------------------- */
-
-const params = new URLSearchParams(location.search);
-
-if(params.get('qr') === '1'){
-
-  document.getElementById('tag-line').innerHTML =
-    "<span style='color:#FF5722;font-size:18px;font-weight:900'>Store Found! 🏪</span><br>Sign in to unlock deals and claim visit points.";
-
-  document.getElementById('role-box').style.display = 'none';
-
-  setRole('consumer');
-}
-
-/* -------------------------------- */
-/* Loader */
-/* -------------------------------- */
+rtCon.addEventListener('click', () => setRole('consumer'));
+rtMer.addEventListener('click', () => setRole('merchant'));
 
 function setLoading(state, text = 'Continue with Google'){
-
   isProcessing = state;
-
   btnLogin.disabled = state;
-
-  spinner.style.display =
-    state ? 'block' : 'none';
-
-  googleIcon.style.display =
-    state ? 'none' : 'block';
-
+  spinner.style.display = state ? 'block' : 'none';
+  googleIcon.style.display = state ? 'none' : 'block';
   btnText.textContent = text;
 }
 
-/* -------------------------------- */
-/* Merchant Modal */
-/* -------------------------------- */
+btnLogin.addEventListener('click', async () => {
+  if(isProcessing) return;
+  if(!document.getElementById('agree-check').checked){
+    toast('⚠️', 'Please agree to Terms & Privacy Policy.');
+    return;
+  }
+  
+  try {
+    setLoading(true, 'Connecting to Google...');
+    
+    // PWA Mobile devices handle redirects much better than popups
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (isMobile) {
+      await signInWithRedirect(auth, provider);
+    } else {
+      const result = await signInWithPopup(auth, provider);
+      if(result?.user) await handleAuthSuccess(result.user);
+    }
+  } catch(err) {
+    console.error('Auth Error:', err);
+    let msg = 'Login failed. Please try again.';
+    if(err.code === 'auth/popup-closed-by-user') msg = 'Login popup was closed.';
+    toast('❌', msg);
+    setLoading(false);
+  }
+});
 
+/* -------------------------------- */
+/* 3. Helper Functions              */
+/* -------------------------------- */
 function askBusinessName(defaultName){
-
   return new Promise((resolve) => {
-
     merchantModal.style.display = 'flex';
-
     businessInput.value = defaultName || '';
-
     businessInput.focus();
-
     const handler = () => {
-
-      const value =
-        businessInput.value.trim() ||
-        defaultName;
-
+      const value = businessInput.value.trim() || defaultName;
       merchantModal.style.display = 'none';
-
-      saveBusinessBtn.removeEventListener(
-        'click',
-        handler
-      );
-
+      saveBusinessBtn.removeEventListener('click', handler);
       resolve(value);
     };
-
-    saveBusinessBtn.addEventListener(
-      'click',
-      handler
-    );
+    saveBusinessBtn.addEventListener('click', handler);
   });
 }
 
-/* -------------------------------- */
-/* Auth Success */
-/* -------------------------------- */
-
 async function handleAuthSuccess(user){
-
   try{
-
+    setLoading(true, 'Setting up account...');
     const uid = user.uid;
     const gName = user.displayName || 'User';
-
     const userRef = doc(db, 'users', uid);
-
     const snap = await getDoc(userRef);
-
     const isNewUser = !snap.exists();
 
-    /* Existing User */
     if(!isNewUser){
-
-      const existingRole =
-        snap.data().role || 'consumer';
-
+      const existingRole = snap.data().role || 'consumer';
       if(existingRole !== loginRole){
-
-        toast(
-          '⚠️',
-          `This account is already registered as ${existingRole}.`
-        );
-
+        toast('⚠️', `This account is already registered as ${existingRole}.`);
+        await auth.signOut();
         setLoading(false);
-
         return;
       }
     }
 
-    /* Merchant */
     if(loginRole === 'merchant'){
-
-      let businessName =
-        `${gName}'s Business`;
-
+      let businessName = `${gName}'s Business`;
       if(isNewUser){
-
-        businessName =
-          await askBusinessName(businessName);
-
-        await setDoc(userRef,{
-          name:gName,
-          role:'merchant',
-          mname:businessName,
-          wallet:500,
-          points:0,
-          liked:[],
-          createdAt:Date.now()
-        });
-
+        businessName = await askBusinessName(businessName);
+        await setDoc(userRef, { name:gName, role:'merchant', mname:businessName, wallet:500, points:0, liked:[], createdAt:Date.now() });
       }else{
-
         const data = snap.data();
-
         if(!data.mname){
-
-          businessName =
-            await askBusinessName(businessName);
-
-          await updateDoc(userRef,{
-            mname:businessName
-          });
-
+          businessName = await askBusinessName(businessName);
+          await updateDoc(userRef, { mname:businessName });
         }else{
           businessName = data.mname;
         }
-
         SS('wallet', data.wallet || 500);
-
-        if(data.plan){
-          SS('plan', data.plan);
-        }
+        if(data.plan) SS('plan', data.plan);
       }
-
       SS('mname', businessName);
-
     }else{
-
-      /* Consumer */
-
-      if(isNewUser){
-
-        await setDoc(userRef,{
-          name:gName,
-          role:'consumer',
-          wallet:0,
-          points:50,
-          liked:[],
-          createdAt:Date.now()
-        });
-      }
+      if(isNewUser) await setDoc(userRef, { name:gName, role:'consumer', wallet:0, points:50, liked:[], createdAt:Date.now() });
     }
 
-    /* Cache */
     SS('uid', uid);
     SS('name', gName);
     SS('role', loginRole);
-
     cacheClear();
 
-    const savedIntent =
-      sessionStorage.getItem('np_intent');
-
+    const savedIntent = sessionStorage.getItem('np_intent');
     if(savedIntent){
-
       sessionStorage.removeItem('np_intent');
-
       location.href = savedIntent;
-
-      return;
+    } else {
+      location.href = loginRole === 'merchant' ? 'merchant.html' : 'map.html';
     }
-
-    location.href =
-      loginRole === 'merchant'
-        ? 'merchant.html'
-        : 'map.html';
-
   }catch(err){
-
     console.error(err);
-
-    toast(
-      '❌',
-      'Something went wrong. Please try again.'
-    );
-
+    toast('❌', 'Something went wrong. Please try again.');
     setLoading(false);
   }
 }
 
 /* -------------------------------- */
-/* Login */
+/* 4. Background Setup              */
 /* -------------------------------- */
+function setTimeBasedBackground(){
+  const hour = new Date().getHours();
+  const bg = document.getElementById('dynamic-bg');
+  let url = (hour >= 6 && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=70&w=900&auto=format&fit=crop' :
+            (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=70&w=900&auto=format&fit=crop' :
+            'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=70&w=900&auto=format&fit=crop';
+  bg.style.backgroundImage = `url("${url}")`;
+}
+setTimeBasedBackground();
 
-btnLogin.addEventListener('click', async () => {
-
-  if(isProcessing) return;
-
-  if(!document.getElementById('agree-check').checked){
-
-    toast(
-      '⚠️',
-      'Please agree to Terms & Privacy Policy.'
-    );
-
-    return;
-  }
-
-  try{
-
-    setLoading(true, 'Connecting to Google...');
-
-    /* Mobile / PWA / App */
-    if(isMobileLike){
-
-      await signInWithRedirect(auth, provider);
-
-      return;
-    }
-
-    /* Desktop */
-    const result =
-      await signInWithPopup(auth, provider);
-
-    if(result?.user){
-
-      await handleAuthSuccess(result.user);
-    }
-
-  }catch(err){
-
-    console.error('Auth Error:', err);
-
-    let msg = 'Login failed. Please try again.';
-
-    switch(err.code){
-
-      case 'auth/popup-closed-by-user':
-        msg = 'Login popup was closed.';
-        break;
-
-      case 'auth/network-request-failed':
-        msg = 'Internet connection problem.';
-        break;
-
-      case 'auth/cancelled-popup-request':
-        msg = 'Login already in progress.';
-        break;
-
-      case 'auth/popup-blocked':
-        msg = 'Popup blocked by browser.';
-        break;
-    }
-
-    toast('❌', msg);
-
-    setLoading(false);
-  }
-});
+const params = new URLSearchParams(location.search);
+if(params.get('qr') === '1'){
+  document.getElementById('tag-line').innerHTML = "<span style='color:#FF5722;font-size:18px;font-weight:900'>Store Found! 🏪</span><br>Sign in to unlock deals and claim visit points.";
+  document.getElementById('role-box').style.display = 'none';
+  setRole('consumer');
+}
 
 /* -------------------------------- */
-/* Redirect Result */
+/* 5. Initialize Firebase Auth      */
 /* -------------------------------- */
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: 'select_account' });
 
-try{
-
-  const redirectResult =
-    await getRedirectResult(auth);
-
+// Check for redirect result (if returning from mobile PWA login)
+getRedirectResult(auth).then(redirectResult => {
   if(redirectResult?.user){
-
     setLoading(true, 'Restoring session...');
-
-    await handleAuthSuccess(
-      redirectResult.user
-    );
+    handleAuthSuccess(redirectResult.user);
   }
+}).catch(console.error);
 
-}catch(err){
-
-  console.error(err);
-}
-
-/* -------------------------------- */
-/* Auth State */
-/* -------------------------------- */
-
+// Auto-redirect if already logged in previously
 onAuthStateChanged(auth, async(user) => {
-
-  if(!user) return;
-
-  const savedIntent =
-    sessionStorage.getItem('np_intent');
-
-  if(savedIntent){
-
-    sessionStorage.removeItem('np_intent');
-
-    location.href = savedIntent;
-
-    return;
+  if(!user || isProcessing) return; // Don't interrupt active login flow
+  
+  let role = SS('role');
+  if(!role) {
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if(snap.exists()) {
+        role = snap.data().role || 'consumer';
+        SS('role', role);
+        SS('uid', user.uid);
+        SS('name', user.displayName || 'User');
+      } else return;
+    } catch(e) { return; }
   }
 
-  const role = SS('role');
-
-  if(role === 'merchant'){
-    location.href = 'merchant.html';
-  }else{
-    location.href = 'map.html';
+  const savedIntent = sessionStorage.getItem('np_intent');
+  if(savedIntent){
+    sessionStorage.removeItem('np_intent');
+    location.href = savedIntent;
+  } else {
+    location.href = role === 'merchant' ? 'merchant.html' : 'map.html';
   }
 });
 
 </script>
-
 </body>
 </html>

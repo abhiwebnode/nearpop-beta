@@ -5,17 +5,20 @@
 // ║  + Hourly Budget Pacing · Remote Admin Kill-Switch                   ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
-import { db, LS, SS, distM } from './app.js';
+import { app, db, LS, SS, distM, enqueueFirestoreWrite } from './app.js';
 import {
     updateDoc, doc, increment, onSnapshot
 } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-functions.js';
+
+const functions = getFunctions(app, 'asia-south1');
 
 const RULES = {
     LINGER_MS:              5000,                   // 5 s dwell before firing
     GLOBAL_QUEUE_MS:        3  * 60 * 1000,         // 3 min between any push
     DEAL_COOLDOWN_MS:       48 * 60 * 60 * 1000,    // 48 h before repeating same deal
     MAX_NOTIFS_PER_DAY:     5,                      // Default daily cap fallback
-    MIN_GPS_ACCURACY:       100,                    // Ignore fixes worse than 100 m
+    MIN_GPS_ACCURACY:       50,                     // Ignore fixes worse than 50 m
     MAX_SPEED_MPS:          5.56,                   // ~20 km/h — above = vehicle, skip
     MAX_JUMP_MPS:           55.6,                   // ~200 km/h — above = fake GPS
     LOW_BATTERY_THRESHOLD:  0.20,                   // Pause below 20 % unless charging
@@ -28,9 +31,11 @@ class SmartNotificationEngine {
         this.systemMuted      = false;  // toggled by remote Firestore kill-switch
         this.batteryOk        = true;   // updated by Battery API watcher
         this.lastPosition     = null;   // { lat, lng, ts } for jump / velocity checks
+        this._isEvaluating    = false;
 
         this._initKillSwitch();
         this._initBatteryWatcher();
+        setInterval(() => this.cleanupLingerCache(), 30000);
     }
 
     // ─── REMOTE ADMIN KILL-SWITCH ──────────────────────────────────────────────
@@ -79,8 +84,23 @@ class SmartNotificationEngine {
         catch (e) { return defaultVal; }
     }
 
+    cleanupLingerCache() {
+        const now = Date.now();
+        Object.keys(this.lingerCache).forEach(dealId => {
+            const entry = this.lingerCache[dealId];
+            const ts = typeof entry === 'number' ? entry : entry?.timestamp;
+            const qualifiedAt = typeof entry === 'object' ? entry.qualifiedAt : null;
+            if (!ts || now - ts > 60000 || (qualifiedAt && now - qualifiedAt > 10000)) {
+                delete this.lingerCache[dealId];
+            }
+        });
+    }
+
     // ─── MAIN EVALUATION LOOP ─────────────────────────────────────────────────
-    async evaluate(position, activeListings) {
+    async evaluate(position, activeListings, movementContext = {}) {
+        if (this._isEvaluating) return;
+        this._isEvaluating = true;
+        try {
 
         // ── Gate 1: System & battery ─────────────────────────────────────────
         if (this.systemMuted) return;
@@ -128,7 +148,7 @@ class SmartNotificationEngine {
         if (speed !== null && speed !== undefined && speed > RULES.MAX_SPEED_MPS) return;
 
         // ── Gate 6: Global notification queue (3-min gap) ─────────────────────
-        const lastNotifTime = parseInt(LS('np_last_notif_time')) || 0;
+        const lastNotifTime = parseInt(localStorage.getItem('np_last_notif_time')) || 0;
         if (now - lastNotifTime < RULES.GLOBAL_QUEUE_MS) return;
 
         // ── Gate 7: Daily limit ───────────────────────────────────────────────
@@ -138,7 +158,11 @@ class SmartNotificationEngine {
         if (dailyTracker.count >= prefs.maxDay) return;
 
         // ── Gate 8: Density-based radius scaling ──────────────────────────────
-        const triggerRadius = activeListings.length > 10 ? 50 : 500;
+        const isStationary = movementContext.isStationary === true;
+        const densityLevel = movementContext.densityLevel || (activeListings.length > 10 ? 'high' : 'normal');
+        let triggerRadius = isStationary ? 100 : 500;
+        if (speed !== null && speed !== undefined && speed > 2) triggerRadius = Math.min(triggerRadius, 300);
+        if (densityLevel === 'high') triggerRadius = Math.min(triggerRadius, 50);
         const qualifiedDeals = [];
 
         // ── Deal loop ─────────────────────────────────────────────────────────
@@ -164,19 +188,32 @@ class SmartNotificationEngine {
             if (prefs.mutedVendors.includes(deal.uid || deal.id)) continue;
 
             // 48-hour per-deal cooldown
-            const lastSeenDeal = parseInt(LS(`np_seen_${deal.id}`)) || 0;
+            const lastSeenDeal = parseInt(localStorage.getItem(`np_seen_${deal.id}`)) || 0;
             if (now - lastSeenDeal < RULES.DEAL_COOLDOWN_MS) continue;
 
             const distance = distM(lat, lng, parseFloat(deal.lat), parseFloat(deal.lng));
 
             if (distance <= triggerRadius) {
                 // 5-second linger / dwell check
-                if (!this.lingerCache[deal.id]) {
-                    this.lingerCache[deal.id] = now;
-                } else if (now - this.lingerCache[deal.id] >= RULES.LINGER_MS) {
+                const cacheEntry = this.lingerCache[deal.id];
+                if (!cacheEntry) {
+                    this.lingerCache[deal.id] = {
+                        timestamp: now,
+                        qualified: false,
+                        distance,
+                        evaluationCount: 1
+                    };
+                } else if (!cacheEntry.qualified && now - cacheEntry.timestamp >= RULES.LINGER_MS) {
+                    cacheEntry.qualified = true;
+                    cacheEntry.qualifiedAt = now;
+                    cacheEntry.distance = distance;
                     deal.score    = this.calculatePriorityScore(deal, distance);
                     deal._hourKey = hourKey; // carry the key through to processAndFire
+                    deal._distance = distance;
                     qualifiedDeals.push(deal);
+                } else if (!cacheEntry.qualified) {
+                    cacheEntry.distance = distance;
+                    cacheEntry.evaluationCount = (cacheEntry.evaluationCount || 0) + 1;
                 }
             } else {
                 delete this.lingerCache[deal.id];
@@ -184,7 +221,10 @@ class SmartNotificationEngine {
         }
 
         if (qualifiedDeals.length > 0) {
-            this.processAndFire(qualifiedDeals, dailyTracker);
+            await this.processAndFire(qualifiedDeals, dailyTracker);
+        }
+        } finally {
+            this._isEvaluating = false;
         }
     }
 
@@ -221,6 +261,13 @@ class SmartNotificationEngine {
             notifBody  = `${primaryDeal.price ? primaryDeal.price + ' · ' : ''}${primaryDeal.desc.slice(0, 40)}...`;
         }
 
+        const reserved = await this.reserveNotificationSlot(primaryDeal);
+        if (!reserved.allowed) {
+            dealsToAnnounce.forEach(d => delete this.lingerCache[d.id]);
+            console.warn('[NearPop] Notification blocked by budget verification:', reserved.reason);
+            return;
+        }
+
         this.triggerUI(primaryDeal, notifTitle, notifBody);
 
         // ── Update all rate-limit counters ────────────────────────────────────
@@ -245,10 +292,11 @@ class SmartNotificationEngine {
             // Increment Firestore popup counters for merchant analytics
             try {
                 if (d.id) {
-                    updateDoc(doc(db, 'listings', d.id), {
+                    if (!reserved.serverCharged) enqueueFirestoreWrite(() => updateDoc(doc(db, 'listings', d.id), {
                         popups:          increment(1),
                         popupsSentToday: increment(1),
-                    });
+                        lastPopupAt: Date.now()
+                    }), `listing_popup_${d.id}`);
                 }
             } catch (e) { /* non-critical — analytics only */ }
         });
@@ -259,8 +307,23 @@ class SmartNotificationEngine {
     //   1. Service Worker push  → works on lock screen / background
     //   2. window.showNotif     → in-app overlay when app is in foreground
     //   3. navigator.vibrate    → haptic feedback fallback
+    async reserveNotificationSlot(deal) {
+        try {
+            const reserveSlot = httpsCallable(functions, 'reserveNotificationSlot');
+            const result = await reserveSlot({
+                listingId: deal.id,
+                userId: LS('uid')
+            });
+            if (result.data?.allowed) return { allowed: true, serverCharged: true };
+            return { allowed: false, reason: result.data?.reason || 'server_rejected' };
+        } catch (error) {
+            console.warn('[NearPop] Server budget verification unavailable; using queued analytics fallback.', error);
+            return { allowed: true, serverCharged: false, reason: 'function_unavailable' };
+        }
+    }
+
     triggerUI(deal, title, body) {
-        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        if (document.hidden && 'serviceWorker' in navigator && Notification.permission === 'granted') {
             navigator.serviceWorker.ready.then(registration => {
                 registration.showNotification(title, {
                     body,
@@ -270,7 +333,7 @@ class SmartNotificationEngine {
                 });
             });
         }
-        if (typeof window.showNotif === 'function') {
+        if (!document.hidden && typeof window.showNotif === 'function') {
             window.showNotif(deal);
         }
         if (navigator.vibrate) {

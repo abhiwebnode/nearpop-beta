@@ -411,13 +411,16 @@
 </div>
 
 <script type="module">
-import { db, auth, LS, SS, TC, TE, toast, cacheGet, cacheSet, cacheClear, CACHE_TTL } from './js/app.js';
+import { app, db, auth, LS, SS, TC, TE, toast, cacheGet, cacheSet, cacheClear, CACHE_TTL } from './js/app.js';
+import { sanitizer, esc, safeUrl } from './js/sanitizer.js';
 import { getDoc, getDocs, query, collection, where, updateDoc, deleteDoc, doc, setDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-functions.js';
 
 if (!LS('uid') || LS('role') !== 'merchant') { window.location.href = 'index.html'; }
 
 const uid   = LS('uid');
+const functions = getFunctions(app, 'asia-south1');
 
 window.haptic = (ms = 50) => {
   try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
@@ -440,7 +443,7 @@ if (logoUrl) {
 
 let userPlan = LS('plan') || 'free';
 if (userPlan === 'premium') {
-  document.getElementById('mbiz').innerHTML = mname + ' <span style="font-size:14px">👑</span>';
+  document.getElementById('mbiz').textContent = mname + ' Premium';
 } else {
   document.getElementById('mbiz').textContent = mname;
 }
@@ -509,17 +512,10 @@ document.getElementById('img-camera').addEventListener('change', handleImageSele
 document.getElementById('img-gallery').addEventListener('change', handleImageSelection);
 
 async function uploadToImgBB(base64Str) {
-  const apiKey = "4dd5a19986e0ffeabe66a2eb0114d358";
-  const formData = new FormData();
-  formData.append("image", base64Str.split(',')[1]); 
-  
-  const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { 
-    method: "POST", 
-    body: formData 
-  });
-  const data = await res.json();
-  if (data.success) return data.data.url;
-  throw new Error("ImgBB rejection");
+  const uploadListingImage = httpsCallable(functions, 'uploadListingImage');
+  const result = await uploadListingImage({ imageBase64: base64Str });
+  if (result.data?.success && result.data?.imageUrl) return result.data.imageUrl;
+  throw new Error("Image upload rejected");
 }
 
 async function uploadLogoToImgBB(b64) {
@@ -661,7 +657,7 @@ function renderFromData(all, userData) {
     const vis = l.visits || 0;
 	const exp = l.expiryDate ? new Date(l.expiryDate) : null;
 	const expTxt = exp ? (exp < new Date() ? '❌ Expired' : Math.ceil((exp - new Date()) / 86400000) + 'd') : '♾️ Life';
-    return `<div class="la-row"><span class="la-name">${l.emoji||'📍'} ${(l.title||'').slice(0,28)}</span><div class="la-stats"><div class="la-stat"><div class="la-sv" style="color:var(--or)">${pop}</div><div class="la-sl">views</div></div><div class="la-stat"><div class="la-sv" style="color:var(--blue)">${vis}</div><div class="la-sl">visits</div></div><div class="la-stat"><div class="la-sv" style="color:var(--gray);font-size:9px">${expTxt}</div><div class="la-sl">expiry</div></div></div></div>`;
+    return `<div class="la-row"><span class="la-name">${esc(l.emoji || 'Pin', 12)} ${esc(l.title || '', 28)}</span><div class="la-stats"><div class="la-stat"><div class="la-sv" style="color:var(--or)">${pop}</div><div class="la-sl">views</div></div><div class="la-stat"><div class="la-sv" style="color:var(--blue)">${vis}</div><div class="la-sl">visits</div></div><div class="la-stat"><div class="la-sv" style="color:var(--gray);font-size:9px">${expTxt}</div><div class="la-sl">expiry</div></div></div></div>`;
   }).join('');
 }
 
@@ -713,14 +709,15 @@ function renderCards(mine) {
         ? `<span class="badge smart">🛡️ Smart Pacing</span>` 
         : '';
     
+    const cardImage = safeUrl(l.imageUrl || l.image);
     return `
       <div class="mcd">
         <div style="display:flex; gap:12px;">
           <div class="mcd-ic" style="overflow: hidden; padding: 0;">
-  ${l.image ? '<img src="' + l.image + '" style="width: 100%; height: 100%; object-fit: cover;">' : (l.emoji||'📍')}
+  ${cardImage ? '<img src="' + cardImage + '" style="width: 100%; height: 100%; object-fit: cover;">' : esc(l.emoji || 'Pin', 12)}
 </div>
           <div style="flex:1;">
-            <div class="mcd-t">${l.title||''}</div>
+            <div class="mcd-t">${esc(l.title || '', 120)}</div>
             <div class="mcd-m">${l.radius||300}m radius · ${l.budget||25} Credits/day <span class="badge ${l.status==='paused'?'pause':'live'}">${l.status==='paused'?'⏸ PAUSED':'● LIVE'}</span> ${expiryBadge} ${smartBadge}</div>
             ${capPctFixed > 0 ? `<div style="margin-top:5px;background:var(--light);border-radius:3px;height:3px"><div style="background:var(--or);border-radius:3px;height:3px;width:${capPctFixed}%"></div></div>` : ''}
           </div>
@@ -773,9 +770,9 @@ window.saveEdit = async () => {
   
   try { 
     let updateData = { 
-      title: document.getElementById('edit-title').value.trim(), 
-      desc: document.getElementById('edit-desc').value.trim(), 
-      price: document.getElementById('edit-price').value.trim(), 
+      title: sanitizer.sanitizeText(document.getElementById('edit-title').value, { maxLength: 200, allowNewlines: false }), 
+      desc: sanitizer.sanitizeText(document.getElementById('edit-desc').value, { maxLength: 5000 }), 
+      price: sanitizer.sanitizeText(document.getElementById('edit-price').value, { maxLength: 80, allowNewlines: false }), 
       budget: budget, 
       dailyPopupLimit: budget * 10, 
       hourlyCap: parseInt(document.getElementById('edit-hourly').value) || 999, // 🚀 NEW: Save Hourly
@@ -851,7 +848,7 @@ window.exportStatus = async (id) => {
   
   const col = l.color || '#FF5722';
   
-  const imgUrl = l.imageUrl || l.image;
+  const imgUrl = safeUrl(l.imageUrl || l.image);
   const imgHtml = imgUrl 
     ? `<img src="${imgUrl}" crossorigin="anonymous" style="width:100%; max-height:650px; object-fit:cover; border-radius:30px; margin-bottom:30px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); flex-shrink:0;">` 
     : `<div style="width:100%; height:500px; max-height:650px; background:${col}20; border-radius:30px; display:flex; align-items:center; justify-content:center; font-size:250px; margin-bottom:30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 4px solid ${col}40; flex-shrink:0;">${l.emoji || '🏷️'}</div>`;
@@ -859,7 +856,7 @@ window.exportStatus = async (id) => {
   const mLogoNode = document.getElementById('m-logo');
   const currMerchantLogo = (mLogoNode && mLogoNode.style.display !== 'none' && mLogoNode.src) ? mLogoNode.src : null;
   const mLogoHtml = currMerchantLogo 
-    ? `<img src="${currMerchantLogo}" crossorigin="anonymous" style="width: 110px; height: 110px; border-radius: 25px; object-fit: contain; background: #fff; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">` 
+    ? `<img src="${safeUrl(currMerchantLogo)}" crossorigin="anonymous" style="width: 110px; height: 110px; border-radius: 25px; object-fit: contain; background: #fff; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">` 
     : `<div style="width: 110px; height: 110px; border-radius: 25px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 55px; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.2);">🏪</div>`;
 
   container.innerHTML = `
@@ -870,7 +867,7 @@ window.exportStatus = async (id) => {
           <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 35px; flex-shrink: 0;">
             <div style="display:flex; flex-direction: column; gap: 15px;">
               ${mLogoHtml}
-              <div style="background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:100px; font-size:24px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:2px; border:2px solid rgba(255,255,255,0.2); display: inline-block; align-self: flex-start;">${(l.type || 'Offer')}</div>
+              <div style="background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:100px; font-size:24px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:2px; border:2px solid rgba(255,255,255,0.2); display: inline-block; align-self: flex-start;">${esc(l.type || 'Offer', 24)}</div>
             </div>
             <img src="https://nearpop.in/icons/logo.png" style="height: 60px; filter: brightness(0) invert(1);">
           </div>
@@ -878,9 +875,9 @@ window.exportStatus = async (id) => {
           ${imgHtml}
           
           <div style="flex:1; display:flex; flex-direction:column; justify-content:center; text-align:center; margin-bottom: 25px;">
-            <h1 style="font-family: 'Syne', sans-serif; color: #fff; font-size: 65px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; text-shadow: 0 4px 15px rgba(0,0,0,0.5); word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${l.title}</h1>
-            <div style="font-size: 85px; font-weight: 900; color: #FF5722; text-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 30px;">${l.price}</div>
-            <div style="font-size: 28px; color: #9CA3AF; font-weight: 700; background: rgba(0,0,0,0.3); padding: 20px 40px; border-radius: 24px; display:inline-block; margin: 0 auto; word-break: break-word; overflow-wrap: anywhere; max-width: 95%;">📍 Available at <strong style="color:#fff;">${l.owner || 'Our Store'}</strong></div>
+            <h1 style="font-family: 'Syne', sans-serif; color: #fff; font-size: 65px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; text-shadow: 0 4px 15px rgba(0,0,0,0.5); word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${esc(l.title || '', 200)}</h1>
+            <div style="font-size: 85px; font-weight: 900; color: #FF5722; text-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 30px;">${esc(l.price || '', 80)}</div>
+            <div style="font-size: 28px; color: #9CA3AF; font-weight: 700; background: rgba(0,0,0,0.3); padding: 20px 40px; border-radius: 24px; display:inline-block; margin: 0 auto; word-break: break-word; overflow-wrap: anywhere; max-width: 95%;">Available at <strong style="color:#fff;">${esc(l.owner || 'Our Store', 120)}</strong></div>
           </div>
 
           <div style="margin-top: auto; background: rgba(255,255,255,0.1); padding: 30px 35px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; border: 2px solid rgba(255,255,255,0.2); flex-shrink: 0;">
@@ -1039,7 +1036,7 @@ window.upgradePremium = async () => {
     SS('plan', 'premium'); 
     userPlan = 'premium'; 
     document.getElementById('mwal').textContent = Math.floor(wallet) + ' 🪙'; 
-    document.getElementById('mbiz').innerHTML = mname + ' <span style="font-size:14px">👑</span>'; 
+    document.getElementById('mbiz').textContent = mname + ' Premium'; 
     toast('👑', 'Welcome to Premium!'); 
     document.getElementById('mod-premium').classList.remove('on'); 
     setTimeout(() => { window.location.href = 'create.html'; }, 1200); 
