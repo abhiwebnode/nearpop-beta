@@ -154,7 +154,6 @@
   <div class="tagline" id="tag-line">Sign in to discover nearby deals instantly.</div>
 
   <div class="role-tog" id="role-box">
-    <!-- The physical moving pill element -->
     <div class="sliding-pill" id="role-pill"></div>
     <div class="rtb on" id="rt-con" onclick="setRole('consumer')">📱 Customer</div>
     <div class="rtb" id="rt-mer" onclick="setRole('merchant')">🏪 Merchant</div>
@@ -169,10 +168,8 @@
     </label>
   </div>
   
-  <!-- 🚀 UI UPGRADE 3: Inline Loading Button -->
   <button class="btn-google" id="btn-login" onclick="window.loginWithGoogle()">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" id="btn-google-icon" alt="Google">
-    <!-- Inline SVG Spinner (Hidden by default) -->
     <svg id="btn-spinner" style="display:none; width:20px; height:20px; animation: inline-spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"></circle>
       <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
@@ -210,32 +207,37 @@
 
 <script type="module">
 import { db, LS, SS, toast, cacheClear } from './js/app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { app } from './js/app.js';
 
-// If already logged in, redirect smoothly
-if (LS('uid')) { 
+let isProcessing = false;
+
+// Auto-redirect synchronously if local data exists
+if (LS('uid') || SS('uid')) { 
   const savedIntent = sessionStorage.getItem('np_intent');
   if (savedIntent) {
     sessionStorage.removeItem('np_intent');
     window.location.href = savedIntent;
   } else {
-    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html'; 
+    window.location.href = (LS('role') || SS('role')) === 'merchant' ? 'merchant.html' : 'map.html'; 
   }
 }
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+// Force Google to show the account picker (helpful if they have multiple accounts)
+provider.setCustomParameters({ prompt: 'select_account' }); 
+
 window.loginRole = 'consumer';
 
 // 🚀 JS for iOS Sliding Pill
 window.setRole = (r) => {
+  if (isProcessing) return; // Lock the toggle during login
   window.loginRole = r;
   document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
   document.getElementById('rt-mer').classList.toggle('on', r === 'merchant');
   
-  // Physically slide the pill background
   const pill = document.getElementById('role-pill');
   if(r === 'merchant') {
     pill.style.transform = 'translateX(100%)';
@@ -253,6 +255,7 @@ if (urlP.get('qr') === '1') {
 
 // 🚀 JS for Inline Button Loading
 function showLdr(msg) {
+  isProcessing = true;
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'none';
   document.getElementById('btn-spinner').style.display = 'block';
@@ -261,8 +264,8 @@ function showLdr(msg) {
   btn.style.opacity = '0.9';
 }
 
-// 🚀 Safety Reset for Button if Login Fails/Cancels
 function resetLdr() {
+  isProcessing = false;
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'block';
   document.getElementById('btn-spinner').style.display = 'none';
@@ -272,19 +275,31 @@ function resetLdr() {
 }
 
 window.loginWithGoogle = async () => {
+  if (isProcessing) return; // Prevent double-clicks
   if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
 
   try {
     showLdr('Connecting to Google...');
     
+    // Strictly forcing signInWithPopup for everyone
     const result = await signInWithPopup(auth, provider);
     const user = result.user; 
+    
+    showLdr('Setting up account...'); 
+    await handleAuthSuccess(user);
+
+  } catch(e) {
+    console.error("Firebase Auth Error:", e);
+    let msg = 'Login failed. Please try again.';
+    if(e.code === 'auth/popup-closed-by-user') msg = 'Login popup was closed.';
+    toast('❌', msg);
+    resetLdr(); 
+  }
+};
+
+async function handleAuthSuccess(user) {
     const uid = user.uid; 
     const gName = user.displayName || 'User';
-    
-    SS('uid', uid); SS('name', gName); SS('role', window.loginRole);
-    
-    showLdr('Signing in...'); 
     
     const userRef = doc(db, 'users', uid);
     const userSnap = await getDoc(userRef);
@@ -295,8 +310,7 @@ window.loginWithGoogle = async () => {
       
       if (existingRole !== window.loginRole) {
         await auth.signOut(); 
-        resetLdr(); // 🚀 Resets the inline button perfectly
-        
+        resetLdr(); 
         if (existingRole === 'consumer') {
           return toast('⚠️', 'This Google account is registered as a Customer. You cannot log in as a Merchant.');
         } else {
@@ -321,10 +335,15 @@ window.loginWithGoogle = async () => {
       if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
     }
     
+    // Save to session after database writes are complete
+    SS('uid', uid); 
+    SS('name', gName); 
+    SS('role', window.loginRole);
     cacheClear();
+
     const savedIntent = sessionStorage.getItem('np_intent');
-    
     const qrMid = urlP.get('mid');
+    
     if (qrMid) {
       try {
         if (isNewUser) {
@@ -353,13 +372,34 @@ window.loginWithGoogle = async () => {
     } else {
       window.location.href = window.loginRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
     }
+}
 
-  } catch(e) {
-    console.error("Firebase Auth Error:", e);
-    toast('❌', 'Login failed. Please try again.');
-    resetLdr(); // 🚀 Resets button if the user closes the Google pop-up
+// 🚀 Auto-Login Listener (Safely locked behind isProcessing)
+onAuthStateChanged(auth, async(user) => {
+  if(!user || isProcessing) return; // Do not interrupt an active manual login!
+  
+  let role = SS('role') || LS('role');
+  if(!role) {
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if(snap.exists()) {
+        role = snap.data().role || 'consumer';
+        SS('role', role);
+        SS('uid', user.uid);
+        SS('name', user.displayName || 'User');
+      } else return;
+    } catch(e) { return; }
   }
-};
+
+  const savedIntent = sessionStorage.getItem('np_intent');
+  if(savedIntent){
+    sessionStorage.removeItem('np_intent');
+    window.location.href = savedIntent;
+  } else {
+    window.location.href = role === 'merchant' ? 'merchant.html' : 'map.html';
+  }
+});
+
 </script>
 <div style="text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative;">
   <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
