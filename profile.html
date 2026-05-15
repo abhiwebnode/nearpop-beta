@@ -380,8 +380,8 @@ async function loadSavedListings() {
 // ─── SAFE NATIVE NOTIFICATION PREFS ───
 function loadPrefs(data) {
   const d = data || {};
-  const maxDay    = d.pref_maxDay    || LS('pref_maxDay')    || 5;
-  const maxHour   = d.pref_maxHour   || LS('pref_maxHour')   || 1;
+  const maxDay    = d.pref_maxDay    || LS('pref_maxDay')    || 999;
+  const maxHour   = d.pref_maxHour   || LS('pref_maxHour')   || 999;
   const paused    = d.pref_paused    || LS('pref_paused')    || false;
   const interests = d.pref_interests || LS('pref_interests') || ['deal', 'rental', 'pg', 'job'];
 
