@@ -350,7 +350,6 @@
 
 <script type="module">
   import { db, toast, TE, TC, LS } from './js/app.js';
-  import { esc, safeUrl } from './js/sanitizer.js';
   import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 
   async function initStore() {
@@ -400,7 +399,7 @@
 
       if (mlogo) {
         const logoEl = document.getElementById('s-logo-img');
-        logoEl.src = safeUrl(mlogo);
+        logoEl.src = mlogo;
         logoEl.style.display = 'block';
       }
 
@@ -423,12 +422,12 @@
         `;
 
         listings.forEach(l => {
-          const searchString = esc(`${l.title} ${l.price} ${l.type}`.toLowerCase(), 300);
+          const searchString = `${l.title} ${l.price} ${l.type}`.toLowerCase();
           
-          const imgUrl = safeUrl(l.imageUrl || l.image);
+          const imgUrl = l.imageUrl || l.image;
           const iconHtml = imgUrl 
             ? `<div class="d-ic" style="background: #ffffff url('${imgUrl}') center/contain no-repeat; border: 1px solid #E5E7EB;"></div>`
-            : `<div class="d-ic">${esc(l.emoji || TE(l.type), 16)}</div>`;
+            : `<div class="d-ic">${l.emoji || TE(l.type)}</div>`;
 
           const col = l.color || TC(l.type);
 
@@ -446,11 +445,11 @@
               ${fomoHtml}
               ${iconHtml}
               <div class="d-inf">
-                <div class="d-ti">${esc(l.title || '', 160)}</div>
-                <div class="d-pr">${esc(l.price || 'Special Deal', 80)}</div>
+                <div class="d-ti">${l.title}</div>
+                <div class="d-pr">${l.price || 'Special Deal'}</div>
               </div>
               <div class="dc-bot">
-                <div class="d-tag" style="background:${col}20; color:${col};">${esc((l.type || 'Offer').toUpperCase(), 24)}</div>
+                <div class="d-tag" style="background:${col}20; color:${col};">${(l.type || 'Offer').toUpperCase()}</div>
                 <div class="d-arrow">➔</div>
               </div>
             </div>
@@ -461,7 +460,7 @@
         content.innerHTML = html;
 
       } else {
-        content.innerHTML = `<div class="zero-box"><div class="z-ic">Hi</div><div class="z-ti">Welcome to ${esc(mname, 120)}!</div><div class="z-desc">We don't have any active discount offers running right now, but thanks for stopping by!</div><button class="btn-claim" onclick="window.claimVisitPoints()">Claim 50 Visit Points</button></div>`;
+        content.innerHTML = `<div class="zero-box"><div class="z-ic">👋</div><div class="z-ti">Welcome to ${mname}!</div><div class="z-desc">We don't have any active discount offers running right now, but thanks for stopping by!</div><button class="btn-claim" onclick="window.claimVisitPoints()">⭐ Claim 50 Visit Points</button></div>`;
       }
     } catch (e) {
       console.error(e);

@@ -30,16 +30,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 <style>
+  html, body {
+    overflow-y: auto !important; 
+    overflow-x: hidden !important;
+  }
+
   body { 
-    display:flex; 
-    flex-direction:column; 
-    align-items:center; 
-    justify-content:center; 
-    min-height:100vh; 
-    min-height:100dvh; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+    min-height: 100dvh; 
     background-color: var(--bg-body); 
-    padding:16px; 
-    overflow:hidden; 
+    padding: 32px 16px; 
     position: relative;
     margin: 0;
   }
@@ -63,35 +65,29 @@
   }
 
   .card { 
-    width:100%; 
-    max-width:400px; 
-    border-radius:28px; 
-    padding:40px 24px; 
-    text-align:center; 
-    position:relative; 
+    margin: auto; 
+    width: 100%; 
+    max-width: 400px; 
+    border-radius: 28px; 
+    padding: 40px 24px; 
+    text-align: center; 
+    position: relative; 
     z-index: 10; 
-    background-color: rgba(255, 255, 255, 0.85); 
-    backdrop-filter: blur(30px); 
-    -webkit-backdrop-filter: blur(30px); 
-    box-shadow: 0 30px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.4) inset; 
-    border: none; 
-    animation: slideUpFade 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  
-  @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    /* ✅ FIX: Removed backdrop-filter blur and opacity animations. Made background solid. */
+    background-color: #ffffff; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+    border: 1px solid #eeeeee; 
   }
   
   @media (prefers-color-scheme: dark) {
-    .premium-bg::after { background: rgba(0, 0, 0, 0.6); }
-    .card { background-color: rgba(15, 15, 19, 0.75); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08) inset; }
+    .premium-bg::after { background: rgba(0, 0, 0, 0.7); }
+    /* ✅ FIX: Solid dark color for dark mode */
+    .card { background-color: #1E293B; border-color: #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
   }
   
   .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
   .tagline { font-size:14px; color:var(--gray); font-weight:600; margin-bottom:30px; line-height:1.4; }
   
-  /* 🚀 UI UPGRADE 1: iOS Sliding Pill Segments */
   .role-tog { 
     display:flex; 
     position: relative; 
@@ -113,7 +109,7 @@
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: -1; /* Sits behind the text */
+    z-index: -1;
   }
 
   .rtb { 
@@ -129,18 +125,18 @@
   }
   
   .rtb.on { color:var(--deep); }
-  /* End UI UPGRADE 1 */
 
   .btn-google { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:14px; border-radius:12px; background:var(--bg-app); color:var(--deep); font-size:15px; font-weight:800; border:2px solid var(--bdr); cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:0 4px 15px rgba(0,0,0,0.06); }
   .btn-google:active { transform:scale(0.97); background:var(--cream); }
   .btn-google img { width:20px; height:20px; transition: opacity 0.2s; }
 
-  /* 🚀 CSS for new Inline Spinner */
   @keyframes inline-spin { 100% { transform: rotate(360deg); } }
 
   .checkbox-wrapper { display:flex; align-items:flex-start; gap:10px; margin-bottom:20px; text-align:left; padding:0 4px; }
   .custom-checkbox { width:20px; height:20px; accent-color:#FF5722; cursor:pointer; flex-shrink:0; margin-top:2px; background-color:#ffffff; box-shadow:0 0 0 2px #9CA3AF; border-radius:3px; outline:none; -webkit-appearance:auto; transition: transform 0.2s; }
   .custom-checkbox:active { transform: scale(0.9); }
+  
+  .footer-links { text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative; margin-top: auto; }
 </style>
 </head>
 <body>
@@ -182,6 +178,12 @@
   </div>
 </div>
 
+<div class="footer-links">
+  <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
+  <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
+  <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
+</div>
+
 <div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
 
 <script>
@@ -207,33 +209,35 @@
 
 <script type="module">
 import { db, LS, SS, toast, cacheClear } from './js/app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { app } from './js/app.js';
 
-let isProcessing = false;
+const UA = navigator.userAgent;
+const isApp = UA.includes('NearPopApp'); 
+const isAndroidWV = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
+const useRedirect = isApp || isAndroidWV;
 
-// Auto-redirect synchronously if local data exists
-if (LS('uid') || SS('uid')) { 
+if (isApp) {
+  document.title = "NearPop App Login";
+  document.getElementById('tag-line').innerHTML = "Welcome to the NearPop App!<br>Sign in to unlock nearby deals.";
+}
+
+if (LS('uid')) { 
   const savedIntent = sessionStorage.getItem('np_intent');
   if (savedIntent) {
     sessionStorage.removeItem('np_intent');
     window.location.href = savedIntent;
   } else {
-    window.location.href = (LS('role') || SS('role')) === 'merchant' ? 'merchant.html' : 'map.html'; 
+    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html'; 
   }
 }
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-// Force Google to show the account picker (helpful if they have multiple accounts)
-provider.setCustomParameters({ prompt: 'select_account' }); 
-
 window.loginRole = 'consumer';
 
-// 🚀 JS for iOS Sliding Pill
 window.setRole = (r) => {
-  if (isProcessing) return; // Lock the toggle during login
   window.loginRole = r;
   document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
   document.getElementById('rt-mer').classList.toggle('on', r === 'merchant');
@@ -253,9 +257,7 @@ if (urlP.get('qr') === '1') {
   document.getElementById('role-box').style.display = 'none'; 
 }
 
-// 🚀 JS for Inline Button Loading
 function showLdr(msg) {
-  isProcessing = true;
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'none';
   document.getElementById('btn-spinner').style.display = 'block';
@@ -265,7 +267,6 @@ function showLdr(msg) {
 }
 
 function resetLdr() {
-  isProcessing = false;
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'block';
   document.getElementById('btn-spinner').style.display = 'none';
@@ -274,25 +275,40 @@ function resetLdr() {
   btn.style.opacity = '1';
 }
 
+if (useRedirect) {
+  (async () => {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result && result.user) {
+         showLdr('Signing in...');
+         await handleAuthSuccess(result.user);
+      }
+    } catch (e) {
+      if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
+        console.error("Firebase Redirect Error:", e);
+        toast('❌', 'Login failed. Please try again.');
+        resetLdr();
+      }
+    }
+  })();
+}
+
 window.loginWithGoogle = async () => {
-  if (isProcessing) return; // Prevent double-clicks
   if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
 
   try {
     showLdr('Connecting to Google...');
     
-    // Strictly forcing signInWithPopup for everyone
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user; 
+    if (useRedirect) {
+        await signInWithRedirect(auth, provider);
+    } else {
+        const result = await signInWithPopup(auth, provider);
+        await handleAuthSuccess(result.user);
+    }
     
-    showLdr('Setting up account...'); 
-    await handleAuthSuccess(user);
-
   } catch(e) {
     console.error("Firebase Auth Error:", e);
-    let msg = 'Login failed. Please try again.';
-    if(e.code === 'auth/popup-closed-by-user') msg = 'Login popup was closed.';
-    toast('❌', msg);
+    toast('❌', 'Login failed. Please try again.');
     resetLdr(); 
   }
 };
@@ -300,6 +316,8 @@ window.loginWithGoogle = async () => {
 async function handleAuthSuccess(user) {
     const uid = user.uid; 
     const gName = user.displayName || 'User';
+    
+    SS('uid', uid); SS('name', gName); SS('role', window.loginRole);
     
     const userRef = doc(db, 'users', uid);
     const userSnap = await getDoc(userRef);
@@ -311,6 +329,7 @@ async function handleAuthSuccess(user) {
       if (existingRole !== window.loginRole) {
         await auth.signOut(); 
         resetLdr(); 
+        
         if (existingRole === 'consumer') {
           return toast('⚠️', 'This Google account is registered as a Customer. You cannot log in as a Merchant.');
         } else {
@@ -335,15 +354,10 @@ async function handleAuthSuccess(user) {
       if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
     }
     
-    // Save to session after database writes are complete
-    SS('uid', uid); 
-    SS('name', gName); 
-    SS('role', window.loginRole);
     cacheClear();
-
     const savedIntent = sessionStorage.getItem('np_intent');
-    const qrMid = urlP.get('mid');
     
+    const qrMid = urlP.get('mid');
     if (qrMid) {
       try {
         if (isNewUser) {
@@ -373,38 +387,6 @@ async function handleAuthSuccess(user) {
       window.location.href = window.loginRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
     }
 }
-
-// 🚀 Auto-Login Listener (Safely locked behind isProcessing)
-onAuthStateChanged(auth, async(user) => {
-  if(!user || isProcessing) return; // Do not interrupt an active manual login!
-  
-  let role = SS('role') || LS('role');
-  if(!role) {
-    try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if(snap.exists()) {
-        role = snap.data().role || 'consumer';
-        SS('role', role);
-        SS('uid', user.uid);
-        SS('name', user.displayName || 'User');
-      } else return;
-    } catch(e) { return; }
-  }
-
-  const savedIntent = sessionStorage.getItem('np_intent');
-  if(savedIntent){
-    sessionStorage.removeItem('np_intent');
-    window.location.href = savedIntent;
-  } else {
-    window.location.href = role === 'merchant' ? 'merchant.html' : 'map.html';
-  }
-});
-
 </script>
-<div style="text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative;">
-  <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
-  <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
-  <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
-</div>
 </body>
 </html>

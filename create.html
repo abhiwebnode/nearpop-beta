@@ -253,10 +253,8 @@ function validateForm() {
 <script type="module">
 import { db, LS, SS, TC, TE, toast, distM, app } from './js/app.js';
 import { ghEncode } from './js/geohash.js';
-import { sanitizer } from './js/sanitizer.js';
 import { getDocs, addDoc, collection, query, where, doc, serverTimestamp, updateDoc } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
-import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-functions.js';
 
 window.toast = toast;
 
@@ -367,20 +365,12 @@ window.setExpiry = (days, btn) => {
 })();
 
 const auth = getAuth();
-const functions = getFunctions(app, 'asia-south1');
 const getSecureUser = () => new Promise((resolve) => {
   const unsubscribe = onAuthStateChanged(auth, (user) => {
     unsubscribe();
     resolve(user);
   });
 });
-
-async function uploadImageSecure(imageBase64) {
-  const uploadListingImage = httpsCallable(functions, 'uploadListingImage');
-  const result = await uploadListingImage({ imageBase64 });
-  if (result.data?.success && result.data?.imageUrl) return result.data.imageUrl;
-  throw new Error('Image upload failed.');
-}
 
 const handleImageSelection = (e) => {
   const file = e.target.files[0];
@@ -428,25 +418,14 @@ document.getElementById('img-camera').addEventListener('change', handleImageSele
 document.getElementById('img-gallery').addEventListener('change', handleImageSelection);
 
 window.doCreate = async () => {
-  const radius   = sanitizer.sanitizeNumber(document.getElementById('c-radius').value, { min: 50, max: 5000 });
-  const budget   = sanitizer.sanitizeNumber(document.getElementById('c-budget').value, { min: 25, max: 10000 });
+  const title    = document.getElementById('c-title').value.trim();
+  const desc     = document.getElementById('c-desc').value.trim();
+  const price    = document.getElementById('c-price').value.trim();
+  const contact  = document.getElementById('c-contact').value.trim();
+  const radius   = parseInt(document.getElementById('c-radius').value);
+  const budget   = parseInt(document.getElementById('c-budget').value);
   const startDate  = document.getElementById('c-start').value;
   let expiryDate = document.getElementById('c-expiry').value;
-  const finalCoords = sanitizer.sanitizeCoordinates(
-    document.getElementById('c-lat').value,
-    document.getElementById('c-lng').value
-  );
-  const cleanedListing = sanitizer.sanitizeListing({
-    type: selType,
-    title: document.getElementById('c-title').value,
-    desc: document.getElementById('c-desc').value,
-    price: document.getElementById('c-price').value,
-    contact: document.getElementById('c-contact').value,
-    lat: finalCoords?.lat,
-    lng: finalCoords?.lng,
-    budget
-  });
-  const { title, desc, price, contact } = cleanedListing;
 
   if (!title)      { toast('⚠️','Please enter a title'); return; }
   if (!desc)       { toast('⚠️','Please enter a description'); return; }
@@ -457,25 +436,10 @@ window.doCreate = async () => {
     return;
   }
 
-  const finalLat = finalCoords?.lat;
-  const finalLng = finalCoords?.lng;
+  const finalLat = parseFloat(document.getElementById('c-lat').value);
+  const finalLng = parseFloat(document.getElementById('c-lng').value);
   if (isNaN(finalLat) || isNaN(finalLng)) {
     toast('📍', 'Invalid map coordinates');
-    return;
-  }
-
-  const validation = sanitizer.validateListing({
-    type: selType,
-    title,
-    desc,
-    price,
-    contact,
-    lat: finalLat,
-    lng: finalLng,
-    budget
-  });
-  if (!validation.valid) {
-    toast('Warning', validation.errors[0]);
     return;
   }
 
@@ -534,7 +498,15 @@ window.doCreate = async () => {
     if (compressedImageB64) {
       showLdr('Uploading photo...');
       try {
-        const data = { success: true, data: { url: await uploadImageSecure(compressedImageB64) } };
+        const apiKey = "4dd5a19986e0ffeabe66a2eb0114d358";
+        const formData = new FormData();
+        formData.append("image", compressedImageB64.split(',')[1]); 
+        
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { 
+          method: "POST", 
+          body: formData 
+        });
+        const data = await res.json();
         
         if (data.success) {
           imageUrl = data.data.url;

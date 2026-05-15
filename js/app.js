@@ -159,52 +159,6 @@ export function cacheSet(data) {
 
 export function cacheClear() { localStorage.removeItem(CACHE_KEY); }
 
-// Firestore write queue with retry/backoff. This keeps analytics and counters from
-// disappearing during brief network drops without blocking user-facing UI.
-const FIRESTORE_WRITE_QUEUE = [];
-let firestoreWriteQueueActive = false;
-
-export function enqueueFirestoreWrite(operation, label = 'firestore_write') {
-  if (typeof operation !== 'function') return;
-  FIRESTORE_WRITE_QUEUE.push({
-    operation,
-    label,
-    attempts: 0,
-    queuedAt: Date.now()
-  });
-  if (!firestoreWriteQueueActive) processFirestoreWriteQueue();
-}
-
-async function processFirestoreWriteQueue() {
-  if (!FIRESTORE_WRITE_QUEUE.length) {
-    firestoreWriteQueueActive = false;
-    return;
-  }
-
-  firestoreWriteQueueActive = true;
-  const item = FIRESTORE_WRITE_QUEUE.shift();
-
-  try {
-    await item.operation();
-  } catch (error) {
-    item.attempts += 1;
-    if (item.attempts < 3) {
-      FIRESTORE_WRITE_QUEUE.push(item);
-    } else {
-      console.warn('[NearPop] Dropping queued Firestore write after retries:', item.label, error);
-      SS('last_failed_write', {
-        label: item.label,
-        queuedAt: item.queuedAt,
-        failedAt: Date.now(),
-        message: error?.message || String(error)
-      });
-    }
-  } finally {
-    const nextDelay = FIRESTORE_WRITE_QUEUE.length ? 250 : 0;
-    setTimeout(processFirestoreWriteQueue, nextDelay);
-  }
-}
-
 export const go = href => { location.href = href; };
 window.go = go; 
 
