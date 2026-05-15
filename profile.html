@@ -142,6 +142,7 @@
       <div class="pr" style="flex-direction:column;align-items:flex-start;gap:9px">
         <div style="font-size:12px;color:var(--gray);font-weight:600;line-height:1.5">Only get notified for categories you care about.</div>
         <div class="chips" id="interest-btns" style="padding-left:0">
+          <button class="chip on" id="btn-cat-all" onclick="window.toggleAllInterests(this)">🌐 All</button>
           <button class="chip on" data-cat="deal"   onclick="window.toggleInterest('deal',this)">🏷️ Deals</button>
           <button class="chip on" data-cat="rental" onclick="window.toggleInterest('rental',this)">🏠 Flats</button>
           <button class="chip on" data-cat="pg"     onclick="window.toggleInterest('pg',this)">🛋️ PG</button>
@@ -406,6 +407,13 @@ function loadPrefs(data) {
   document.querySelectorAll('[data-cat]').forEach(b => {
     b.classList.toggle('on', interests.includes(b.dataset.cat));
   });
+
+  const allBtn = document.getElementById('btn-cat-all');
+  if (allBtn) {
+    const allCats = ['deal', 'rental', 'pg', 'job'];
+    const hasAll = allCats.every(c => interests.includes(c));
+    allBtn.classList.toggle('on', hasAll);
+  }
 }
 
 window.togglePause = tog => {
@@ -451,7 +459,37 @@ window.toggleInterest = (cat, btn) => {
   LS('pref_interests', [...interests]);
   syncField(uid, 'pref_interests', [...interests]);
   btn.classList.toggle('on', interests.has(cat));
+
+  const allBtn = document.getElementById('btn-cat-all');
+  if (allBtn) {
+    const allCats = ['deal', 'rental', 'pg', 'job'];
+    allBtn.classList.toggle('on', allCats.every(c => interests.has(c)));
+  }
+
   toast('🎯', 'Interests saved');
+};
+
+window.toggleAllInterests = (btn) => {
+  window.haptic(30);
+  const allCats = ['deal', 'rental', 'pg', 'job'];
+  const isOn = btn.classList.contains('on');
+  
+  let newInterests;
+  if (isOn) {
+    newInterests = ['deal'];
+    toast('⚠️', 'Need at least one interest');
+  } else {
+    newInterests = [...allCats];
+    toast('🎯', 'All interests selected');
+  }
+  
+  LS('pref_interests', newInterests);
+  syncField(uid, 'pref_interests', newInterests);
+  
+  btn.classList.toggle('on', !isOn);
+  document.querySelectorAll('[data-cat]').forEach(b => {
+    b.classList.toggle('on', newInterests.includes(b.dataset.cat));
+  });
 };
 
 window.syncNow = async () => {
