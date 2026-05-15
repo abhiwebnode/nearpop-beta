@@ -30,20 +30,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 <style>
-  /* ✅ FIX: Override shared.css to allow scrolling on short/landscape screens */
   html, body {
     overflow-y: auto !important; 
     overflow-x: hidden !important;
   }
 
   body { 
-    display:flex; 
-    flex-direction:column; 
-    /* Removed justify-content:center to prevent top-clipping */
-    min-height:100vh; 
-    min-height:100dvh; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+    min-height: 100dvh; 
     background-color: var(--bg-body); 
-    padding: 32px 16px; /* Added more top/bottom padding for landscape */
+    padding: 32px 16px; 
     position: relative;
     margin: 0;
   }
@@ -67,30 +65,24 @@
   }
 
   .card { 
-    margin: auto; /* ✅ FIX: Safe centering. Centers the card, but respects the top edge if it overflows */
-    width:100%; 
-    max-width:400px; 
-    border-radius:28px; 
-    padding:40px 24px; 
-    text-align:center; 
-    position:relative; 
+    margin: auto; 
+    width: 100%; 
+    max-width: 400px; 
+    border-radius: 28px; 
+    padding: 40px 24px; 
+    text-align: center; 
+    position: relative; 
     z-index: 10; 
-    background-color: rgba(255, 255, 255, 0.85); 
-    backdrop-filter: blur(30px); 
-    -webkit-backdrop-filter: blur(30px); 
-    box-shadow: 0 30px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.4) inset; 
-    border: none; 
-    animation: slideUpFade 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  
-  @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    /* ✅ FIX: Removed backdrop-filter blur and opacity animations. Made background solid. */
+    background-color: #ffffff; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+    border: 1px solid #eeeeee; 
   }
   
   @media (prefers-color-scheme: dark) {
-    .premium-bg::after { background: rgba(0, 0, 0, 0.6); }
-    .card { background-color: rgba(15, 15, 19, 0.75); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08) inset; }
+    .premium-bg::after { background: rgba(0, 0, 0, 0.7); }
+    /* ✅ FIX: Solid dark color for dark mode */
+    .card { background-color: #1E293B; border-color: #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
   }
   
   .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
@@ -221,7 +213,6 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRe
 import { doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { app } from './js/app.js';
 
-// 🚀 SHAPE-SHIFTER DETECTION LOGIC
 const UA = navigator.userAgent;
 const isApp = UA.includes('NearPopApp'); 
 const isAndroidWV = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
@@ -284,7 +275,6 @@ function resetLdr() {
   btn.style.opacity = '1';
 }
 
-// 🚀 HANDLE REDIRECT RESULT (FOR APP/WEBVIEW)
 if (useRedirect) {
   (async () => {
     try {
