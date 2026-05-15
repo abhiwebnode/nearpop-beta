@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0F0F13">
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>NearPop App Login</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,48 +13,54 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 <style>
-  /* ✅ FIX 1: Strip Flexbox & force viewport limits */
+  /* ✅ FIX 2: Nuke shared.css locks. Force 100% height and auto-scrolling */
   html, body {
     margin: 0 !important;
     padding: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    display: block !important; /* No more flexbox bugs */
+    height: 100% !important; /* No vh units! */
+    width: 100% !important;
     overflow-y: auto !important; 
     overflow-x: hidden !important;
-    position: relative !important;
-    background-color: var(--bg-body);
+    background-color: var(--bg-body) !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
   .premium-bg {
     position: fixed; 
-    inset: 0; 
+    top: 0; left: 0; right: 0; bottom: 0;
     z-index: 1; 
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
   }
-  
   .premium-bg::after {
     content: ''; 
     position: absolute; 
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.4); 
     z-index: 2;
   }
 
-  /* ✅ FIX 2: Absolute Centering. Immune to WebView height-collapsing bugs */
+  /* ✅ FIX 3: Primitive, unbreakable block layout */
+  .scroll-wrapper {
+    display: block !important;
+    width: 100%;
+    min-height: 100%;
+    /* 10% top padding acts as a safe "centering", 80px bottom padding clears Android nav bars */
+    padding: 10% 16px 80px 16px !important; 
+    box-sizing: border-box !important;
+    position: relative;
+    z-index: 10;
+  }
+
   .card { 
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 92% !important; 
+    display: block !important;
+    margin: 0 auto !important; /* Standard horizontal centering */
+    width: 100% !important; 
     max-width: 400px !important; 
     border-radius: 28px; 
     padding: 40px 24px; 
     text-align: center; 
-    z-index: 9999 !important; /* Force above background */
     background-color: #ffffff; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
     border: 1px solid #eeeeee; 
@@ -67,7 +72,6 @@
     .card { background-color: #1E293B; border-color: #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
   }
   
-  /* The rest remains the same */
   .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
   .tagline { font-size:14px; color:var(--gray); font-weight:600; margin-bottom:30px; line-height:1.4; }
   
@@ -87,13 +91,11 @@
   .custom-checkbox:active { transform: scale(0.9); }
   
   .footer-links { 
-      position: absolute; 
-      bottom: 20px; 
-      left: 0; 
+      display: block !important;
+      margin: 32px auto 0 auto !important; 
       width: 100%; 
       text-align: center; 
       font-size: 12px; 
-      z-index: 9999; 
   }
 </style>
 </head>
@@ -101,45 +103,49 @@
 
 <div class="premium-bg" id="dynamic-bg"></div>
 
-<div class="card" id="login-card">
-  <div class="brand" style="margin-bottom: 20px;">
-    <img src="icons/logo.png" alt="NearPop Logo" style="max-height: 64px; width: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));">
-  </div>
-  <div class="tagline" id="tag-line">Sign in to discover nearby deals instantly.</div>
+<div class="scroll-wrapper">
 
-  <div class="role-tog" id="role-box">
-    <div class="sliding-pill" id="role-pill"></div>
-    <div class="rtb on" id="rt-con" onclick="setRole('consumer')">📱 Customer</div>
-    <div class="rtb" id="rt-mer" onclick="setRole('merchant')">🏪 Merchant</div>
+  <div class="card" id="login-card">
+    <div class="brand" style="margin-bottom: 20px;">
+      <img src="icons/logo.png" alt="NearPop Logo" style="max-height: 64px; width: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));">
+    </div>
+    <div class="tagline" id="tag-line">Sign in to discover nearby deals instantly.</div>
+
+    <div class="role-tog" id="role-box">
+      <div class="sliding-pill" id="role-pill"></div>
+      <div class="rtb on" id="rt-con" onclick="setRole('consumer')">📱 Customer</div>
+      <div class="rtb" id="rt-mer" onclick="setRole('merchant')">🏪 Merchant</div>
+    </div>
+
+    <div class="checkbox-wrapper">
+      <input type="checkbox" id="agree-check" class="custom-checkbox">
+      <label for="agree-check" style="font-size:12px; color:var(--deep); line-height:1.5; cursor:pointer; font-weight:600;">
+        By checking this, you agree to NearPop's 
+        <a href="terms.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Terms</a> & 
+        <a href="privacy.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Privacy</a>.
+      </label>
+    </div>
+    
+    <button class="btn-google" id="btn-login" onclick="window.loginWithGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" id="btn-google-icon" alt="Google">
+      <svg id="btn-spinner" style="display:none; width:20px; height:20px; animation: inline-spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"></circle>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+      </svg>
+      <span id="btn-login-text">Continue with Google</span>
+    </button>
+
+    <div style="margin-top: 24px; font-size: 11px; color: var(--gray); text-align: center; font-weight:600;">
+      © 2026 NearPop. All rights reserved.
+    </div>
   </div>
 
-  <div class="checkbox-wrapper">
-    <input type="checkbox" id="agree-check" class="custom-checkbox">
-    <label for="agree-check" style="font-size:12px; color:var(--deep); line-height:1.5; cursor:pointer; font-weight:600;">
-      By checking this, you agree to NearPop's 
-      <a href="terms.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Terms</a> & 
-      <a href="privacy.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Privacy</a>.
-    </label>
+  <div class="footer-links">
+    <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
+    <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
+    <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
   </div>
-  
-  <button class="btn-google" id="btn-login" onclick="window.loginWithGoogle()">
-    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" id="btn-google-icon" alt="Google">
-    <svg id="btn-spinner" style="display:none; width:20px; height:20px; animation: inline-spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"></circle>
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
-    </svg>
-    <span id="btn-login-text">Continue with Google</span>
-  </button>
 
-  <div style="margin-top: 24px; font-size: 11px; color: var(--gray); text-align: center; font-weight:600;">
-    © 2026 NearPop. All rights reserved.
-  </div>
-</div>
-
-<div class="footer-links">
-  <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
-  <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
-  <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
 </div>
 
 <div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
@@ -171,7 +177,6 @@ import { app } from './js/app.js';
 const UA = navigator.userAgent;
 const isApp = UA.includes('NearPopApp'); 
 
-// Force popups for all devices. We fixed MainActivity to handle them perfectly.
 const useRedirect = false; 
 
 if (isApp) {
