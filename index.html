@@ -30,16 +30,20 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 <style>
+  /* ✅ FIX: Override shared.css to allow scrolling on short/landscape screens */
+  html, body {
+    overflow-y: auto !important; 
+    overflow-x: hidden !important;
+  }
+
   body { 
     display:flex; 
     flex-direction:column; 
-    align-items:center; 
-    justify-content:center; 
+    /* Removed justify-content:center to prevent top-clipping */
     min-height:100vh; 
     min-height:100dvh; 
     background-color: var(--bg-body); 
-    padding:16px; 
-    overflow:hidden; 
+    padding: 32px 16px; /* Added more top/bottom padding for landscape */
     position: relative;
     margin: 0;
   }
@@ -63,6 +67,7 @@
   }
 
   .card { 
+    margin: auto; /* ✅ FIX: Safe centering. Centers the card, but respects the top edge if it overflows */
     width:100%; 
     max-width:400px; 
     border-radius:28px; 
@@ -91,7 +96,6 @@
   .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
   .tagline { font-size:14px; color:var(--gray); font-weight:600; margin-bottom:30px; line-height:1.4; }
   
-  /* 🚀 UI UPGRADE 1: iOS Sliding Pill Segments */
   .role-tog { 
     display:flex; 
     position: relative; 
@@ -113,7 +117,7 @@
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: -1; /* Sits behind the text */
+    z-index: -1;
   }
 
   .rtb { 
@@ -129,18 +133,18 @@
   }
   
   .rtb.on { color:var(--deep); }
-  /* End UI UPGRADE 1 */
 
   .btn-google { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:14px; border-radius:12px; background:var(--bg-app); color:var(--deep); font-size:15px; font-weight:800; border:2px solid var(--bdr); cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:0 4px 15px rgba(0,0,0,0.06); }
   .btn-google:active { transform:scale(0.97); background:var(--cream); }
   .btn-google img { width:20px; height:20px; transition: opacity 0.2s; }
 
-  /* 🚀 CSS for new Inline Spinner */
   @keyframes inline-spin { 100% { transform: rotate(360deg); } }
 
   .checkbox-wrapper { display:flex; align-items:flex-start; gap:10px; margin-bottom:20px; text-align:left; padding:0 4px; }
   .custom-checkbox { width:20px; height:20px; accent-color:#FF5722; cursor:pointer; flex-shrink:0; margin-top:2px; background-color:#ffffff; box-shadow:0 0 0 2px #9CA3AF; border-radius:3px; outline:none; -webkit-appearance:auto; transition: transform 0.2s; }
   .custom-checkbox:active { transform: scale(0.9); }
+  
+  .footer-links { text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative; margin-top: auto; }
 </style>
 </head>
 <body>
@@ -182,6 +186,12 @@
   </div>
 </div>
 
+<div class="footer-links">
+  <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
+  <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
+  <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
+</div>
+
 <div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
 
 <script>
@@ -217,13 +227,11 @@ const isApp = UA.includes('NearPopApp');
 const isAndroidWV = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
 const useRedirect = isApp || isAndroidWV;
 
-// Transform the UI for the Android App
 if (isApp) {
   document.title = "NearPop App Login";
   document.getElementById('tag-line').innerHTML = "Welcome to the NearPop App!<br>Sign in to unlock nearby deals.";
 }
 
-// If already logged in, redirect smoothly
 if (LS('uid')) { 
   const savedIntent = sessionStorage.getItem('np_intent');
   if (savedIntent) {
@@ -238,13 +246,11 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 window.loginRole = 'consumer';
 
-// 🚀 JS for iOS Sliding Pill
 window.setRole = (r) => {
   window.loginRole = r;
   document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
   document.getElementById('rt-mer').classList.toggle('on', r === 'merchant');
   
-  // Physically slide the pill background
   const pill = document.getElementById('role-pill');
   if(r === 'merchant') {
     pill.style.transform = 'translateX(100%)';
@@ -260,7 +266,6 @@ if (urlP.get('qr') === '1') {
   document.getElementById('role-box').style.display = 'none'; 
 }
 
-// 🚀 JS for Inline Button Loading
 function showLdr(msg) {
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'none';
@@ -270,7 +275,6 @@ function showLdr(msg) {
   btn.style.opacity = '0.9';
 }
 
-// 🚀 Safety Reset for Button if Login Fails/Cancels
 function resetLdr() {
   const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'block';
@@ -299,7 +303,6 @@ if (useRedirect) {
   })();
 }
 
-// 🚀 THE MAIN LOGIN FUNCTION
 window.loginWithGoogle = async () => {
   if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
 
@@ -307,10 +310,8 @@ window.loginWithGoogle = async () => {
     showLdr('Connecting to Google...');
     
     if (useRedirect) {
-        // App / WebView flow
         await signInWithRedirect(auth, provider);
     } else {
-        // Standard Web Browser flow
         const result = await signInWithPopup(auth, provider);
         await handleAuthSuccess(result.user);
     }
@@ -318,12 +319,10 @@ window.loginWithGoogle = async () => {
   } catch(e) {
     console.error("Firebase Auth Error:", e);
     toast('❌', 'Login failed. Please try again.');
-    resetLdr(); // 🚀 Resets button if the user closes the Google pop-up
+    resetLdr(); 
   }
 };
 
-
-// 🚀 REUSABLE SUCCESS HANDLER (Used by both Popup and Redirect)
 async function handleAuthSuccess(user) {
     const uid = user.uid; 
     const gName = user.displayName || 'User';
@@ -399,10 +398,5 @@ async function handleAuthSuccess(user) {
     }
 }
 </script>
-<div style="text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative;">
-  <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
-  <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
-  <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
-</div>
 </body>
 </html>
