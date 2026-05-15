@@ -4,15 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0F0F13">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="google-site-verification" content="G5cM83TAmDMQ01Q4iaAEMiq3d8Q4pE5UeN5ljGJ50uk" />
-<title>NearPop — Discover Local Deals, Rentals &amp; Jobs Instantly</title>
-<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time.">
 
+<title>NearPop — Discover Local Deals, Rentals & Jobs Instantly</title>
+<meta name="title" content="NearPop — Discover Local Deals, Rentals & Jobs Instantly">
+<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time. Explore your neighborhood with NearPop.">
+
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nearpop.in/">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
-
 <style>
 html, body {
   margin: 0 !important;
