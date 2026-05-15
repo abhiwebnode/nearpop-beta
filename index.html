@@ -9,65 +9,60 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="google-site-verification" content="G5cM83TAmDMQ01Q4iaAEMiq3d8Q4pE5UeN5ljGJ50uk" />
 
-<title>NearPop — Discover Local Deals, Rentals &amp; Jobs Instantly</title>
-<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time.">
+<title>NearPop — Discover Local Deals, Rentals & Jobs Instantly</title>
+<meta name="title" content="NearPop — Discover Local Deals, Rentals & Jobs Instantly">
+<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time. Explore your neighborhood with NearPop.">
 
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nearpop.in/">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 
 <style>
-  html { height: 100%; }
+
+  html {
+    height: 100%;
+  }
 
   body {
     margin: 0;
     padding: 16px;
     box-sizing: border-box;
+
     min-height: 100vh;
     min-height: -webkit-fill-available;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
+
     overflow-y: auto;
     overflow-x: hidden;
 
-    /*
-      ✅ FIX 1 — BACKGROUND STRATEGY:
-      Step 1: Show a rich CSS gradient INSTANTLY (zero network, always works).
-      Step 2: JS loads the Unsplash photo async in the background.
-      Step 3: Once downloaded, swap it in smoothly with a CSS transition.
-      Result: User always sees something beautiful — never a white/black flash.
-    */
-    background-image: linear-gradient(
-      160deg,
-      #1a1a3e 0%,
-      #0d1b3e 30%,
-      #1a0a2e 60%,
-      #2d1b00 100%
-    );
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-color: #0d1b3e;
-
-    /* Smooth crossfade when the real photo loads in */
-    transition: background-image 0.8s ease-in-out;
+    background-color: #0d1b3e; /* solid fallback if everything else fails */
+    background-image:
+      linear-gradient(rgba(0,0,0,0.50), rgba(0,0,0,0.50)),
+      linear-gradient(160deg, #1a1a3e 0%, #0d1b3e 35%, #1a0a2e 65%, #2d1b00 100%);
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
   }
 
-  /* Dark overlay — BEHIND card, ABOVE background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.48);
-    z-index: -1;
-    pointer-events: none;
-  }
 
-  /* ─── Card ──────────────────────────────────────────────────────── */
+  /* ─── Card ────────────────────────────────────────────────────── */
   .card {
     width: 100%;
     max-width: 400px;
@@ -75,10 +70,17 @@
     padding: 40px 24px;
     text-align: center;
     box-sizing: border-box;
-    margin: auto;
 
-    /* Solid fallback — always readable even if blur not supported */
+    /*
+      ✅ No z-index needed at all — card is a normal in-flow child.
+      WebView renders in-flow children above pseudo-elements (::before)
+      reliably, unlike position:fixed sibling elements.
+    */
+
+    /* Solid fallback for WebView without backdrop-filter support */
     background-color: rgba(255, 255, 255, 0.96);
+
+    /* Progressive enhancement */
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
 
@@ -87,11 +89,14 @@
       0 0 0 1px rgba(255, 255, 255, 0.35) inset;
 
     animation: slideUpFade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Margin so card doesn't touch edges on tiny screens */
+    margin: auto;
   }
 
   @media (prefers-color-scheme: dark) {
     .card {
-      background-color: rgba(15, 15, 19, 0.95);
+      background-color: rgba(15, 15, 19, 0.94);
       box-shadow:
         0 30px 60px rgba(0, 0, 0, 0.6),
         0 0 0 1px rgba(255, 255, 255, 0.08) inset;
@@ -103,11 +108,12 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* Small phones / keyboard-open guard */
   @media (max-height: 640px) {
     .card { padding: 22px 18px; border-radius: 20px; }
   }
 
-  /* ─── Role Toggle ───────────────────────────────────────────────── */
+  /* ─── Role Toggle ─────────────────────────────────────────────── */
   .role-tog {
     display: flex;
     position: relative;
@@ -117,6 +123,7 @@
     margin-bottom: 24px;
     border: 1px solid var(--bdr, #e0e0e0);
   }
+
   .sliding-pill {
     position: absolute;
     top: 4px; bottom: 4px; left: 4px;
@@ -125,8 +132,10 @@
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* z-index: 0 — pill is behind button text */
     z-index: 0;
   }
+
   .rtb {
     flex: 1;
     padding: 10px;
@@ -138,6 +147,7 @@
     transition: color 0.2s;
     background: transparent;
     border: none;
+    /* ✅ Must be above pill */
     position: relative;
     z-index: 1;
     user-select: none;
@@ -146,7 +156,7 @@
   }
   .rtb.on { color: var(--deep, #111); }
 
-  /* ─── Google Button ─────────────────────────────────────────────── */
+  /* ─── Google button ───────────────────────────────────────────── */
   .btn-google {
     display: flex;
     align-items: center;
@@ -162,17 +172,17 @@
     border: 2px solid #e0e0e0;
     cursor: pointer;
     font-family: inherit;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     min-height: 52px;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.15s, background 0.15s;
   }
-  .btn-google:active   { transform: scale(0.97); background: #f5f5f0; }
+  .btn-google:active  { transform: scale(0.97); background: #f5f5f0; }
   .btn-google:disabled { opacity: 0.65; cursor: not-allowed; }
   .btn-google img { width: 20px; height: 20px; flex-shrink: 0; }
 
-  /* ─── Checkbox ──────────────────────────────────────────────────── */
+  /* ─── Checkbox ────────────────────────────────────────────────── */
   .checkbox-wrapper {
     display: flex;
     align-items: flex-start;
@@ -190,26 +200,27 @@
     -webkit-appearance: auto;
   }
 
-  /* ─── Footer ────────────────────────────────────────────────────── */
+  /* ─── Footer ──────────────────────────────────────────────────── */
   .page-footer {
     text-align: center;
     padding: 16px 8px 24px;
     font-size: 12px;
     font-weight: 700;
+    /* In-flow — no z-index needed */
   }
   .page-footer a {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255,255,255,0.85);
     text-decoration: none;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
   }
 
-  /* ─── Toast ─────────────────────────────────────────────────────── */
+  /* ─── Toast ───────────────────────────────────────────────────── */
   .toast {
     position: fixed;
     bottom: 80px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: rgba(30, 30, 30, 0.95);
+    background: rgba(30,30,30,0.95);
     color: #fff;
     padding: 10px 20px;
     border-radius: 100px;
@@ -219,11 +230,17 @@
     opacity: 0;
     transition: all 0.3s;
     pointer-events: none;
+    /* ✅ Toast needs z-index since it's position:fixed */
     z-index: 9999;
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 
-  @keyframes inline-spin { 100% { transform: rotate(360deg); } }
+  @keyframes inline-spin {
+    100% { transform: rotate(360deg); }
+  }
 </style>
 </head>
 <body id="main-body">
@@ -289,29 +306,32 @@
   <span id="t-ic">✅</span> <span id="t-tx"></span>
 </div>
 
-<!-- ─── Background loader ──────────────────────────────────────────────────
-  Loads the time-based Unsplash photo asynchronously via Image() preload.
-  Only applies it to body once fully downloaded — prevents broken/missing BG.
-  Falls back silently to the CSS gradient if the image fails (e.g. offline).
-──────────────────────────────────────────────────────────────────────────-->
+<!-- Background loader: preloads the photo, then swaps both layers together -->
 <script>
 (function () {
+  var OVERLAY = 'linear-gradient(rgba(0,0,0,0.50), rgba(0,0,0,0.50))';
+
   var hour = new Date().getHours();
   var url =
-    (hour >= 6  && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=75&w=1080&auto=format&fit=crop' :
-    (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=75&w=1080&auto=format&fit=crop' :
-                                 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=75&w=1080&auto=format&fit=crop';
+    (hour >= 6  && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop' :
+    (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=80&w=1080&auto=format&fit=crop' :
+                                 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop';
 
+  /*
+    Preload via Image() — only apply once confirmed downloaded.
+    If Unsplash fails, the CSS gradient fallback already showing on body stays.
+    background-size/position need updating too because we now have 2 layers.
+  */
   var img = new Image();
   img.onload = function () {
-    document.body.style.backgroundImage = 'url("' + url + '")';
+    document.body.style.backgroundImage  = OVERLAY + ', url("' + url + '")';
+    document.body.style.backgroundSize    = 'cover, cover';
+    document.body.style.backgroundPosition = 'center, center';
   };
-  // onerror: do nothing — gradient stays visible
   img.src = url;
 })();
 </script>
 
-<!-- ─── Auth Module ───────────────────────────────────────────────────────-->
 <script type="module">
 import { db, LS, SS, toast, cacheClear } from './js/app.js';
 import {
@@ -323,64 +343,41 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { app } from './js/app.js';
 
-// ── Already logged in → skip login page entirely ──────────────────────────
+// ── Redirect if already signed in ────────────────────────────────────────────
 if (LS('uid')) {
-  const intent = sessionStorage.getItem('np_intent');
-  if (intent) { sessionStorage.removeItem('np_intent'); window.location.href = intent; }
-  else window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
+  const savedIntent = sessionStorage.getItem('np_intent');
+  if (savedIntent) {
+    sessionStorage.removeItem('np_intent');
+    window.location.href = savedIntent;
+  } else {
+    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
+  }
 }
 
-// ── Firebase auth setup ───────────────────────────────────────────────────
+// ── Auth setup ────────────────────────────────────────────────────────────────
 const auth     = getAuth(app);
 const provider = new GoogleAuthProvider();
+// ✅ No setCustomParameters — Google auto-selects saved account on return visits
 
-/*
-  ✅ FIX 2 — GOOGLE AUTO-ACCOUNT SELECTION:
+window.loginRole = 'consumer';
 
-  ❌ REMOVED THIS LINE:
-       provider.setCustomParameters({ prompt: 'select_account' });
+// ── Detect if running inside Android WebView ──────────────────────────────────
+// We use this to choose popup vs redirect sign-in strategy.
+const UA             = navigator.userAgent;
+const isAndroidWV    = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
+// Set USE_REDIRECT=true here to force redirect flow on all devices
+const USE_REDIRECT   = false;
+const useRedirectFlow = USE_REDIRECT || isAndroidWV;
 
-  What it was doing wrong:
-  • 'select_account' forces Google to ALWAYS show a manual login screen,
-    even when a Google account is already saved on the device.
-  • In Android WebView, cookies are isolated per-app. Google stores its
-    session cookie here after the first login.
-  • With 'select_account', that cookie was ignored every time → user had
-    to type email + password from scratch on every single login.
-
-  What happens now (no prompt parameter):
-  • First login    → Google login form (normal, expected).
-  • Return login   → Google reads the saved cookie → auto-selects account
-                     → one tap, no typing needed. ✅
-  • Multiple accs  → Google shows the account picker (one tap to choose). ✅
-*/
-
-// ── WebView detection (popup vs redirect strategy) ────────────────────────
-/*
-  If you have deployed the fixed MainActivity.kt (custom Chrome UA without
-  the 'wv' token), isAndroidWV = false and signInWithPopup is used — this
-  gives the smoothest "one tap" experience via the popup Dialog.
-
-  If you haven't deployed it yet, the old WebView UA contains 'wv', so
-  signInWithRedirect is used as a safe fallback. Both paths work correctly.
-*/
-const UA          = navigator.userAgent;
-const isAndroidWV = /wv/.test(UA) ||
-  (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
-const useRedirect = isAndroidWV;
-
-window.loginRole  = 'consumer';
-
-// ── Handle redirect result on page-load (only fires after a redirect) ─────
-if (useRedirect) {
+// ── Handle redirect result (fires after page load if redirect was used) ────────
+if (useRedirectFlow) {
   (async () => {
     try {
       const result = await getRedirectResult(auth);
       if (result?.user) await handleAuthSuccess(result);
     } catch (e) {
-      // auth/no-current-user fires on every normal load — not a real error
-      if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
-        console.error('Redirect result error:', e.code, e.message);
+      if (e.code !== 'auth/no-current-user') {
+        console.error('Redirect result error:', e);
         toast('❌', 'Login failed. Please try again.');
         resetLdr();
       }
@@ -388,7 +385,7 @@ if (useRedirect) {
   })();
 }
 
-// ── Role toggle ───────────────────────────────────────────────────────────
+// ── iOS Sliding Pill ──────────────────────────────────────────────────────────
 window.setRole = (r) => {
   window.loginRole = r;
   document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
@@ -397,31 +394,33 @@ window.setRole = (r) => {
     r === 'merchant' ? 'translateX(100%)' : 'translateX(0)';
 };
 
-// ── QR param handling ─────────────────────────────────────────────────────
+// ── QR param handling ─────────────────────────────────────────────────────────
 const urlP = new URLSearchParams(window.location.search);
 if (urlP.get('qr') === '1') {
   document.getElementById('tag-line').innerHTML =
-    "<span style='color:#FF5722;font-size:18px;font-weight:900;'>Store Found! 🏪</span>" +
-    "<br>Sign in to unlock deals and claim visit points.";
-  window.setRole('consumer');
+    "<span style='color:#FF5722;font-size:18px;font-weight:900;'>Store Found! 🏪</span><br>Sign in to unlock deals and claim visit points.";
+  setRole('consumer');
   document.getElementById('role-box').style.display = 'none';
 }
 
-// ── Button helpers ────────────────────────────────────────────────────────
+// ── Button state helpers ──────────────────────────────────────────────────────
 function showLdr(msg) {
+  const btn = document.getElementById('btn-login');
   document.getElementById('btn-google-icon').style.display = 'none';
-  document.getElementById('btn-spinner').style.display     = 'block';
-  document.getElementById('btn-login-text').textContent    = msg;
-  document.getElementById('btn-login').disabled            = true;
-}
-function resetLdr() {
-  document.getElementById('btn-google-icon').style.display = 'block';
-  document.getElementById('btn-spinner').style.display     = 'none';
-  document.getElementById('btn-login-text').textContent    = 'Continue with Google';
-  document.getElementById('btn-login').disabled            = false;
+  document.getElementById('btn-spinner').style.display    = 'block';
+  document.getElementById('btn-login-text').textContent   = msg;
+  btn.disabled = true;
 }
 
-// ── Main login handler ────────────────────────────────────────────────────
+function resetLdr() {
+  const btn = document.getElementById('btn-login');
+  document.getElementById('btn-google-icon').style.display = 'block';
+  document.getElementById('btn-spinner').style.display    = 'none';
+  document.getElementById('btn-login-text').textContent   = 'Continue with Google';
+  btn.disabled = false;
+}
+
+// ── Core login handler ────────────────────────────────────────────────────────
 window.loginWithGoogle = async () => {
   if (!document.getElementById('agree-check').checked) {
     return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
@@ -430,26 +429,28 @@ window.loginWithGoogle = async () => {
   try {
     showLdr('Connecting to Google…');
 
-    if (useRedirect) {
-      // Navigates away; result is caught at the top of this module on reload
+    let result;
+    if (useRedirectFlow) {
+      // signInWithRedirect navigates away; result is handled above on reload
       await signInWithRedirect(auth, provider);
-      return;
+      return; // page will navigate, nothing more to do
+    } else {
+      result = await signInWithPopup(auth, provider);
     }
 
-    const result = await signInWithPopup(auth, provider);
     await handleAuthSuccess(result);
 
   } catch (e) {
-    console.error('Auth error:', e.code, e.message);
-    if (e.code !== 'auth/popup-closed-by-user' &&
-        e.code !== 'auth/cancelled-popup-request') {
+    console.error('Firebase Auth Error:', e);
+    // auth/popup-closed-by-user is not really an error — user just closed it
+    if (e.code !== 'auth/popup-closed-by-user') {
       toast('❌', 'Login failed. Please try again.');
     }
     resetLdr();
   }
 };
 
-// ── Post-auth logic (shared between popup + redirect) ─────────────────────
+// ── Shared post-auth logic ────────────────────────────────────────────────────
 async function handleAuthSuccess(result) {
   const user   = result.user;
   const uid    = user.uid;
@@ -461,80 +462,66 @@ async function handleAuthSuccess(result) {
 
   showLdr('Signing in…');
 
-  const userRef   = doc(db, 'users', uid);
-  const userSnap  = await getDoc(userRef);
+  const userRef  = doc(db, 'users', uid);
+  const userSnap = await getDoc(userRef);
   const isNewUser = !userSnap.exists();
 
-  // Role mismatch guard
   if (!isNewUser) {
     const existingRole = userSnap.data().role || 'consumer';
     if (existingRole !== window.loginRole) {
       await auth.signOut();
       resetLdr();
       const who = existingRole === 'consumer' ? 'Customer' : 'Merchant';
-      return toast('⚠️', `This account is registered as a ${who}. Please select the correct role.`);
+      return toast('⚠️', `This Google account is registered as a ${who}. Please select the correct role.`);
     }
   }
 
-  // Merchant setup
   if (window.loginRole === 'merchant') {
     let bname = gName + "'s Business";
     if (isNewUser) {
       bname = prompt('What is your business / shop name?') || bname;
-      SS('mname', bname); SS('wallet', 500);
-      await setDoc(userRef, {
-        name: gName, role: 'merchant', mname: bname,
-        wallet: 500, points: 0, liked: [], createdAt: Date.now()
-      });
+      SS('mname', bname);
+      SS('wallet', 500);
+      await setDoc(userRef, { name: gName, role: 'merchant', mname: bname, wallet: 500, points: 0, liked: [], createdAt: Date.now() });
     } else {
       const d = userSnap.data();
       if (d.mname) { bname = d.mname; SS('mname', bname); }
-      else {
-        bname = prompt('What is your business / shop name?') || bname;
-        SS('mname', bname);
-        await updateDoc(userRef, { role: 'merchant', mname: bname });
-      }
+      else { bname = prompt('What is your business / shop name?') || bname; SS('mname', bname); await updateDoc(userRef, { role: 'merchant', mname: bname }); }
       SS('wallet', d.wallet !== undefined ? d.wallet : 500);
       if (d.plan) SS('plan', d.plan);
     }
   } else {
-    // Consumer setup
     if (isNewUser) {
-      await setDoc(userRef, {
-        name: gName, role: 'consumer',
-        wallet: 0, points: 50, liked: [], createdAt: Date.now()
-      });
+      await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
     }
   }
 
   cacheClear();
 
-  // QR scan analytics
-  const qrMid     = urlP.get('mid');
+  // ── QR analytics ─────────────────────────────────────────────────────────
+  const qrMid = urlP.get('mid');
   const savedIntent = sessionStorage.getItem('np_intent');
 
   async function trackQr(mid) {
     try {
-      const field = isNewUser
-        ? { qrNew: increment(1),  qrScans: increment(1) }
-        : { qrRet: increment(1), qrScans: increment(1) };
+      const field = isNewUser ? { qrNew: increment(1), qrScans: increment(1) }
+                              : { qrRet: increment(1), qrScans: increment(1) };
       await updateDoc(doc(db, 'users', mid), field);
       sessionStorage.setItem('np_qr_logged_' + mid, 'true');
-    } catch (err) { console.warn('QR analytics:', err); }
+    } catch (err) { console.warn('QR analytics blocked:', err); }
   }
 
   if (qrMid) {
     await trackQr(qrMid);
-  } else if (savedIntent?.includes('utm_source=qr_standee')) {
+  } else if (savedIntent && savedIntent.includes('utm_source=qr_standee')) {
     try {
-      const base = savedIntent.startsWith('http')
-        ? savedIntent : window.location.origin + '/' + savedIntent;
+      const base = savedIntent.startsWith('http') ? savedIntent : window.location.origin + '/' + savedIntent;
       const mid  = new URL(base).searchParams.get('mid');
       if (mid) await trackQr(mid);
-    } catch (err) { console.warn('Fallback QR:', err); }
+    } catch (err) { console.warn('Fallback QR analytics blocked:', err); }
   }
 
-  // Navigate to app
+  // ── Navigate ──────────────────────────────────────────────────────────────
   if (savedIntent) {
     sessionStorage.removeItem('np_intent');
     window.location.href = savedIntent;
