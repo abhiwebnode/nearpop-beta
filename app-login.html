@@ -4,140 +4,376 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0F0F13">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+
 <title>NearPop App Login</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
+
 <style>
-  /* Mobile-first full screen layout */
-  body { 
-    background: #0F0F13; 
-    color: #ffffff; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    min-height: 100vh; 
-    padding: 24px;
-    text-align: center;
-  }
-  .app-logo { max-width: 120px; margin-bottom: 24px; }
-  h1 { font-family: 'Syne', sans-serif; font-size: 28px; margin-bottom: 12px; }
-  p { color: #888; font-size: 15px; margin-bottom: 40px; line-height: 1.5; }
-  
-  .google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 320px;
-    padding: 16px;
-    border-radius: 16px;
-    background: #ffffff;
-    color: #111111;
-    font-size: 16px;
-    font-weight: 800;
-    border: none;
-    cursor: pointer;
-  }
-  .google-btn:active { transform: scale(0.96); }
-  .google-btn img { width: 24px; height: 24px; }
-  
-  #np-btn-spinner { display: none; }
-  @keyframes spin { 100% { transform: rotate(360deg); } }
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: #0d1b3e !important;
+  overflow-x: hidden !important;
+}
+
+#np-page {
+  position: relative !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 20px 16px 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  font-family: 'Nunito', -apple-system, sans-serif !important;
+}
+
+#np-bg {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 0 !important;
+  background-color: #0d1b3e;
+  background-image: linear-gradient(160deg, #1a1a3e 0%, #0d1b3e 35%, #1a0a2e 65%, #2d1b00 100%);
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+#np-ov {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 1 !important;
+  background: rgba(0,0,0,0.50) !important;
+  pointer-events: none !important;
+}
+
+#np-card {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  box-sizing: border-box !important;
+  border-radius: 24px !important;
+  padding: 36px 24px 28px !important;
+  text-align: center !important;
+  background-color: rgba(255,255,255,0.97) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35) !important;
+}
+
+#np-logo { margin-bottom: 16px !important; }
+#np-logo img { max-height: 60px !important; width: auto !important; display: block !important; margin: 0 auto !important; }
+
+#np-tagline {
+  display: block !important;
+  font-size: 14px !important;
+  color: #666666 !important;
+  font-weight: 600 !important;
+  margin-bottom: 24px !important;
+  line-height: 1.5 !important;
+}
+
+#np-roles {
+  display: flex !important;
+  position: relative !important;
+  background: #f0f0ec !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  margin-bottom: 22px !important;
+  border: 1px solid #e0e0e0 !important;
+}
+#np-pill {
+  position: absolute !important;
+  top: 4px !important; bottom: 4px !important; left: 4px !important;
+  width: calc(50% - 4px) !important;
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
+  transition: transform 0.3s ease !important;
+  z-index: 0 !important;
+}
+.np-rtb {
+  flex: 1 !important;
+  padding: 10px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #888888 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  background: transparent !important;
+  border: none !important;
+  position: relative !important;
+  z-index: 1 !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  font-family: 'Nunito', sans-serif !important;
+}
+.np-rtb.on { color: #111111 !important; }
+
+#np-terms {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  margin-bottom: 18px !important;
+  text-align: left !important;
+}
+#np-agree { width:20px !important; height:20px !important; accent-color:#FF5722 !important; cursor:pointer !important; flex-shrink:0 !important; margin-top:2px !important; }
+#np-terms-label { font-size:12px !important; color:#222222 !important; line-height:1.6 !important; cursor:pointer !important; font-weight:600 !important; }
+#np-terms-label a { color:#FF5722 !important; font-weight:800 !important; text-decoration:underline !important; }
+
+#np-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #111111 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  border: 2px solid #dddddd !important;
+  cursor: pointer !important;
+  font-family: 'Nunito', sans-serif !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+#np-btn:active   { background: #f5f5f0 !important; }
+#np-btn:disabled { opacity: 0.65 !important; }
+#np-btn img { width:20px !important; height:20px !important; flex-shrink:0 !important; }
+#np-btn-spinner { display:none; }
+
+#np-copy { margin-top:20px !important; font-size:11px !important; color:#888888 !important; font-weight:600 !important; }
+
+#np-foot {
+  position: relative !important;
+  z-index: 2 !important;
+  text-align: center !important;
+  padding: 16px 8px 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+#np-foot a { color:rgba(255,255,255,0.85) !important; text-decoration:none !important; text-shadow:0 1px 4px rgba(0,0,0,0.6) !important; }
+
+#np-toast {
+  position: fixed !important;
+  bottom: 80px !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(20px) !important;
+  background: rgba(20,20,20,0.95) !important;
+  color: #ffffff !important;
+  padding: 10px 20px !important;
+  border-radius: 100px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  transition: all 0.3s !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+}
+#np-toast.show { opacity:1 !important; transform:translateX(-50%) translateY(0) !important; }
+
+@keyframes np-spin { 100% { transform: rotate(360deg); } }
 </style>
 </head>
+
 <body>
+<div id="np-page">
 
-  <img src="icons/logo.png" alt="NearPop" class="app-logo" onerror="this.style.display='none'">
-  <h1>Welcome to NearPop</h1>
-  <p>Discover hyper-local deals, rentals, and jobs instantly around you.</p>
+  <div id="np-bg"></div>
+  <div id="np-ov"></div>
 
-  <button class="google-btn" id="np-btn" onclick="appLogin()">
-    <img id="np-btn-icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-    <svg id="np-btn-spinner" style="width:24px;height:24px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="#111" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"/>
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="#111" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-    <span id="np-btn-text">Continue with Google</span>
-  </button>
+  <div id="np-card">
+    <div id="np-logo">
+      <img src="icons/logo.png" alt="NearPop" onerror="this.style.display='none'">
+    </div>
+    <span id="np-tagline">Sign in to discover nearby deals instantly.</span>
+    
+    <div id="np-roles">
+      <div id="np-pill"></div>
+      <button class="np-rtb on" id="np-con" onclick="setRole('consumer')">📱 Customer</button>
+      <button class="np-rtb"    id="np-mer" onclick="setRole('merchant')">🏪 Merchant</button>
+    </div>
+    
+    <div id="np-terms">
+      <input type="checkbox" id="np-agree">
+      <label id="np-terms-label" for="np-agree">
+        By checking this, you agree to NearPop's
+        <a href="terms.html">Terms</a> &amp;
+        <a href="privacy.html">Privacy</a>.
+      </label>
+    </div>
+    
+    <button id="np-btn" onclick="appLogin()">
+      <img id="np-btn-icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      <svg id="np-btn-spinner"
+        style="width:20px;height:20px;flex-shrink:0;animation:np-spin 1s linear infinite;"
+        viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+          stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <span id="np-btn-text">Continue with Google</span>
+    </button>
+    <div id="np-copy">© 2026 NearPop. All rights reserved.</div>
+  </div>
+
+  <div id="np-foot">
+    <a href="privacy.html">Privacy Policy</a>
+    <span style="color:rgba(255,255,255,0.4);margin:0 8px;">|</span>
+    <a href="terms.html">Terms of Service</a>
+  </div>
+
+</div>
+
+<div id="np-toast"></div>
 
 <script>
-  window._showLdr = function (msg) {
-    document.getElementById('np-btn-icon').style.display    = 'none';
-    document.getElementById('np-btn-spinner').style.display = 'block';
-    document.getElementById('np-btn-text').textContent      = msg;
-    document.getElementById('np-btn').disabled              = true;
+(function () {
+  var hour = new Date().getHours();
+  var photoUrl =
+    (hour >= 6  && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=75&w=1080&auto=format&fit=crop' :
+    (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=75&w=1080&auto=format&fit=crop' :
+                                 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=75&w=1080&auto=format&fit=crop';
+  var img = new Image();
+  img.onload = function () {
+    var bg = document.getElementById('np-bg');
+    if (bg) bg.style.backgroundImage = 'url("' + photoUrl + '")';
   };
+  img.src = photoUrl;
+})();
+
+function npToast(icon, msg) {
+  var el = document.getElementById('np-toast');
+  if (!el) return;
+  el.textContent = icon + ' ' + msg;
+  el.classList.add('show');
+  setTimeout(function () { el.classList.remove('show'); }, 3000);
+}
+
+window.loginRole = 'consumer';
+window.setRole = function (r) {
+  window.loginRole = r;
+  document.getElementById('np-con').classList.toggle('on', r === 'consumer');
+  document.getElementById('np-mer').classList.toggle('on', r === 'merchant');
+  document.getElementById('np-pill').style.transform = r === 'merchant' ? 'translateX(100%)' : 'translateX(0)';
+};
+
+window._showLdr = function (msg) {
+  document.getElementById('np-btn-icon').style.display    = 'none';
+  document.getElementById('np-btn-spinner').style.display = 'block';
+  document.getElementById('np-btn-text').textContent      = msg;
+  document.getElementById('np-btn').disabled              = true;
+};
+window._resetLdr = function () {
+  document.getElementById('np-btn-icon').style.display    = 'block';
+  document.getElementById('np-btn-spinner').style.display = 'none';
+  document.getElementById('np-btn-text').textContent      = 'Continue with Google';
+  document.getElementById('np-btn').disabled              = false;
+};
 </script>
 
 <script type="module">
-  import { db, LS, SS, cacheClear } from './js/app.js';
-  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-  import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-  import { app } from './js/app.js';
+import { db, LS, SS, cacheClear } from './js/app.js';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { app } from './js/app.js';
 
-  // Auto-redirect if already logged in
-  if (LS('uid')) {
-    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
-  }
+if (LS('uid')) {
+  window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
+}
 
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-  // 1. Process the redirect result when the app returns from Google
-  (async () => {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result?.user) await handleAuthSuccess(result.user);
-    } catch (e) {
-      if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
-        alert('Login failed. Please try again.');
-        window.location.reload();
-      }
+// App always uses redirect mode
+(async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) await handleAuthSuccess(result);
+  } catch (e) {
+    if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
+      npToast('❌', 'Login failed. Please try again.');
+      window._resetLdr();
     }
-  })();
+  }
+})();
 
-  // 2. Trigger the redirect when the button is clicked
-  window.appLogin = async () => {
+window.appLogin = async () => {
+  if (!document.getElementById('np-agree').checked) {
+    return npToast('⚠️', 'Please agree to the Terms & Privacy Policy.');
+  }
+  try {
     window._showLdr('Connecting to Google…');
-    try {
-      await signInWithRedirect(auth, provider);
-    } catch (e) {
-      alert('Could not connect to Google.');
-      window.location.reload();
-    }
-  };
-
-  // 3. Handle successful login and route to the correct page
-  async function handleAuthSuccess(user) {
-    window._showLdr('Signing in…');
-    const uid = user.uid;
-    const gName = user.displayName || 'User';
-    
-    // For this example, assuming all app logins default to 'consumer'.
-    // If you need the merchant role in the app, you can add the toggle UI back.
-    const loginRole = 'consumer'; 
-    
-    SS('uid', uid); SS('name', gName); SS('role', loginRole);
-
-    const userRef = doc(db, 'users', uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      await setDoc(userRef, { name: gName, role: loginRole, wallet: 0, points: 50, liked: [], createdAt: Date.now() });
-    } else {
-       const existingRole = userSnap.data().role || 'consumer';
-       SS('role', existingRole); // Use their actual registered role
-    }
-
-    cacheClear();
-    
-    // Normal function resumes on both
-    window.location.href = SS('role') === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
+    await signInWithRedirect(auth, provider);
+  } catch (e) {
+    npToast('❌', 'Login failed. Please try again.');
+    window._resetLdr();
   }
+};
+
+async function handleAuthSuccess(result) {
+  const user = result.user;
+  const uid = user.uid;
+  const gName = user.displayName || 'User';
+  
+  SS('uid', uid); 
+  SS('name', gName); 
+  SS('role', window.loginRole);
+  window._showLdr('Signing in…');
+
+  const userRef = doc(db, 'users', uid);
+  const userSnap = await getDoc(userRef);
+  const isNewUser = !userSnap.exists();
+
+  if (!isNewUser) {
+    const existingRole = userSnap.data().role || 'consumer';
+    if (existingRole !== window.loginRole) {
+      await auth.signOut(); 
+      window._resetLdr();
+      const who = existingRole === 'consumer' ? 'Customer' : 'Merchant';
+      return npToast('⚠️', `This account is a ${who}. Select the correct role.`);
+    }
+  }
+
+  if (window.loginRole === 'merchant') {
+    let bname = gName + "'s Business";
+    if (isNewUser) {
+      bname = prompt('What is your business / shop name?') || bname;
+      SS('mname', bname); SS('wallet', 500);
+      await setDoc(userRef, { name: gName, role: 'merchant', mname: bname, wallet: 500, points: 0, liked: [], createdAt: Date.now() });
+    } else {
+      const d = userSnap.data();
+      if (d.mname) { bname = d.mname; SS('mname', bname); }
+      else { 
+        bname = prompt('What is your business / shop name?') || bname; 
+        SS('mname', bname); 
+        await updateDoc(userRef, { role: 'merchant', mname: bname }); 
+      }
+      SS('wallet', d.wallet !== undefined ? d.wallet : 500);
+      if (d.plan) SS('plan', d.plan);
+    }
+  } else {
+    if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
+  }
+
+  cacheClear();
+  window.location.href = window.loginRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
+}
 </script>
 </body>
 </html>
