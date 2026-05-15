@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F13">
+<title>NearPop App Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
+<link rel="stylesheet" href="css/shared.css">
+<style>
+  /* Mobile-first full screen layout */
+  body { 
+    background: #0F0F13; 
+    color: #ffffff; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    padding: 24px;
+    text-align: center;
+  }
+  .app-logo { max-width: 120px; margin-bottom: 24px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 28px; margin-bottom: 12px; }
+  p { color: #888; font-size: 15px; margin-bottom: 40px; line-height: 1.5; }
+  
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+    padding: 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #111111;
+    font-size: 16px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+  }
+  .google-btn:active { transform: scale(0.96); }
+  .google-btn img { width: 24px; height: 24px; }
+  
+  #np-btn-spinner { display: none; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+  <img src="icons/logo.png" alt="NearPop" class="app-logo" onerror="this.style.display='none'">
+  <h1>Welcome to NearPop</h1>
+  <p>Discover hyper-local deals, rentals, and jobs instantly around you.</p>
+
+  <button class="google-btn" id="np-btn" onclick="appLogin()">
+    <img id="np-btn-icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+    <svg id="np-btn-spinner" style="width:24px;height:24px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="#111" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <span id="np-btn-text">Continue with Google</span>
+  </button>
+
+<script>
+  window._showLdr = function (msg) {
+    document.getElementById('np-btn-icon').style.display    = 'none';
+    document.getElementById('np-btn-spinner').style.display = 'block';
+    document.getElementById('np-btn-text').textContent      = msg;
+    document.getElementById('np-btn').disabled              = true;
+  };
+</script>
+
+<script type="module">
+  import { db, LS, SS, cacheClear } from './js/app.js';
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { app } from './js/app.js';
+
+  // Auto-redirect if already logged in
+  if (LS('uid')) {
+    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
+  }
+
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // 1. Process the redirect result when the app returns from Google
+  (async () => {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result?.user) await handleAuthSuccess(result.user);
+    } catch (e) {
+      if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
+        alert('Login failed. Please try again.');
+        window.location.reload();
+      }
+    }
+  })();
+
+  // 2. Trigger the redirect when the button is clicked
+  window.appLogin = async () => {
+    window._showLdr('Connecting to Google…');
+    try {
+      await signInWithRedirect(auth, provider);
+    } catch (e) {
+      alert('Could not connect to Google.');
+      window.location.reload();
+    }
+  };
+
+  // 3. Handle successful login and route to the correct page
+  async function handleAuthSuccess(user) {
+    window._showLdr('Signing in…');
+    const uid = user.uid;
+    const gName = user.displayName || 'User';
+    
+    // For this example, assuming all app logins default to 'consumer'.
+    // If you need the merchant role in the app, you can add the toggle UI back.
+    const loginRole = 'consumer'; 
+    
+    SS('uid', uid); SS('name', gName); SS('role', loginRole);
+
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, { name: gName, role: loginRole, wallet: 0, points: 50, liked: [], createdAt: Date.now() });
+    } else {
+       const existingRole = userSnap.data().role || 'consumer';
+       SS('role', existingRole); // Use their actual registered role
+    }
+
+    cacheClear();
+    
+    // Normal function resumes on both
+    window.location.href = SS('role') === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
+  }
+</script>
+</body>
+</html>
