@@ -7,53 +7,33 @@
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="google-site-verification" content="G5cM83TAmDMQ01Q4iaAEMiq3d8Q4pE5UeN5ljGJ50uk" />
+<title>NearPop App Login</title>
 
-<title>NearPop — Discover Local Deals, Rentals & Jobs Instantly</title>
-<meta name="title" content="NearPop — Discover Local Deals, Rentals & Jobs Instantly">
-<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time. Explore your neighborhood with NearPop.">
-
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://nearpop.in/">
-
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
-    });
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 <style>
+  /* ✅ FIX 1: Strip Flexbox & force viewport limits */
   html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: block !important; /* No more flexbox bugs */
     overflow-y: auto !important; 
     overflow-x: hidden !important;
-  }
-
-  body { 
-    display: flex; 
-    flex-direction: column; 
-    min-height: 100vh; 
-    min-height: 100dvh; 
-    background-color: var(--bg-body); 
-    padding: 32px 16px; 
-    position: relative;
-    margin: 0;
+    position: relative !important;
+    background-color: var(--bg-body);
   }
   
   .premium-bg {
     position: fixed; 
     inset: 0; 
-    z-index: 0; 
+    z-index: 1; 
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transition: background-image 1s ease-in-out;
   }
   
   .premium-bg::after {
@@ -61,69 +41,39 @@
     position: absolute; 
     inset: 0;
     background: rgba(0, 0, 0, 0.4); 
-    z-index: 1;
+    z-index: 2;
   }
 
+  /* ✅ FIX 2: Absolute Centering. Immune to WebView height-collapsing bugs */
   .card { 
-    margin: auto; 
-    width: 100%; 
-    max-width: 400px; 
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 92% !important; 
+    max-width: 400px !important; 
     border-radius: 28px; 
     padding: 40px 24px; 
     text-align: center; 
-    position: relative; 
-    z-index: 10; 
-    /* ✅ FIX: Removed backdrop-filter blur and opacity animations. Made background solid. */
+    z-index: 9999 !important; /* Force above background */
     background-color: #ffffff; 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
     border: 1px solid #eeeeee; 
+    box-sizing: border-box;
   }
   
   @media (prefers-color-scheme: dark) {
     .premium-bg::after { background: rgba(0, 0, 0, 0.7); }
-    /* ✅ FIX: Solid dark color for dark mode */
-    .card { background-color: #1E293B; border-color: #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+    .card { background-color: #1E293B; border-color: #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
   }
   
+  /* The rest remains the same */
   .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
   .tagline { font-size:14px; color:var(--gray); font-weight:600; margin-bottom:30px; line-height:1.4; }
   
-  .role-tog { 
-    display:flex; 
-    position: relative; 
-    background:var(--cream); 
-    border-radius:14px; 
-    padding:4px; 
-    margin-bottom:24px; 
-    border:1px solid var(--bdr); 
-    z-index: 1;
-  }
-  
-  .sliding-pill {
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 4px;
-    width: calc(50% - 4px);
-    background: var(--bg-app);
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: -1;
-  }
-
-  .rtb { 
-    flex:1; 
-    padding:10px; 
-    font-size:13px; 
-    font-weight:800; 
-    color:var(--gray); 
-    border-radius:10px; 
-    cursor:pointer; 
-    transition: color 0.2s; 
-    background: transparent; 
-  }
-  
+  .role-tog { display:flex; position: relative; background:var(--cream); border-radius:14px; padding:4px; margin-bottom:24px; border:1px solid var(--bdr); z-index: 1; }
+  .sliding-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: var(--bg-app); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: -1; }
+  .rtb { flex:1; padding:10px; font-size:13px; font-weight:800; color:var(--gray); border-radius:10px; cursor:pointer; transition: color 0.2s; background: transparent; }
   .rtb.on { color:var(--deep); }
 
   .btn-google { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:14px; border-radius:12px; background:var(--bg-app); color:var(--deep); font-size:15px; font-weight:800; border:2px solid var(--bdr); cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:0 4px 15px rgba(0,0,0,0.06); }
@@ -136,7 +86,15 @@
   .custom-checkbox { width:20px; height:20px; accent-color:#FF5722; cursor:pointer; flex-shrink:0; margin-top:2px; background-color:#ffffff; box-shadow:0 0 0 2px #9CA3AF; border-radius:3px; outline:none; -webkit-appearance:auto; transition: transform 0.2s; }
   .custom-checkbox:active { transform: scale(0.9); }
   
-  .footer-links { text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative; margin-top: auto; }
+  .footer-links { 
+      position: absolute; 
+      bottom: 20px; 
+      left: 0; 
+      width: 100%; 
+      text-align: center; 
+      font-size: 12px; 
+      z-index: 9999; 
+  }
 </style>
 </head>
 <body>
@@ -192,7 +150,6 @@
     const bgElement = document.getElementById('dynamic-bg');
     
     let bgUrl = '';
-    
     if (hour >= 6 && hour < 12) {
       bgUrl = 'url("https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop")';
     } else if (hour >= 12 && hour < 18) {
@@ -200,10 +157,8 @@
     } else {
       bgUrl = 'url("https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop")';
     }
-    
     bgElement.style.backgroundImage = bgUrl;
   }
-  
   setTimeBasedBackground();
 </script>
 
@@ -215,8 +170,9 @@ import { app } from './js/app.js';
 
 const UA = navigator.userAgent;
 const isApp = UA.includes('NearPopApp'); 
-const isAndroidWV = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
-const useRedirect = isApp || isAndroidWV;
+
+// Force popups for all devices. We fixed MainActivity to handle them perfectly.
+const useRedirect = false; 
 
 if (isApp) {
   document.title = "NearPop App Login";
@@ -275,37 +231,13 @@ function resetLdr() {
   btn.style.opacity = '1';
 }
 
-if (useRedirect) {
-  (async () => {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result && result.user) {
-         showLdr('Signing in...');
-         await handleAuthSuccess(result.user);
-      }
-    } catch (e) {
-      if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
-        console.error("Firebase Redirect Error:", e);
-        toast('❌', 'Login failed. Please try again.');
-        resetLdr();
-      }
-    }
-  })();
-}
-
 window.loginWithGoogle = async () => {
   if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
 
   try {
     showLdr('Connecting to Google...');
-    
-    if (useRedirect) {
-        await signInWithRedirect(auth, provider);
-    } else {
-        const result = await signInWithPopup(auth, provider);
-        await handleAuthSuccess(result.user);
-    }
-    
+    const result = await signInWithPopup(auth, provider);
+    await handleAuthSuccess(result.user);
   } catch(e) {
     console.error("Firebase Auth Error:", e);
     toast('❌', 'Login failed. Please try again.');
@@ -356,29 +288,6 @@ async function handleAuthSuccess(user) {
     
     cacheClear();
     const savedIntent = sessionStorage.getItem('np_intent');
-    
-    const qrMid = urlP.get('mid');
-    if (qrMid) {
-      try {
-        if (isNewUser) {
-          await updateDoc(doc(db, 'users', qrMid), { qrNew: increment(1), qrScans: increment(1) });
-        } else {
-          await updateDoc(doc(db, 'users', qrMid), { qrRet: increment(1), qrScans: increment(1) });
-        }
-        sessionStorage.setItem('np_qr_logged_' + qrMid, 'true'); 
-      } catch (err) { console.warn("Rules blocked analytics:", err); }
-    } else if (savedIntent && savedIntent.includes('utm_source=qr_standee')) {
-      try {
-        const urlStr = savedIntent.startsWith('http') ? savedIntent : window.location.origin + '/' + savedIntent;
-        const intentUrl = new URL(urlStr);
-        const merchantId = intentUrl.searchParams.get('mid');
-        if (merchantId) {
-          if (isNewUser) await updateDoc(doc(db, 'users', merchantId), { qrNew: increment(1), qrScans: increment(1) });
-          else await updateDoc(doc(db, 'users', merchantId), { qrRet: increment(1), qrScans: increment(1) });
-          sessionStorage.setItem('np_qr_logged_' + merchantId, 'true');
-        }
-      } catch (err) { console.warn("Rules blocked fallback analytics:", err); }
-    }
     
     if (savedIntent) {
       sessionStorage.removeItem('np_intent');
