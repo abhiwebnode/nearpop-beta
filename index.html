@@ -319,7 +319,8 @@ const auth     = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const UA          = navigator.userAgent;
-const isAndroidWV = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
+
+const isAndroidWV = /wv/.test(UA) || UA.includes('NearPopApp') || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
 const useRedirect = isAndroidWV;
 
 if (useRedirect) {
