@@ -4,336 +4,286 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0F0F13">
-<meta name="color-scheme" content="light dark">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="google-site-verification" content="G5cM83TAmDMQ01Q4iaAEMiq3d8Q4pE5UeN5ljGJ50uk" />
+<title>NearPop — Discover Local Deals, Rentals &amp; Jobs Instantly</title>
+<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time.">
 
-<title>NearPop — Discover Local Deals, Rentals & Jobs Instantly</title>
-<meta name="title" content="NearPop — Discover Local Deals, Rentals & Jobs Instantly">
-<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time. Explore your neighborhood with NearPop.">
-
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://nearpop.in/">
-
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
-    });
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
 <link rel="stylesheet" href="css/shared.css">
 
 <style>
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: #0d1b3e !important;
+  overflow-x: hidden !important;
+}
 
-  html {
-    height: 100%;
-  }
+#np-page {
+  position: relative !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 20px 16px 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  font-family: 'Nunito', -apple-system, sans-serif !important;
+}
 
-  body {
-    margin: 0;
-    padding: 16px;
-    box-sizing: border-box;
+#np-bg {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 0 !important;
+  background-color: #0d1b3e;
+  background-image: linear-gradient(160deg, #1a1a3e 0%, #0d1b3e 35%, #1a0a2e 65%, #2d1b00 100%);
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
 
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+#np-ov {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 1 !important;
+  background: rgba(0,0,0,0.50) !important;
+  pointer-events: none !important;
+}
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+#np-card {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  box-sizing: border-box !important;
+  border-radius: 24px !important;
+  padding: 36px 24px 28px !important;
+  text-align: center !important;
+  background-color: rgba(255,255,255,0.97) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35) !important;
+}
 
-    overflow-y: auto;
-    overflow-x: hidden;
+#np-logo { margin-bottom: 16px !important; }
+#np-logo img { max-height: 60px !important; width: auto !important; display: block !important; margin: 0 auto !important; }
 
-    background-color: #0d1b3e; /* solid fallback if everything else fails */
-    background-image:
-      linear-gradient(rgba(0,0,0,0.50), rgba(0,0,0,0.50)),
-      linear-gradient(160deg, #1a1a3e 0%, #0d1b3e 35%, #1a0a2e 65%, #2d1b00 100%);
-    background-size: cover, cover;
-    background-position: center, center;
-    background-repeat: no-repeat, no-repeat;
-  }
+#np-tagline {
+  display: block !important;
+  font-size: 14px !important;
+  color: #666666 !important;
+  font-weight: 600 !important;
+  margin-bottom: 24px !important;
+  line-height: 1.5 !important;
+}
 
+#np-roles {
+  display: flex !important;
+  position: relative !important;
+  background: #f0f0ec !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  margin-bottom: 22px !important;
+  border: 1px solid #e0e0e0 !important;
+}
+#np-pill {
+  position: absolute !important;
+  top: 4px !important; bottom: 4px !important; left: 4px !important;
+  width: calc(50% - 4px) !important;
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
+  transition: transform 0.3s ease !important;
+  z-index: 0 !important;
+}
+.np-rtb {
+  flex: 1 !important;
+  padding: 10px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #888888 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  background: transparent !important;
+  border: none !important;
+  position: relative !important;
+  z-index: 1 !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  font-family: 'Nunito', sans-serif !important;
+}
+.np-rtb.on { color: #111111 !important; }
 
-  /* ─── Card ────────────────────────────────────────────────────── */
-  .card {
-    width: 100%;
-    max-width: 400px;
-    border-radius: 28px;
-    padding: 40px 24px;
-    text-align: center;
-    box-sizing: border-box;
+#np-terms {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  margin-bottom: 18px !important;
+  text-align: left !important;
+}
+#np-agree { width:20px !important; height:20px !important; accent-color:#FF5722 !important; cursor:pointer !important; flex-shrink:0 !important; margin-top:2px !important; }
+#np-terms-label { font-size:12px !important; color:#222222 !important; line-height:1.6 !important; cursor:pointer !important; font-weight:600 !important; }
+#np-terms-label a { color:#FF5722 !important; font-weight:800 !important; text-decoration:underline !important; }
 
-    /*
-      ✅ No z-index needed at all — card is a normal in-flow child.
-      WebView renders in-flow children above pseudo-elements (::before)
-      reliably, unlike position:fixed sibling elements.
-    */
+#np-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #111111 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  border: 2px solid #dddddd !important;
+  cursor: pointer !important;
+  font-family: 'Nunito', sans-serif !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+#np-btn:active   { background: #f5f5f0 !important; }
+#np-btn:disabled { opacity: 0.65 !important; }
+#np-btn img { width:20px !important; height:20px !important; flex-shrink:0 !important; }
+#np-btn-spinner { display:none; }
 
-    /* Solid fallback for WebView without backdrop-filter support */
-    background-color: rgba(255, 255, 255, 0.96);
+#np-copy { margin-top:20px !important; font-size:11px !important; color:#888888 !important; font-weight:600 !important; }
 
-    /* Progressive enhancement */
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+#np-foot {
+  position: relative !important;
+  z-index: 2 !important;
+  text-align: center !important;
+  padding: 16px 8px 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+#np-foot a { color:rgba(255,255,255,0.85) !important; text-decoration:none !important; text-shadow:0 1px 4px rgba(0,0,0,0.6) !important; }
 
-    box-shadow:
-      0 30px 60px rgba(0, 0, 0, 0.30),
-      0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+#np-toast {
+  position: fixed !important;
+  bottom: 80px !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(20px) !important;
+  background: rgba(20,20,20,0.95) !important;
+  color: #ffffff !important;
+  padding: 10px 20px !important;
+  border-radius: 100px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  transition: all 0.3s !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+}
+#np-toast.show { opacity:1 !important; transform:translateX(-50%) translateY(0) !important; }
 
-    animation: slideUpFade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-    /* Margin so card doesn't touch edges on tiny screens */
-    margin: auto;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .card {
-      background-color: rgba(15, 15, 19, 0.94);
-      box-shadow:
-        0 30px 60px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
-    }
-  }
-
-  @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(28px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Small phones / keyboard-open guard */
-  @media (max-height: 640px) {
-    .card { padding: 22px 18px; border-radius: 20px; }
-  }
-
-  /* ─── Role Toggle ─────────────────────────────────────────────── */
-  .role-tog {
-    display: flex;
-    position: relative;
-    background: var(--cream, #f5f5f0);
-    border-radius: 14px;
-    padding: 4px;
-    margin-bottom: 24px;
-    border: 1px solid var(--bdr, #e0e0e0);
-  }
-
-  .sliding-pill {
-    position: absolute;
-    top: 4px; bottom: 4px; left: 4px;
-    width: calc(50% - 4px);
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    /* z-index: 0 — pill is behind button text */
-    z-index: 0;
-  }
-
-  .rtb {
-    flex: 1;
-    padding: 10px;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--gray, #888);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: color 0.2s;
-    background: transparent;
-    border: none;
-    /* ✅ Must be above pill */
-    position: relative;
-    z-index: 1;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .rtb.on { color: var(--deep, #111); }
-
-  /* ─── Google button ───────────────────────────────────────────── */
-  .btn-google {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    background: #fff;
-    color: #111;
-    font-size: 15px;
-    font-weight: 800;
-    border: 2px solid #e0e0e0;
-    cursor: pointer;
-    font-family: inherit;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    min-height: 52px;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.15s, background 0.15s;
-  }
-  .btn-google:active  { transform: scale(0.97); background: #f5f5f0; }
-  .btn-google:disabled { opacity: 0.65; cursor: not-allowed; }
-  .btn-google img { width: 20px; height: 20px; flex-shrink: 0; }
-
-  /* ─── Checkbox ────────────────────────────────────────────────── */
-  .checkbox-wrapper {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 20px;
-    text-align: left;
-    padding: 0 2px;
-  }
-  .custom-checkbox {
-    width: 20px; height: 20px;
-    accent-color: #FF5722;
-    cursor: pointer;
-    flex-shrink: 0;
-    margin-top: 2px;
-    -webkit-appearance: auto;
-  }
-
-  /* ─── Footer ──────────────────────────────────────────────────── */
-  .page-footer {
-    text-align: center;
-    padding: 16px 8px 24px;
-    font-size: 12px;
-    font-weight: 700;
-    /* In-flow — no z-index needed */
-  }
-  .page-footer a {
-    color: rgba(255,255,255,0.85);
-    text-decoration: none;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  }
-
-  /* ─── Toast ───────────────────────────────────────────────────── */
-  .toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: rgba(30,30,30,0.95);
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 100px;
-    font-size: 13px;
-    font-weight: 700;
-    white-space: nowrap;
-    opacity: 0;
-    transition: all 0.3s;
-    pointer-events: none;
-    /* ✅ Toast needs z-index since it's position:fixed */
-    z-index: 9999;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  @keyframes inline-spin {
-    100% { transform: rotate(360deg); }
-  }
+@keyframes np-spin { 100% { transform: rotate(360deg); } }
 </style>
 </head>
-<body id="main-body">
 
-<div class="card" id="login-card">
-  <div class="brand" style="margin-bottom:20px;">
-    <img
-      src="icons/logo.png"
-      alt="NearPop"
-      style="max-height:64px; width:auto; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.12));"
-      onerror="this.style.display='none'"
-    >
+<body>
+<div id="np-page">
+
+  <div id="np-bg"></div>
+  <div id="np-ov"></div>
+
+  <div id="np-card">
+    <div id="np-logo">
+      <img src="icons/logo.png" alt="NearPop" onerror="this.style.display='none'">
+    </div>
+    <span id="np-tagline">Sign in to discover nearby deals instantly.</span>
+    <div id="np-roles">
+      <div id="np-pill"></div>
+      <button class="np-rtb on" id="np-con" onclick="setRole('consumer')">📱 Customer</button>
+      <button class="np-rtb"    id="np-mer" onclick="setRole('merchant')">🏪 Merchant</button>
+    </div>
+    <div id="np-terms">
+      <input type="checkbox" id="np-agree">
+      <label id="np-terms-label" for="np-agree">
+        By checking this, you agree to NearPop's
+        <a href="terms.html">Terms</a> &amp;
+        <a href="privacy.html">Privacy</a>.
+      </label>
+    </div>
+    <button id="np-btn" onclick="window.loginWithGoogle()">
+      <img id="np-btn-icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      <svg id="np-btn-spinner"
+        style="width:20px;height:20px;flex-shrink:0;animation:np-spin 1s linear infinite;"
+        viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+          stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <span id="np-btn-text">Continue with Google</span>
+    </button>
+    <div id="np-copy">© 2026 NearPop. All rights reserved.</div>
   </div>
 
-  <div class="tagline" id="tag-line"
-    style="font-size:14px; color:var(--gray,#888); font-weight:600; margin-bottom:28px; line-height:1.5;">
-    Sign in to discover nearby deals instantly.
+  <div id="np-foot">
+    <a href="privacy.html">Privacy Policy</a>
+    <span style="color:rgba(255,255,255,0.4);margin:0 8px;">|</span>
+    <a href="terms.html">Terms of Service</a>
   </div>
 
-  <div class="role-tog" id="role-box">
-    <div class="sliding-pill" id="role-pill"></div>
-    <div class="rtb on" id="rt-con" onclick="setRole('consumer')">📱 Customer</div>
-    <div class="rtb"    id="rt-mer" onclick="setRole('merchant')">🏪 Merchant</div>
-  </div>
-
-  <div class="checkbox-wrapper">
-    <input type="checkbox" id="agree-check" class="custom-checkbox">
-    <label for="agree-check"
-      style="font-size:12px; color:var(--deep,#111); line-height:1.6; cursor:pointer; font-weight:600;">
-      By checking this, you agree to NearPop's
-      <a href="terms.html"   style="color:#FF5722; font-weight:800;">Terms</a> &amp;
-      <a href="privacy.html" style="color:#FF5722; font-weight:800;">Privacy</a>.
-    </label>
-  </div>
-
-  <button class="btn-google" id="btn-login" onclick="window.loginWithGoogle()">
-    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-         id="btn-google-icon" alt="Google">
-    <svg id="btn-spinner"
-      style="display:none; width:20px; height:20px; flex-shrink:0;
-             animation: inline-spin 1s linear infinite;"
-      viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
-        stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"/>
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor"
-        stroke-width="3" stroke-linecap="round"/>
-    </svg>
-    <span id="btn-login-text">Continue with Google</span>
-  </button>
-
-  <div style="margin-top:22px; font-size:11px; color:var(--gray,#888); font-weight:600;">
-    © 2026 NearPop. All rights reserved.
-  </div>
 </div>
 
-<div class="page-footer">
-  <a href="privacy.html">Privacy Policy</a>
-  <span style="color:rgba(255,255,255,0.4); margin:0 8px;">|</span>
-  <a href="terms.html">Terms of Service</a>
-</div>
+<div id="np-toast"></div>
 
-<div class="toast" id="toast">
-  <span id="t-ic">✅</span> <span id="t-tx"></span>
-</div>
-
-<!-- Background loader: preloads the photo, then swaps both layers together -->
 <script>
 (function () {
-  var OVERLAY = 'linear-gradient(rgba(0,0,0,0.50), rgba(0,0,0,0.50))';
-
   var hour = new Date().getHours();
-  var url =
-    (hour >= 6  && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop' :
-    (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=80&w=1080&auto=format&fit=crop' :
-                                 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop';
-
-  /*
-    Preload via Image() — only apply once confirmed downloaded.
-    If Unsplash fails, the CSS gradient fallback already showing on body stays.
-    background-size/position need updating too because we now have 2 layers.
-  */
+  var photoUrl =
+    (hour >= 6  && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=75&w=1080&auto=format&fit=crop' :
+    (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=75&w=1080&auto=format&fit=crop' :
+                                 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=75&w=1080&auto=format&fit=crop';
   var img = new Image();
   img.onload = function () {
-    document.body.style.backgroundImage  = OVERLAY + ', url("' + url + '")';
-    document.body.style.backgroundSize    = 'cover, cover';
-    document.body.style.backgroundPosition = 'center, center';
+    var bg = document.getElementById('np-bg');
+    if (bg) bg.style.backgroundImage = 'url("' + photoUrl + '")';
   };
-  img.src = url;
+  img.src = photoUrl;
 })();
+
+function npToast(icon, msg) {
+  var el = document.getElementById('np-toast');
+  if (!el) return;
+  el.textContent = icon + ' ' + msg;
+  el.classList.add('show');
+  setTimeout(function () { el.classList.remove('show'); }, 3000);
+}
+
+window.loginRole = 'consumer';
+window.setRole = function (r) {
+  window.loginRole = r;
+  document.getElementById('np-con').classList.toggle('on', r === 'consumer');
+  document.getElementById('np-mer').classList.toggle('on', r === 'merchant');
+  document.getElementById('np-pill').style.transform = r === 'merchant' ? 'translateX(100%)' : 'translateX(0)';
+};
+window._showLdr = function (msg) {
+  document.getElementById('np-btn-icon').style.display    = 'none';
+  document.getElementById('np-btn-spinner').style.display = 'block';
+  document.getElementById('np-btn-text').textContent      = msg;
+  document.getElementById('np-btn').disabled              = true;
+};
+window._resetLdr = function () {
+  document.getElementById('np-btn-icon').style.display    = 'block';
+  document.getElementById('np-btn-spinner').style.display = 'none';
+  document.getElementById('np-btn-text').textContent      = 'Continue with Google';
+  document.getElementById('np-btn').disabled              = false;
+};
 </script>
 
 <script type="module">
-import { db, LS, SS, toast, cacheClear } from './js/app.js';
+import { db, LS, SS, cacheClear } from './js/app.js';
 import {
   getAuth, GoogleAuthProvider,
   signInWithPopup, signInWithRedirect, getRedirectResult
@@ -343,136 +293,75 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { app } from './js/app.js';
 
-// ── Redirect if already signed in ────────────────────────────────────────────
 if (LS('uid')) {
-  const savedIntent = sessionStorage.getItem('np_intent');
-  if (savedIntent) {
-    sessionStorage.removeItem('np_intent');
-    window.location.href = savedIntent;
-  } else {
-    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
-  }
+  var intent = sessionStorage.getItem('np_intent');
+  if (intent) { sessionStorage.removeItem('np_intent'); window.location.href = intent; }
+  else window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html';
 }
 
-// ── Auth setup ────────────────────────────────────────────────────────────────
 const auth     = getAuth(app);
 const provider = new GoogleAuthProvider();
-// ✅ No setCustomParameters — Google auto-selects saved account on return visits
 
-window.loginRole = 'consumer';
+const UA          = navigator.userAgent;
+const isAndroidWV = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
+const useRedirect = isAndroidWV;
 
-// ── Detect if running inside Android WebView ──────────────────────────────────
-// We use this to choose popup vs redirect sign-in strategy.
-const UA             = navigator.userAgent;
-const isAndroidWV    = /wv/.test(UA) || (UA.includes('Android') && !UA.includes('Chrome/') && !UA.includes('Firefox/'));
-// Set USE_REDIRECT=true here to force redirect flow on all devices
-const USE_REDIRECT   = false;
-const useRedirectFlow = USE_REDIRECT || isAndroidWV;
-
-// ── Handle redirect result (fires after page load if redirect was used) ────────
-if (useRedirectFlow) {
+if (useRedirect) {
   (async () => {
     try {
       const result = await getRedirectResult(auth);
       if (result?.user) await handleAuthSuccess(result);
     } catch (e) {
-      if (e.code !== 'auth/no-current-user') {
-        console.error('Redirect result error:', e);
-        toast('❌', 'Login failed. Please try again.');
-        resetLdr();
+      if (e.code !== 'auth/no-current-user' && e.code !== 'auth/null-user') {
+        npToast('❌', 'Login failed. Please try again.');
+        window._resetLdr();
       }
     }
   })();
 }
 
-// ── iOS Sliding Pill ──────────────────────────────────────────────────────────
-window.setRole = (r) => {
-  window.loginRole = r;
-  document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
-  document.getElementById('rt-mer').classList.toggle('on', r === 'merchant');
-  document.getElementById('role-pill').style.transform =
-    r === 'merchant' ? 'translateX(100%)' : 'translateX(0)';
-};
-
-// ── QR param handling ─────────────────────────────────────────────────────────
 const urlP = new URLSearchParams(window.location.search);
 if (urlP.get('qr') === '1') {
-  document.getElementById('tag-line').innerHTML =
+  document.getElementById('np-tagline').innerHTML =
     "<span style='color:#FF5722;font-size:18px;font-weight:900;'>Store Found! 🏪</span><br>Sign in to unlock deals and claim visit points.";
-  setRole('consumer');
-  document.getElementById('role-box').style.display = 'none';
+  window.setRole('consumer');
+  document.getElementById('np-roles').style.display = 'none';
 }
 
-// ── Button state helpers ──────────────────────────────────────────────────────
-function showLdr(msg) {
-  const btn = document.getElementById('btn-login');
-  document.getElementById('btn-google-icon').style.display = 'none';
-  document.getElementById('btn-spinner').style.display    = 'block';
-  document.getElementById('btn-login-text').textContent   = msg;
-  btn.disabled = true;
-}
-
-function resetLdr() {
-  const btn = document.getElementById('btn-login');
-  document.getElementById('btn-google-icon').style.display = 'block';
-  document.getElementById('btn-spinner').style.display    = 'none';
-  document.getElementById('btn-login-text').textContent   = 'Continue with Google';
-  btn.disabled = false;
-}
-
-// ── Core login handler ────────────────────────────────────────────────────────
 window.loginWithGoogle = async () => {
-  if (!document.getElementById('agree-check').checked) {
-    return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
+  if (!document.getElementById('np-agree').checked) {
+    return npToast('⚠️', 'Please agree to the Terms & Privacy Policy.');
   }
-
   try {
-    showLdr('Connecting to Google…');
-
-    let result;
-    if (useRedirectFlow) {
-      // signInWithRedirect navigates away; result is handled above on reload
-      await signInWithRedirect(auth, provider);
-      return; // page will navigate, nothing more to do
-    } else {
-      result = await signInWithPopup(auth, provider);
-    }
-
+    window._showLdr('Connecting to Google…');
+    if (useRedirect) { await signInWithRedirect(auth, provider); return; }
+    const result = await signInWithPopup(auth, provider);
     await handleAuthSuccess(result);
-
   } catch (e) {
-    console.error('Firebase Auth Error:', e);
-    // auth/popup-closed-by-user is not really an error — user just closed it
-    if (e.code !== 'auth/popup-closed-by-user') {
-      toast('❌', 'Login failed. Please try again.');
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      npToast('❌', 'Login failed. Please try again.');
     }
-    resetLdr();
+    window._resetLdr();
   }
 };
 
-// ── Shared post-auth logic ────────────────────────────────────────────────────
 async function handleAuthSuccess(result) {
-  const user   = result.user;
-  const uid    = user.uid;
-  const gName  = user.displayName || 'User';
+  const user    = result.user;
+  const uid     = user.uid;
+  const gName   = user.displayName || 'User';
+  SS('uid', uid); SS('name', gName); SS('role', window.loginRole);
+  window._showLdr('Signing in…');
 
-  SS('uid', uid);
-  SS('name', gName);
-  SS('role', window.loginRole);
-
-  showLdr('Signing in…');
-
-  const userRef  = doc(db, 'users', uid);
-  const userSnap = await getDoc(userRef);
+  const userRef   = doc(db, 'users', uid);
+  const userSnap  = await getDoc(userRef);
   const isNewUser = !userSnap.exists();
 
   if (!isNewUser) {
     const existingRole = userSnap.data().role || 'consumer';
     if (existingRole !== window.loginRole) {
-      await auth.signOut();
-      resetLdr();
+      await auth.signOut(); window._resetLdr();
       const who = existingRole === 'consumer' ? 'Customer' : 'Merchant';
-      return toast('⚠️', `This Google account is registered as a ${who}. Please select the correct role.`);
+      return npToast('⚠️', `This account is a ${who}. Select the correct role.`);
     }
   }
 
@@ -480,8 +369,7 @@ async function handleAuthSuccess(result) {
     let bname = gName + "'s Business";
     if (isNewUser) {
       bname = prompt('What is your business / shop name?') || bname;
-      SS('mname', bname);
-      SS('wallet', 500);
+      SS('mname', bname); SS('wallet', 500);
       await setDoc(userRef, { name: gName, role: 'merchant', mname: bname, wallet: 500, points: 0, liked: [], createdAt: Date.now() });
     } else {
       const d = userSnap.data();
@@ -491,45 +379,32 @@ async function handleAuthSuccess(result) {
       if (d.plan) SS('plan', d.plan);
     }
   } else {
-    if (isNewUser) {
-      await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
-    }
+    if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
   }
 
   cacheClear();
-
-  // ── QR analytics ─────────────────────────────────────────────────────────
   const qrMid = urlP.get('mid');
   const savedIntent = sessionStorage.getItem('np_intent');
 
   async function trackQr(mid) {
     try {
-      const field = isNewUser ? { qrNew: increment(1), qrScans: increment(1) }
-                              : { qrRet: increment(1), qrScans: increment(1) };
+      const field = isNewUser ? { qrNew: increment(1), qrScans: increment(1) } : { qrRet: increment(1), qrScans: increment(1) };
       await updateDoc(doc(db, 'users', mid), field);
       sessionStorage.setItem('np_qr_logged_' + mid, 'true');
-    } catch (err) { console.warn('QR analytics blocked:', err); }
+    } catch (err) { console.warn('QR:', err); }
   }
 
-  if (qrMid) {
-    await trackQr(qrMid);
-  } else if (savedIntent && savedIntent.includes('utm_source=qr_standee')) {
+  if (qrMid) { await trackQr(qrMid); }
+  else if (savedIntent?.includes('utm_source=qr_standee')) {
     try {
       const base = savedIntent.startsWith('http') ? savedIntent : window.location.origin + '/' + savedIntent;
-      const mid  = new URL(base).searchParams.get('mid');
+      const mid = new URL(base).searchParams.get('mid');
       if (mid) await trackQr(mid);
-    } catch (err) { console.warn('Fallback QR analytics blocked:', err); }
+    } catch (err) {}
   }
 
-  // ── Navigate ──────────────────────────────────────────────────────────────
-  if (savedIntent) {
-    sessionStorage.removeItem('np_intent');
-    window.location.href = savedIntent;
-  } else {
-    window.location.href = window.loginRole === 'merchant'
-      ? 'merchant.html?v=' + Date.now()
-      : 'map.html?v='      + Date.now();
-  }
+  if (savedIntent) { sessionStorage.removeItem('np_intent'); window.location.href = savedIntent; }
+  else window.location.href = window.loginRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
 }
 </script>
 </body>
