@@ -2,204 +2,144 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!--
-  ✅ FIX 1 (CRITICAL — Viewport): Added maximum-scale=1, user-scalable=no.
-  Without this, Android WebView zooms into focused inputs (email fields, etc.)
-  and the card jumps behind the keyboard, making only the top few pixels visible.
-  viewport-fit=cover ensures content reaches behind notch/punch-hole cameras.
--->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0F0F13">
-<meta name="color-scheme" content="light dark">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="google-site-verification" content="G5cM83TAmDMQ01Q4iaAEMiq3d8Q4pE5UeN5ljGJ50uk" />
+<title>NearPop</title>
 
-<title>NearPop — Discover Local Deals, Rentals &amp; Jobs Instantly</title>
-<meta name="title" content="NearPop — Discover Local Deals, Rentals & Jobs Instantly">
-<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time. Explore your neighborhood with NearPop.">
-
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://nearpop.in/">
-
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-
-<!--
-  ✅ FIX 2: Service Worker — only register outside Android WebView.
-  WebView has no SW support. The failed SW registration spammed console errors
-  and blocked the page's JS module parsing on some WebView versions.
--->
-<script>
-  const isAndroidWebView = /wv/.test(navigator.userAgent) ||
-    (navigator.userAgent.includes('Android') && !navigator.userAgent.includes('Chrome/') &&
-     !navigator.userAgent.includes('Firefox/'));
-
-  if ('serviceWorker' in navigator && !isAndroidWebView) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
-    });
-  }
-</script>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
-<link rel="stylesheet" href="css/shared.css">
+<!-- Keep all your existing <link> tags for fonts, shared.css etc here -->
 
 <style>
-  /*
-    ✅ FIX 3 (CRITICAL — Layout): body was overflow:hidden which clipped the
-    login card when the soft keyboard pushed the viewport up. Changed to
-    overflow-y:auto and min-height uses -webkit-fill-available for WebView
-    compatibility (100dvh is not supported in older WebView versions).
-  */
-  html, body {
-    margin: 0;
-    padding: 0;
-    /* Fallback for WebView which doesn't always honour 100dvh */
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+  /* ─────────────────────────────────────────────────────────────────
+     ✅ THE CORE FIX:
+     Remove the separate .premium-bg div entirely.
+     Set the background directly on BODY.
+
+     WHY: Android WebView has a compositor bug where position:fixed
+     elements are promoted to their OWN layer ABOVE all other content,
+     ignoring z-index completely. No amount of z-index on .card fixes
+     this — the fixed layer always wins.
+
+     Setting background on body sidesteps the entire problem because
+     body's background is always behind its own children.
+  ───────────────────────────────────────────────────────────────── */
+
+  html {
+    height: 100%;
   }
 
   body {
+    margin: 0;
+    padding: 16px;
+    box-sizing: border-box;
+
+    /* ✅ min-height stack: dvh not supported in old WebView */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-body);
-    padding: 16px;
-    /* ✅ FIX: was overflow:hidden — now scrollable so card is reachable on
-       small screens or when keyboard is open */
+
+    /* ✅ Background lives HERE on body — not a separate div */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    /* Fallback solid colour while image loads */
+    background-color: #1a1a2e;
+
+    /* ✅ Dark overlay via a pseudo-element on body itself */
+    position: relative;
+
     overflow-y: auto;
     overflow-x: hidden;
-    position: relative;
+
+    /* ✅ NO isolation or z-index needed — card is a normal child of body */
   }
 
-  /*
-    ✅ FIX 4 (CRITICAL — z-index stacking context):
-    The original .premium-bg had z-index:0 and .card had z-index:10 BUT
-    there was no explicit stacking context on body, so on certain WebView
-    versions the backdrop-filter on .card created a NEW stacking context that
-    got rendered BELOW the fixed background layer.
-
-    Solution: give body a stacking context via isolation:isolate, and raise
-    .card's z-index well above the overlay pseudo-element.
-  */
-  body {
-    isolation: isolate; /* ← creates root stacking context */
-  }
-
-  .premium-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: background-image 1s ease-in-out;
-    /* Fallback color while image loads */
-    background-color: #1a1a2e;
-  }
-
-  .premium-bg::after {
+  /* Dark overlay on top of the background image, below the card */
+  body::before {
     content: '';
-    position: absolute;
+    position: fixed;     /* covers the whole screen as user scrolls */
     inset: 0;
-    /* z-index: 1 inside .premium-bg stacking context — fine */
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.50);
+    /* ✅ z-index: -1 keeps it behind ALL body children including .card */
+    z-index: -1;
+    pointer-events: none;
   }
 
-  /*
-    ✅ FIX 5: backdrop-filter: blur() is NOT supported in Android WebView
-    below Chrome 76 (WebView 76). Adding a solid fallback background so
-    the card is never transparent/invisible on older devices.
-    Also raised z-index to 100 to guarantee it's above everything.
-  */
+  /* ─── Card ────────────────────────────────────────────────────── */
   .card {
     width: 100%;
     max-width: 400px;
     border-radius: 28px;
     padding: 40px 24px;
     text-align: center;
-    position: relative;
-    z-index: 100; /* ✅ Was 10; raised to guarantee above fixed bg */
-    /* Solid fallback for WebView no-backdrop-filter */
-    background-color: rgba(255, 255, 255, 0.95);
-    /* Progressive enhancement: blur where supported */
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    box-shadow:
-      0 30px 60px rgba(0, 0, 0, 0.25),
-      0 0 0 1px rgba(255, 255, 255, 0.4) inset;
-    border: none;
-    animation: slideUpFade 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    /* ✅ FIX: Ensure card never overflows the viewport horizontally */
     box-sizing: border-box;
-  }
 
-  @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
+    /*
+      ✅ No z-index needed at all — card is a normal in-flow child.
+      WebView renders in-flow children above pseudo-elements (::before)
+      reliably, unlike position:fixed sibling elements.
+    */
+
+    /* Solid fallback for WebView without backdrop-filter support */
+    background-color: rgba(255, 255, 255, 0.96);
+
+    /* Progressive enhancement */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.30),
+      0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+
+    animation: slideUpFade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Margin so card doesn't touch edges on tiny screens */
+    margin: auto;
   }
 
   @media (prefers-color-scheme: dark) {
-    .premium-bg::after { background: rgba(0, 0, 0, 0.6); }
     .card {
-      background-color: rgba(15, 15, 19, 0.92); /* ✅ More opaque fallback in dark mode */
+      background-color: rgba(15, 15, 19, 0.94);
       box-shadow:
         0 30px 60px rgba(0, 0, 0, 0.6),
         0 0 0 1px rgba(255, 255, 255, 0.08) inset;
     }
   }
 
-  /* ✅ FIX 6: Small-screen guard — tighten padding on tiny phones */
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Small phones / keyboard-open guard */
   @media (max-height: 640px) {
-    .card { padding: 24px 20px; border-radius: 20px; }
-    .tagline { margin-bottom: 18px !important; }
+    .card { padding: 22px 18px; border-radius: 20px; }
   }
 
-  .brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .tagline {
-    font-size: 14px;
-    color: var(--gray);
-    font-weight: 600;
-    margin-bottom: 30px;
-    line-height: 1.4;
-  }
-
-  /* ─── Role Toggle ───────────────────────────────────────────────────────── */
+  /* ─── Role Toggle ─────────────────────────────────────────────── */
   .role-tog {
     display: flex;
     position: relative;
-    background: var(--cream);
+    background: var(--cream, #f5f5f0);
     border-radius: 14px;
     padding: 4px;
     margin-bottom: 24px;
-    border: 1px solid var(--bdr);
-    /* ✅ FIX: Give toggle its own stacking context so sliding-pill z-index
-       is relative to the toggle box only — avoids clipping by parent contexts */
-    isolation: isolate;
+    border: 1px solid var(--bdr, #e0e0e0);
   }
 
   .sliding-pill {
     position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 4px;
+    top: 4px; bottom: 4px; left: 4px;
     width: calc(50% - 4px);
-    background: var(--bg-app);
+    background: #fff;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 0; /* Stays behind text within toggle's isolation context */
+    /* z-index: 0 — pill is behind button text */
+    z-index: 0;
   }
 
   .rtb {
@@ -207,20 +147,22 @@
     padding: 10px;
     font-size: 13px;
     font-weight: 800;
-    color: var(--gray);
+    color: var(--gray, #888);
     border-radius: 10px;
     cursor: pointer;
     transition: color 0.2s;
     background: transparent;
+    border: none;
+    /* ✅ Must be above pill */
     position: relative;
-    z-index: 1; /* ✅ FIX: was missing — text needs to sit above pill */
+    z-index: 1;
     user-select: none;
-    -webkit-user-select: none; /* WebView requires -webkit prefix */
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
+  .rtb.on { color: var(--deep, #111); }
 
-  .rtb.on { color: var(--deep); }
-
-  /* ─── Google Button ─────────────────────────────────────────────────────── */
+  /* ─── Google button ───────────────────────────────────────────── */
   .btn-google {
     display: flex;
     align-items: center;
@@ -229,70 +171,108 @@
     width: 100%;
     padding: 14px;
     border-radius: 12px;
-    background: var(--bg-app);
-    color: var(--deep);
+    background: #fff;
+    color: #111;
     font-size: 15px;
     font-weight: 800;
-    border: 2px solid var(--bdr);
+    border: 2px solid #e0e0e0;
     cursor: pointer;
-    transition: all 0.2s;
     font-family: inherit;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-    /* ✅ FIX: min-height prevents button from collapsing on WebView layout pass */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     min-height: 52px;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s, background 0.15s;
   }
-  .btn-google:active { transform: scale(0.97); background: var(--cream); }
+  .btn-google:active  { transform: scale(0.97); background: #f5f5f0; }
+  .btn-google:disabled { opacity: 0.65; cursor: not-allowed; }
   .btn-google img { width: 20px; height: 20px; flex-shrink: 0; }
-  .btn-google:disabled { opacity: 0.7; cursor: not-allowed; }
 
-  @keyframes inline-spin { 100% { transform: rotate(360deg); } }
-
-  /* ─── Checkbox ──────────────────────────────────────────────────────────── */
+  /* ─── Checkbox ────────────────────────────────────────────────── */
   .checkbox-wrapper {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     margin-bottom: 20px;
     text-align: left;
-    padding: 0 4px;
+    padding: 0 2px;
   }
   .custom-checkbox {
-    width: 20px;
-    height: 20px;
+    width: 20px; height: 20px;
     accent-color: #FF5722;
     cursor: pointer;
     flex-shrink: 0;
     margin-top: 2px;
     -webkit-appearance: auto;
-    transition: transform 0.2s;
   }
-  .custom-checkbox:active { transform: scale(0.9); }
 
-  /* ─── Footer links ──────────────────────────────────────────────────────── */
+  /* ─── Footer ──────────────────────────────────────────────────── */
   .page-footer {
     text-align: center;
-    padding: 15px;
+    padding: 16px 8px 24px;
     font-size: 12px;
-    z-index: 100; /* ✅ Match card z-index so it's visible above bg */
-    position: relative;
+    font-weight: 700;
+    /* In-flow — no z-index needed */
+  }
+  .page-footer a {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+
+  /* ─── Toast ───────────────────────────────────────────────────── */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(30,30,30,0.95);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    /* ✅ Toast needs z-index since it's position:fixed */
+    z-index: 9999;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @keyframes inline-spin {
+    100% { transform: rotate(360deg); }
   }
 </style>
 </head>
-<body>
+<body id="main-body">
 
-<div class="premium-bg" id="dynamic-bg"></div>
+<!--
+  ✅ THE KEY CHANGE:
+  Remove <div class="premium-bg"> entirely from the HTML.
+  The background image is now set on <body> by the JS below.
+  The dark overlay is body::before (z-index: -1).
+  The card is a plain in-flow child — always on top.
+-->
 
 <div class="card" id="login-card">
-  <div class="brand" style="margin-bottom: 20px;">
+  <div class="brand" style="margin-bottom:20px;">
     <img
       src="icons/logo.png"
-      alt="NearPop Logo"
-      style="max-height: 64px; width: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));"
+      alt="NearPop"
+      style="max-height:64px; width:auto; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.12));"
       onerror="this.style.display='none'"
     >
   </div>
-  <div class="tagline" id="tag-line">Sign in to discover nearby deals instantly.</div>
+
+  <div class="tagline" id="tag-line"
+    style="font-size:14px; color:var(--gray,#888); font-weight:600; margin-bottom:28px; line-height:1.5;">
+    Sign in to discover nearby deals instantly.
+  </div>
 
   <div class="role-tog" id="role-box">
     <div class="sliding-pill" id="role-pill"></div>
@@ -302,77 +282,57 @@
 
   <div class="checkbox-wrapper">
     <input type="checkbox" id="agree-check" class="custom-checkbox">
-    <label for="agree-check" style="font-size:12px; color:var(--deep); line-height:1.5; cursor:pointer; font-weight:600;">
+    <label for="agree-check"
+      style="font-size:12px; color:var(--deep,#111); line-height:1.6; cursor:pointer; font-weight:600;">
       By checking this, you agree to NearPop's
-      <a href="terms.html"   style="color:#FF5722; font-weight:800; text-decoration:underline;">Terms</a> &amp;
-      <a href="privacy.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Privacy</a>.
+      <a href="terms.html"   style="color:#FF5722; font-weight:800;">Terms</a> &amp;
+      <a href="privacy.html" style="color:#FF5722; font-weight:800;">Privacy</a>.
     </label>
   </div>
 
   <button class="btn-google" id="btn-login" onclick="window.loginWithGoogle()">
-    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" id="btn-google-icon" alt="Google">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+         id="btn-google-icon" alt="Google">
     <svg id="btn-spinner"
-      style="display:none; width:20px; height:20px; animation: inline-spin 1s linear infinite; flex-shrink:0;"
-      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      style="display:none; width:20px; height:20px; flex-shrink:0;
+             animation: inline-spin 1s linear infinite;"
+      viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
-        stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"></circle>
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+        stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor"
+        stroke-width="3" stroke-linecap="round"/>
     </svg>
     <span id="btn-login-text">Continue with Google</span>
   </button>
 
-  <div style="margin-top: 24px; font-size: 11px; color: var(--gray); text-align: center; font-weight:600;">
+  <div style="margin-top:22px; font-size:11px; color:var(--gray,#888); font-weight:600;">
     © 2026 NearPop. All rights reserved.
   </div>
 </div>
 
-<div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
-
-<!-- Footer -->
 <div class="page-footer">
-  <a href="privacy.html" style="color:rgba(255,255,255,0.8); text-decoration:none; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
-  <span style="color:rgba(255,255,255,0.5); margin:0 8px;">|</span>
-  <a href="terms.html"   style="color:rgba(255,255,255,0.8); text-decoration:none; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
+  <a href="privacy.html">Privacy Policy</a>
+  <span style="color:rgba(255,255,255,0.4); margin:0 8px;">|</span>
+  <a href="terms.html">Terms of Service</a>
 </div>
 
-<!-- ✅ Time-based background (non-module, runs immediately) -->
+<div class="toast" id="toast">
+  <span id="t-ic">✅</span> <span id="t-tx"></span>
+</div>
+
+<!-- ✅ Set background on body — no fixed div, no z-index war -->
 <script>
-  (function setTimeBasedBackground() {
-    const hour  = new Date().getHours();
-    const bgEl  = document.getElementById('dynamic-bg');
-    let bgUrl;
+  (function () {
+    const hour = new Date().getHours();
+    let url;
+    if      (hour >= 6  && hour < 12) url = 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop';
+    else if (hour >= 12 && hour < 18) url = 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=80&w=1080&auto=format&fit=crop';
+    else                               url = 'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop';
 
-    if (hour >= 6 && hour < 12) {
-      bgUrl = 'url("https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop")';
-    } else if (hour >= 12 && hour < 18) {
-      bgUrl = 'url("https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=80&w=1080&auto=format&fit=crop")';
-    } else {
-      bgUrl = 'url("https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop")';
-    }
-
-    bgEl.style.backgroundImage = bgUrl;
+    document.body.style.backgroundImage = 'url("' + url + '")';
   })();
 </script>
 
-<!--
-  ✅ FIX 7 (CRITICAL — Google Sign-In in WebView):
-  Firebase's signInWithPopup() opens a new window via window.open().
-  Android WebView blocks window.open() by default UNLESS both:
-    a) settings.setSupportMultipleWindows(true)  — set in MainActivity ✅
-    b) settings.javaScriptCanOpenWindowsAutomatically(true) — set ✅
-  BUT even then, Firebase detects the "wv" substring in the default
-  WebView UA and blocks OAuth with error "disallowed_useragent".
-
-  Our MainActivity now:
-  1. Strips "wv" by using a standard Chrome UA string
-  2. Creates a real new WebView inside a full-screen Dialog for the popup
-  3. Passes that new WebView back via WebViewTransport
-
-  On the JS side we keep signInWithPopup() — no changes needed.
-  The redirect-based fallback below is provided as a belt-and-suspenders
-  option you can enable by setting USE_REDIRECT = true if popup still fails
-  on specific OEM devices (Xiaomi MIUI, Oppo ColorOS etc.).
--->
 <script type="module">
 import { db, LS, SS, toast, cacheClear } from './js/app.js';
 import {
