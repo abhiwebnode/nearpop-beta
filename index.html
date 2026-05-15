@@ -2,383 +2,369 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0F0F13">
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="google-site-verification" content="G5cM83TAmDMQ01Q4iaAEMiq3d8Q4pE5UeN5ljGJ50uk" />
 
-<title>NearPop Login</title>
+<title>NearPop — Discover Local Deals, Rentals & Jobs Instantly</title>
+<meta name="title" content="NearPop — Discover Local Deals, Rentals & Jobs Instantly">
+<meta name="description" content="Turn on your GPS and find the best hyper-local shop discounts, flats, PGs, and jobs near you in real-time. Explore your neighborhood with NearPop.">
 
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nearpop.in/">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Syne:wght@700;800&display=swap">
 <link rel="stylesheet" href="css/shared.css">
-
 <style>
-:root{
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-}
+  body { 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    justify-content:center; 
+    min-height:100vh; 
+    min-height:100dvh; 
+    background-color: var(--bg-body); 
+    padding:16px; 
+    overflow:hidden; 
+    position: relative;
+    margin: 0;
+  }
+  
+  .premium-bg {
+    position: fixed; 
+    inset: 0; 
+    z-index: 0; 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 1s ease-in-out;
+  }
+  
+  .premium-bg::after {
+    content: ''; 
+    position: absolute; 
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4); 
+    z-index: 1;
+  }
 
-html, body {
-  margin:0; padding:0;
-  width:100%; min-height:100%;
-  overflow-x:hidden; overflow-y:auto;
-  background:var(--bg-body);
-  -webkit-overflow-scrolling:touch;
-  font-family:'Nunito',sans-serif;
-}
+  .card { 
+    width:100%; 
+    max-width:400px; 
+    border-radius:28px; 
+    padding:40px 24px; 
+    text-align:center; 
+    position:relative; 
+    z-index: 10; 
+    background-color: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(30px); 
+    -webkit-backdrop-filter: blur(30px); 
+    box-shadow: 0 30px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.4) inset; 
+    border: none; 
+    animation: slideUpFade 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .premium-bg::after { background: rgba(0, 0, 0, 0.6); }
+    .card { background-color: rgba(15, 15, 19, 0.75); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08) inset; }
+  }
+  
+  .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
+  .tagline { font-size:14px; color:var(--gray); font-weight:600; margin-bottom:30px; line-height:1.4; }
+  
+  /* 🚀 UI UPGRADE 1: iOS Sliding Pill Segments */
+  .role-tog { 
+    display:flex; 
+    position: relative; 
+    background:var(--cream); 
+    border-radius:14px; 
+    padding:4px; 
+    margin-bottom:24px; 
+    border:1px solid var(--bdr); 
+    z-index: 1;
+  }
+  
+  .sliding-pill {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    background: var(--bg-app);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: -1; /* Sits behind the text */
+  }
 
-/* Background */
-.premium-bg {
-  position:fixed; inset:0; z-index:1;
-  background-size:cover; background-position:center; background-repeat:no-repeat;
-  transform:scale(1.03);
-}
-.premium-bg::after {
-  content:''; position:absolute; inset:0;
-  background:rgba(0,0,0,0.50); backdrop-filter:blur(2px);
-}
+  .rtb { 
+    flex:1; 
+    padding:10px; 
+    font-size:13px; 
+    font-weight:800; 
+    color:var(--gray); 
+    border-radius:10px; 
+    cursor:pointer; 
+    transition: color 0.2s; 
+    background: transparent; 
+  }
+  
+  .rtb.on { color:var(--deep); }
+  /* End UI UPGRADE 1 */
 
-/* Layout */
-.scroll-wrapper {
-  position:relative; z-index:10;
-  width:100%; min-height:100dvh;
-  box-sizing:border-box;
-  display:flex; flex-direction:column;
-  justify-content:center; align-items:center;
-  padding: calc(24px + var(--safe-top)) 16px calc(32px + var(--safe-bottom));
-}
+  .btn-google { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:14px; border-radius:12px; background:var(--bg-app); color:var(--deep); font-size:15px; font-weight:800; border:2px solid var(--bdr); cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:0 4px 15px rgba(0,0,0,0.06); }
+  .btn-google:active { transform:scale(0.97); background:var(--cream); }
+  .btn-google img { width:20px; height:20px; transition: opacity 0.2s; }
 
-/* Card */
-.card {
-  width:100%; max-width:420px;
-  background:#ffffff; border-radius:30px;
-  padding:34px 24px; box-sizing:border-box;
-  border:1px solid #e5e7eb;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.08);
-  animation:fadeUp .45s ease;
-}
+  /* 🚀 CSS for new Inline Spinner */
+  @keyframes inline-spin { 100% { transform: rotate(360deg); } }
 
-@keyframes fadeUp{
-  from{ opacity:0; transform:translateY(18px); }
-  to{ opacity:1; transform:translateY(0); }
-}
-
-@media(prefers-color-scheme:dark){
-  .card{ background:#111827; border-color:#1F2937; }
-  .premium-bg::after{ background:rgba(0,0,0,0.72); }
-}
-
-.brand { display:flex; justify-content:center; align-items:center; margin-bottom:20px; }
-.logo { max-height:72px; width:auto; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.12)); }
-.tagline { text-align:center; font-size:14px; line-height:1.5; font-weight:700; color:var(--gray); margin-bottom:28px; }
-
-/* Role Toggle */
-.role-tog { position:relative; display:flex; align-items:center; background:var(--cream); border:1px solid var(--bdr); border-radius:16px; padding:4px; margin-bottom:24px; overflow:hidden; }
-.sliding-pill { position:absolute; top:4px; left:4px; bottom:4px; width:calc(50% - 4px); background:var(--bg-app); border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); transition:transform .30s cubic-bezier(.34,1.56,.64,1); }
-.rtb { position:relative; z-index:2; flex:1; border:none; background:transparent; padding:12px 10px; border-radius:12px; font-size:13px; font-weight:900; color:var(--gray); cursor:pointer; transition:.2s; }
-.rtb.on { color:var(--deep); }
-
-/* Checkbox */
-.checkbox-wrapper { display:flex; align-items:flex-start; gap:10px; margin-bottom:22px; }
-.custom-checkbox { width:20px; height:20px; margin-top:2px; accent-color:#FF5722; cursor:pointer; flex-shrink:0; }
-.checkbox-label { font-size:12px; line-height:1.5; font-weight:700; color:var(--deep); }
-.checkbox-label a { color:#FF5722; font-weight:900; }
-
-/* Login Button */
-.btn-google { width:100%; border:none; outline:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; padding:15px; border-radius:14px; background:#ffffff; border:2px solid var(--bdr); font-size:15px; font-weight:900; font-family:inherit; transition:.2s; box-shadow:0 5px 18px rgba(0,0,0,0.08); }
-.btn-google:hover { transform:translateY(-1px); }
-.btn-google:active { transform:scale(.98); }
-.btn-google:disabled { opacity:.7; pointer-events:none; }
-.btn-google img { width:20px; height:20px; }
-
-.spinner { width:20px; height:20px; border-radius:50%; border:3px solid rgba(0,0,0,0.15); border-top-color:#111; animation:spin .8s linear infinite; display:none; }
-@keyframes spin{ to{ transform:rotate(360deg); } }
-
-/* Footer */
-.footer-links { margin-top:24px; text-align:center; font-size:12px; font-weight:800; }
-.footer-links a { color:rgba(255,255,255,.92); text-decoration:none; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
-
-/* Merchant Modal */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.65); display:none; align-items:center; justify-content:center; z-index:9999; padding:20px; }
-.modal { width:100%; max-width:400px; background:#fff; border-radius:24px; padding:24px; box-sizing:border-box; }
-.modal h3 { margin:0 0 10px; font-size:22px; }
-.modal p { margin:0 0 20px; color:#6B7280; font-size:14px; }
-.modal input { width:100%; padding:14px; border-radius:14px; border:1px solid #d1d5db; font-size:15px; box-sizing:border-box; margin-bottom:18px; }
-.modal button { width:100%; border:none; padding:14px; border-radius:14px; background:#FF5722; color:#fff; font-size:15px; font-weight:900; cursor:pointer; }
+  .checkbox-wrapper { display:flex; align-items:flex-start; gap:10px; margin-bottom:20px; text-align:left; padding:0 4px; }
+  .custom-checkbox { width:20px; height:20px; accent-color:#FF5722; cursor:pointer; flex-shrink:0; margin-top:2px; background-color:#ffffff; box-shadow:0 0 0 2px #9CA3AF; border-radius:3px; outline:none; -webkit-appearance:auto; transition: transform 0.2s; }
+  .custom-checkbox:active { transform: scale(0.9); }
 </style>
 </head>
-
 <body>
 
 <div class="premium-bg" id="dynamic-bg"></div>
 
-<div class="scroll-wrapper">
-  <div class="card">
-    <div class="brand">
-      <img src="icons/logo.png" class="logo" alt="NearPop Logo">
-    </div>
-    <div class="tagline" id="tag-line">
-      Sign in to discover nearby deals instantly.
-    </div>
+<div class="card" id="login-card">
+  <div class="brand" style="margin-bottom: 20px;">
+    <img src="icons/logo.png" alt="NearPop Logo" style="max-height: 64px; width: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));">
+  </div>
+  <div class="tagline" id="tag-line">Sign in to discover nearby deals instantly.</div>
 
-    <div class="role-tog" id="role-box">
-      <div class="sliding-pill" id="role-pill"></div>
-      <button class="rtb on" id="rt-con" type="button">📱 Customer</button>
-      <button class="rtb" id="rt-mer" type="button">🏪 Merchant</button>
-    </div>
-
-    <div class="checkbox-wrapper">
-      <input type="checkbox" id="agree-check" class="custom-checkbox">
-      <label for="agree-check" class="checkbox-label">
-        By checking this, you agree to NearPop's
-        <a href="terms.html">Terms</a> & <a href="privacy.html">Privacy</a>.
-      </label>
-    </div>
-
-    <button class="btn-google" id="btn-login" type="button">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" id="google-icon">
-      <div class="spinner" id="spinner"></div>
-      <span id="btn-text">Continue with Google</span>
-    </button>
-
-    <div style="margin-top:22px; text-align:center; font-size:11px; color:var(--gray); font-weight:700;">
-      © 2026 NearPop. All rights reserved.
-    </div>
+  <div class="role-tog" id="role-box">
+    <!-- The physical moving pill element -->
+    <div class="sliding-pill" id="role-pill"></div>
+    <div class="rtb on" id="rt-con" onclick="setRole('consumer')">📱 Customer</div>
+    <div class="rtb" id="rt-mer" onclick="setRole('merchant')">🏪 Merchant</div>
   </div>
 
-  <div class="footer-links">
-    <a href="/privacy.html">Privacy Policy</a>
-    <span style="margin:0 8px; color:rgba(255,255,255,.5)">|</span>
-    <a href="/terms.html">Terms of Service</a>
+  <div class="checkbox-wrapper">
+    <input type="checkbox" id="agree-check" class="custom-checkbox">
+    <label for="agree-check" style="font-size:12px; color:var(--deep); line-height:1.5; cursor:pointer; font-weight:600;">
+      By checking this, you agree to NearPop's 
+      <a href="terms.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Terms</a> & 
+      <a href="privacy.html" style="color:#FF5722; font-weight:800; text-decoration:underline;">Privacy</a>.
+    </label>
+  </div>
+  
+  <!-- 🚀 UI UPGRADE 3: Inline Loading Button -->
+  <button class="btn-google" id="btn-login" onclick="window.loginWithGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" id="btn-google-icon" alt="Google">
+    <!-- Inline SVG Spinner (Hidden by default) -->
+    <svg id="btn-spinner" style="display:none; width:20px; height:20px; animation: inline-spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-linecap="round" stroke-opacity="0.3"></circle>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+    </svg>
+    <span id="btn-login-text">Continue with Google</span>
+  </button>
+
+  <div style="margin-top: 24px; font-size: 11px; color: var(--gray); text-align: center; font-weight:600;">
+    © 2026 NearPop. All rights reserved.
   </div>
 </div>
 
-<div class="modal-overlay" id="merchant-modal">
-  <div class="modal">
-    <h3>Business Setup</h3>
-    <p>Enter your business/shop name to continue.</p>
-    <input type="text" id="business-name" placeholder="Example: Sharma Electronics">
-    <button id="save-business-btn">Continue</button>
-  </div>
-</div>
+<div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-tx"></span></div>
+
+<script>
+  function setTimeBasedBackground() {
+    const hour = new Date().getHours();
+    const bgElement = document.getElementById('dynamic-bg');
+    
+    let bgUrl = '';
+    
+    if (hour >= 6 && hour < 12) {
+      bgUrl = 'url("https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1080&auto=format&fit=crop")';
+    } else if (hour >= 12 && hour < 18) {
+      bgUrl = 'url("https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=80&w=1080&auto=format&fit=crop")';
+    } else {
+      bgUrl = 'url("https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=80&w=1080&auto=format&fit=crop")';
+    }
+    
+    bgElement.style.backgroundImage = bgUrl;
+  }
+  
+  setTimeBasedBackground();
+</script>
 
 <script type="module">
-import { app, db, toast, cacheClear, LS, SS } from './js/app.js';
-import { 
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, 
-  getRedirectResult, onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { db, LS, SS, toast, cacheClear } from './js/app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { app } from './js/app.js';
 
-/* -------------------------------- */
-/* 1. DOM Elements & State First    */
-/* -------------------------------- */
-let loginRole = 'consumer';
-let isProcessing = false;
-
-const btnLogin = document.getElementById('btn-login');
-const btnText = document.getElementById('btn-text');
-const spinner = document.getElementById('spinner');
-const googleIcon = document.getElementById('google-icon');
-const rtCon = document.getElementById('rt-con');
-const rtMer = document.getElementById('rt-mer');
-const rolePill = document.getElementById('role-pill');
-const merchantModal = document.getElementById('merchant-modal');
-const businessInput = document.getElementById('business-name');
-const saveBusinessBtn = document.getElementById('save-business-btn');
-
-/* -------------------------------- */
-/* 2. Bind UI Events Immediately    */
-/* -------------------------------- */
-function setRole(role){
-  if(isProcessing) return;
-  loginRole = role;
-  rtCon.classList.toggle('on', role === 'consumer');
-  rtMer.classList.toggle('on', role === 'merchant');
-  rolePill.style.transform = role === 'merchant' ? 'translateX(100%)' : 'translateX(0)';
-}
-
-rtCon.addEventListener('click', () => setRole('consumer'));
-rtMer.addEventListener('click', () => setRole('merchant'));
-
-function setLoading(state, text = 'Continue with Google'){
-  isProcessing = state;
-  btnLogin.disabled = state;
-  spinner.style.display = state ? 'block' : 'none';
-  googleIcon.style.display = state ? 'none' : 'block';
-  btnText.textContent = text;
-}
-
-btnLogin.addEventListener('click', async () => {
-  if(isProcessing) return;
-  if(!document.getElementById('agree-check').checked){
-    toast('⚠️', 'Please agree to Terms & Privacy Policy.');
-    return;
-  }
-  
-  try {
-    setLoading(true, 'Connecting to Google...');
-    
-    // PWA Mobile devices handle redirects much better than popups
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
-    
-    if (isMobile) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      const result = await signInWithPopup(auth, provider);
-      if(result?.user) await handleAuthSuccess(result.user);
-    }
-  } catch(err) {
-    console.error('Auth Error:', err);
-    let msg = 'Login failed. Please try again.';
-    if(err.code === 'auth/popup-closed-by-user') msg = 'Login popup was closed.';
-    toast('❌', msg);
-    setLoading(false);
-  }
-});
-
-/* -------------------------------- */
-/* 3. Helper Functions              */
-/* -------------------------------- */
-function askBusinessName(defaultName){
-  return new Promise((resolve) => {
-    merchantModal.style.display = 'flex';
-    businessInput.value = defaultName || '';
-    businessInput.focus();
-    const handler = () => {
-      const value = businessInput.value.trim() || defaultName;
-      merchantModal.style.display = 'none';
-      saveBusinessBtn.removeEventListener('click', handler);
-      resolve(value);
-    };
-    saveBusinessBtn.addEventListener('click', handler);
-  });
-}
-
-async function handleAuthSuccess(user){
-  try{
-    setLoading(true, 'Setting up account...');
-    const uid = user.uid;
-    const gName = user.displayName || 'User';
-    const userRef = doc(db, 'users', uid);
-    const snap = await getDoc(userRef);
-    const isNewUser = !snap.exists();
-
-    if(!isNewUser){
-      const existingRole = snap.data().role || 'consumer';
-      if(existingRole !== loginRole){
-        toast('⚠️', `This account is already registered as ${existingRole}.`);
-        await auth.signOut();
-        setLoading(false);
-        return;
-      }
-    }
-
-    if(loginRole === 'merchant'){
-      let businessName = `${gName}'s Business`;
-      if(isNewUser){
-        businessName = await askBusinessName(businessName);
-        await setDoc(userRef, { name:gName, role:'merchant', mname:businessName, wallet:500, points:0, liked:[], createdAt:Date.now() });
-      }else{
-        const data = snap.data();
-        if(!data.mname){
-          businessName = await askBusinessName(businessName);
-          await updateDoc(userRef, { mname:businessName });
-        }else{
-          businessName = data.mname;
-        }
-        SS('wallet', data.wallet || 500);
-        if(data.plan) SS('plan', data.plan);
-      }
-      SS('mname', businessName);
-    }else{
-      if(isNewUser) await setDoc(userRef, { name:gName, role:'consumer', wallet:0, points:50, liked:[], createdAt:Date.now() });
-    }
-
-    SS('uid', uid);
-    SS('name', gName);
-    SS('role', loginRole);
-    cacheClear();
-
-    const savedIntent = sessionStorage.getItem('np_intent');
-    if(savedIntent){
-      sessionStorage.removeItem('np_intent');
-      location.href = savedIntent;
-    } else {
-      location.href = loginRole === 'merchant' ? 'merchant.html' : 'map.html';
-    }
-  }catch(err){
-    console.error(err);
-    toast('❌', 'Something went wrong. Please try again.');
-    setLoading(false);
+// If already logged in, redirect smoothly
+if (LS('uid')) { 
+  const savedIntent = sessionStorage.getItem('np_intent');
+  if (savedIntent) {
+    sessionStorage.removeItem('np_intent');
+    window.location.href = savedIntent;
+  } else {
+    window.location.href = LS('role') === 'merchant' ? 'merchant.html' : 'map.html'; 
   }
 }
 
-/* -------------------------------- */
-/* 4. Background Setup              */
-/* -------------------------------- */
-function setTimeBasedBackground(){
-  const hour = new Date().getHours();
-  const bg = document.getElementById('dynamic-bg');
-  let url = (hour >= 6 && hour < 12) ? 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=70&w=900&auto=format&fit=crop' :
-            (hour >= 12 && hour < 18) ? 'https://images.unsplash.com/photo-1677306966234-367c40e489bf?q=70&w=900&auto=format&fit=crop' :
-            'https://images.unsplash.com/photo-1710338836955-24e16f13c1a9?q=70&w=900&auto=format&fit=crop';
-  bg.style.backgroundImage = `url("${url}")`;
-}
-setTimeBasedBackground();
-
-const params = new URLSearchParams(location.search);
-if(params.get('qr') === '1'){
-  document.getElementById('tag-line').innerHTML = "<span style='color:#FF5722;font-size:18px;font-weight:900'>Store Found! 🏪</span><br>Sign in to unlock deals and claim visit points.";
-  document.getElementById('role-box').style.display = 'none';
-  setRole('consumer');
-}
-
-/* -------------------------------- */
-/* 5. Initialize Firebase Auth      */
-/* -------------------------------- */
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
+window.loginRole = 'consumer';
 
-// Check for redirect result (if returning from mobile PWA login)
-getRedirectResult(auth).then(redirectResult => {
-  if(redirectResult?.user){
-    setLoading(true, 'Restoring session...');
-    handleAuthSuccess(redirectResult.user);
-  }
-}).catch(console.error);
-
-// Auto-redirect if already logged in previously
-onAuthStateChanged(auth, async(user) => {
-  if(!user || isProcessing) return; // Don't interrupt active login flow
+// 🚀 JS for iOS Sliding Pill
+window.setRole = (r) => {
+  window.loginRole = r;
+  document.getElementById('rt-con').classList.toggle('on', r === 'consumer');
+  document.getElementById('rt-mer').classList.toggle('on', r === 'merchant');
   
-  let role = SS('role');
-  if(!role) {
-    try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if(snap.exists()) {
-        role = snap.data().role || 'consumer';
-        SS('role', role);
-        SS('uid', user.uid);
-        SS('name', user.displayName || 'User');
-      } else return;
-    } catch(e) { return; }
-  }
-
-  const savedIntent = sessionStorage.getItem('np_intent');
-  if(savedIntent){
-    sessionStorage.removeItem('np_intent');
-    location.href = savedIntent;
+  // Physically slide the pill background
+  const pill = document.getElementById('role-pill');
+  if(r === 'merchant') {
+    pill.style.transform = 'translateX(100%)';
   } else {
-    location.href = role === 'merchant' ? 'merchant.html' : 'map.html';
+    pill.style.transform = 'translateX(0)';
   }
-});
+};
 
+const urlP = new URLSearchParams(window.location.search);
+if (urlP.get('qr') === '1') {
+  document.getElementById('tag-line').innerHTML = "<span style='color:#FF5722; font-size:18px; font-weight:900;'>Store Found! 🏪</span><br>Sign in to unlock deals and claim visit points.";
+  setRole('consumer');
+  document.getElementById('role-box').style.display = 'none'; 
+}
+
+// 🚀 JS for Inline Button Loading
+function showLdr(msg) {
+  const btn = document.getElementById('btn-login');
+  document.getElementById('btn-google-icon').style.display = 'none';
+  document.getElementById('btn-spinner').style.display = 'block';
+  document.getElementById('btn-login-text').textContent = msg;
+  btn.style.pointerEvents = 'none';
+  btn.style.opacity = '0.9';
+}
+
+// 🚀 Safety Reset for Button if Login Fails/Cancels
+function resetLdr() {
+  const btn = document.getElementById('btn-login');
+  document.getElementById('btn-google-icon').style.display = 'block';
+  document.getElementById('btn-spinner').style.display = 'none';
+  document.getElementById('btn-login-text').textContent = 'Continue with Google';
+  btn.style.pointerEvents = 'auto';
+  btn.style.opacity = '1';
+}
+
+window.loginWithGoogle = async () => {
+  if (!document.getElementById('agree-check').checked) return toast('⚠️', 'Please agree to the Terms & Privacy Policy.');
+
+  try {
+    showLdr('Connecting to Google...');
+    
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user; 
+    const uid = user.uid; 
+    const gName = user.displayName || 'User';
+    
+    SS('uid', uid); SS('name', gName); SS('role', window.loginRole);
+    
+    showLdr('Signing in...'); 
+    
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    const isNewUser = !userSnap.exists(); 
+    
+    if (!isNewUser) {
+      const existingRole = userSnap.data().role || 'consumer';
+      
+      if (existingRole !== window.loginRole) {
+        await auth.signOut(); 
+        resetLdr(); // 🚀 Resets the inline button perfectly
+        
+        if (existingRole === 'consumer') {
+          return toast('⚠️', 'This Google account is registered as a Customer. You cannot log in as a Merchant.');
+        } else {
+          return toast('⚠️', 'This Google account is registered as a Merchant. You cannot log in as a Customer.');
+        }
+      }
+    }
+
+    if (window.loginRole === 'merchant') {
+      let bname = gName + "'s Business";
+      if (isNewUser) {
+        bname = prompt('What is your business / shop name?') || bname;
+        SS('mname', bname); SS('wallet', 500); 
+        await setDoc(userRef, { name: gName, role: 'merchant', mname: bname, wallet: 500, points: 0, liked: [], createdAt: Date.now() });
+      } else {
+        if (userSnap.data().mname) { bname = userSnap.data().mname; SS('mname', bname); } 
+        else { bname = prompt('What is your business / shop name?') || bname; SS('mname', bname); await updateDoc(userRef, { role: 'merchant', mname: bname }); }
+        SS('wallet', userSnap.data().wallet !== undefined ? userSnap.data().wallet : 500);
+        if (userSnap.data().plan) SS('plan', userSnap.data().plan);
+      }
+    } else {
+      if (isNewUser) await setDoc(userRef, { name: gName, role: 'consumer', wallet: 0, points: 50, liked: [], createdAt: Date.now() });
+    }
+    
+    cacheClear();
+    const savedIntent = sessionStorage.getItem('np_intent');
+    
+    const qrMid = urlP.get('mid');
+    if (qrMid) {
+      try {
+        if (isNewUser) {
+          await updateDoc(doc(db, 'users', qrMid), { qrNew: increment(1), qrScans: increment(1) });
+        } else {
+          await updateDoc(doc(db, 'users', qrMid), { qrRet: increment(1), qrScans: increment(1) });
+        }
+        sessionStorage.setItem('np_qr_logged_' + qrMid, 'true'); 
+      } catch (err) { console.warn("Rules blocked analytics:", err); }
+    } else if (savedIntent && savedIntent.includes('utm_source=qr_standee')) {
+      try {
+        const urlStr = savedIntent.startsWith('http') ? savedIntent : window.location.origin + '/' + savedIntent;
+        const intentUrl = new URL(urlStr);
+        const merchantId = intentUrl.searchParams.get('mid');
+        if (merchantId) {
+          if (isNewUser) await updateDoc(doc(db, 'users', merchantId), { qrNew: increment(1), qrScans: increment(1) });
+          else await updateDoc(doc(db, 'users', merchantId), { qrRet: increment(1), qrScans: increment(1) });
+          sessionStorage.setItem('np_qr_logged_' + merchantId, 'true');
+        }
+      } catch (err) { console.warn("Rules blocked fallback analytics:", err); }
+    }
+    
+    if (savedIntent) {
+      sessionStorage.removeItem('np_intent');
+      window.location.href = savedIntent;
+    } else {
+      window.location.href = window.loginRole === 'merchant' ? 'merchant.html?v=' + Date.now() : 'map.html?v=' + Date.now();
+    }
+
+  } catch(e) {
+    console.error("Firebase Auth Error:", e);
+    toast('❌', 'Login failed. Please try again.');
+    resetLdr(); // 🚀 Resets button if the user closes the Google pop-up
+  }
+};
 </script>
+<div style="text-align: center; padding: 15px; font-size: 12px; z-index: 10; position: relative;">
+  <a href="/privacy.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Privacy Policy</a>
+  <span style="color: rgba(255,255,255,0.5); margin: 0 8px;">|</span>
+  <a href="/terms.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Terms of Service</a>
+</div>
 </body>
 </html>
