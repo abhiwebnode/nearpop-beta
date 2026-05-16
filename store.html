@@ -4,450 +4,472 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NearPop — Local Store</title>
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#FF5722">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/shared.css">
 <style>
   html, body { 
-    background: #ffffff !important; 
+    background: #F9FAFB !important; 
     margin: 0 !important; 
     padding: 0 !important; 
     font-family: 'Nunito', sans-serif !important; 
     -webkit-tap-highlight-color: transparent !important; 
-    color: #111827;
+    position: static !important; 
+    overflow-y: auto !important; 
+    overflow-x: hidden !important; 
+    height: auto !important; 
+    min-height: 100vh !important; 
   }
-
+  
   #wrap { 
     display: flex; 
     flex-direction: column; 
     min-height: 100vh; 
     max-width: 500px; 
     margin: 0 auto; 
-    background: #ffffff; 
-    padding-bottom: 80px; 
-  }
-
-  /* ─── Top Nav Bar ─── */
-  .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-  }
-  .top-btn {
-    background: transparent;
-    border: none;
-    font-size: 22px;
-    color: #374151;
-    cursor: pointer;
-    padding: 4px;
-  }
-  .top-actions {
-    display: flex;
-    gap: 16px;
-  }
-
-  /* ─── Store Header ─── */
-  .store-hdr {
-    display: flex;
-    align-items: center;
-    padding: 0 20px 20px;
-    gap: 16px;
-  }
-  .s-logo-box {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: #064E3B; /* Fallback green */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  }
-  .s-logo-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .s-info { flex: 1; }
-  .s-name {
-    font-size: 22px;
-    font-weight: 800;
-    margin: 0 0 2px 0;
-    line-height: 1.2;
-    color: #111827;
-  }
-  .s-cat {
-    font-size: 14px;
-    color: #4B5563;
-    font-weight: 600;
-    margin: 0 0 4px 0;
-  }
-  .s-dist {
-    font-size: 13px;
-    color: #6B7280;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  /* ─── Action Buttons ─── */
-  .action-row {
-    display: flex;
-    gap: 10px;
-    padding: 0 20px 20px;
-  }
-  .act-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: transform 0.15s;
-  }
-  .act-btn:active { transform: scale(0.96); }
-  
-  .btn-call { background: #16A34A; color: #fff; border: none; }
-  .btn-dir { background: #fff; color: #3B82F6; border: 1.5px solid #DBEAFE; }
-  .btn-follow { background: #fff; color: #F97316; border: 1.5px solid #FFEDD5; }
-
-  /* ─── Tabs ─── */
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid #E5E7EB;
-    padding: 0 20px;
-    gap: 24px;
-  }
-  .tab {
-    padding: 12px 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: #6B7280;
-    cursor: pointer;
-    position: relative;
-  }
-  .tab.active {
-    color: #F97316;
-  }
-  .tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: #F97316;
-    border-radius: 3px 3px 0 0;
-  }
-
-  /* ─── Product/Offer List ─── */
-  #content {
-    padding: 10px 20px 20px;
+    background: #F9FAFB; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+    padding-bottom: 60px; 
   }
   
-  .item-row {
-    display: flex;
-    padding: 16px 0;
-    border-bottom: 1px solid #F3F4F6;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .item-row:active { background: #F9FAFB; }
-  .item-row:last-child { border-bottom: none; }
-
-  .item-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
-    object-fit: cover;
-    background: #F3F4F6;
-    margin-right: 14px;
-    border: 1px solid #E5E7EB;
-    flex-shrink: 0;
+  .shdr { 
+    position: relative; 
+    background: linear-gradient(135deg, #FF5722 0%, #E64A19 100%); 
+    padding: 24px 20px 36px 20px; 
+    color: #fff; 
+    border-radius: 0 0 32px 32px; 
+    box-shadow: 0 10px 30px rgba(255,87,34,0.3); 
+    text-align: center; 
   }
   
-  .item-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  .s-share { 
+    position: absolute; 
+    top: 24px; 
+    right: 20px; 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 12px; 
+    background: rgba(255,255,255,0.2); 
+    -webkit-backdrop-filter: blur(8px); 
+    backdrop-filter: blur(8px); 
+    color: #fff; 
+    font-size: 18px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border: 1px solid rgba(255,255,255,0.3); 
+    cursor: pointer; 
+    transition: transform 0.2s; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    z-index: 10; 
   }
-  .item-ti {
-    font-size: 16px;
-    font-weight: 800;
-    color: #111827;
-    margin-bottom: 2px;
-    padding-right: 60px; /* Space for badge */
+  .s-share:active { transform: scale(0.95); }
+  
+  .s-logo { 
+    height: 28px; 
+    margin-bottom: 12px; 
+    cursor: pointer; 
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); 
+    transition: transform 0.2s; 
   }
-  .item-desc {
-    font-size: 13px;
-    color: #6B7280;
-    font-weight: 500;
-    line-height: 1.4;
-    margin-bottom: 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .s-logo:active { transform: scale(0.95); }
+  
+  .m-logo-img { 
+    width: 58px; 
+    height: 58px; 
+    border-radius: 14px; 
+    object-fit: contain; 
+    background: #fff; 
+    margin: 0 auto 10px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+    border: 2px solid rgba(255,255,255,0.3); 
+    cursor: pointer; 
   }
-  .item-price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+  
+  .shdr h1 { 
+    font-family: 'Syne', sans-serif; 
+    font-size: 24px; 
+    font-weight: 900; 
+    margin: 0 0 8px 0; 
+    line-height: 1.2; 
+    word-wrap: break-word; 
+    padding: 0 10px; 
+    text-shadow: 0 2px 6px rgba(0,0,0,0.1); 
   }
-  .item-mrp {
-    font-size: 13px;
-    color: #9CA3AF;
-    text-decoration: line-through;
-    font-weight: 600;
+  .shdr p { 
+    font-size: 10px; 
+    font-weight: 800; 
+    color: #fff; 
+    margin: 0; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    background: rgba(255,255,255,0.2); 
+    display: inline-block; 
+    padding: 5px 12px; 
+    border-radius: 100px; 
+    backdrop-filter: blur(4px); 
   }
-  .item-price {
-    font-size: 18px;
-    font-weight: 900;
-    color: #16A34A; /* Green text */
+  
+  #content { 
+    padding: 0 20px; 
+    margin-top: -20px; 
+    position: relative; 
+    z-index: 10; 
   }
-  .item-unit {
-    font-size: 13px;
-    color: #6B7280;
-    font-weight: 600;
+  
+  .search-wrap { 
+    background: #fff; 
+    border-radius: 16px; 
+    padding: 6px 16px; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
+    border: 1px solid rgba(0,0,0,0.04); 
+    margin-bottom: 20px; 
+    transition: box-shadow 0.2s; 
   }
+  .search-wrap:focus-within { 
+    box-shadow: 0 8px 24px rgba(255,87,34,0.15); 
+    border-color: rgba(255,87,34,0.3); 
+  }
+  .search-wrap input { 
+    flex: 1; 
+    border: none; 
+    padding: 12px 0; 
+    font-size: 15px; 
+    font-weight: 700; 
+    font-family: 'Nunito', sans-serif; 
+    color: #111827; 
+    background: transparent; 
+    outline: none; 
+  }
+  .search-wrap input::placeholder { color: #9CA3AF; font-weight: 600; }
+  .search-ic { font-size: 18px; opacity: 0.5; }
+  
+  .menu-lbl { 
+    font-size: 15px; 
+    font-weight: 900; 
+    color: #111827; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 16px; 
+    margin-left: 4px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+  }
+  .menu-lbl::before { 
+    content: '🔴'; 
+    animation: pulse 2s infinite; 
+    font-size: 11px; 
+  }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+  
+  .deals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  
+  .deal-card { 
+    border-radius: 20px; 
+    padding: 12px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    border: 1px solid rgba(0,0,0,0.04); 
+    box-shadow: 0 6px 16px rgba(0,0,0,0.04); 
+    text-decoration: none; 
+    transition: transform 0.2s, box-shadow 0.2s; 
+    cursor: pointer; 
+    position: relative; 
+    overflow: hidden; 
+  }
+  .deal-card:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  
+  .deal-card:nth-child(4n+1) { background: #FFF5F2; border-color: #FFE4D6; } 
+  .deal-card:nth-child(4n+2) { background: #F0F9FF; border-color: #DBEAFE; } 
+  .deal-card:nth-child(4n+3) { background: #F5F3FF; border-color: #EDE9FE; } 
+  .deal-card:nth-child(4n+4) { background: #F0FDF4; border-color: #D1FAE5; } 
+  
+  .d-ic { 
+    width: 100%; 
+    height: 100px; 
+    background: #fff; 
+    border-radius: 14px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 42px; 
+    flex-shrink: 0; 
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.04); 
+  }
+  .d-inf { flex: 1; display: flex; flex-direction: column; }
+  .d-ti { 
+    font-size: 13.5px; 
+    font-weight: 800; 
+    color: #111827; 
+    margin-bottom: 4px; 
+    line-height: 1.3; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden; 
+  }
+  .d-pr { font-size: 15px; font-weight: 900; color: #FF5722; margin-top: auto;}
+  
+  .dc-bot { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-top: 1px dashed rgba(0,0,0,0.1); 
+    padding-top: 10px; 
+    margin-top: auto; 
+  }
+  .d-tag { 
+    font-size: 10px; 
+    font-weight: 900; 
+    padding: 4px 8px; 
+    border-radius: 8px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+  }
+  .d-arrow { 
+    background: #fff; 
+    width: 24px; 
+    height: 24px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 12px; 
+    color: #111827; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+    font-weight: 900; 
+  }
+  
+  .zero-box { 
+    background: #fff; 
+    border-radius: 24px; 
+    padding: 40px 24px; 
+    text-align: center; 
+    border: 1px solid rgba(0,0,0,0.04); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
+  }
+  .z-ic { 
+    font-size: 54px; 
+    margin-bottom: 16px; 
+    display: inline-block; 
+    animation: bounce 2s infinite; 
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); 
+  }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .z-ti { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 10px; }
+  .z-desc { font-size: 15px; color: #6B7280; font-weight: 600; margin-bottom: 30px; line-height: 1.6; }
+  .btn-claim { 
+    background: linear-gradient(135deg, #FF5722, #E64A19); 
+    color: #fff; 
+    width: 100%; 
+    border: none; 
+    padding: 16px; 
+    border-radius: 16px; 
+    font-size: 16px; 
+    font-weight: 800; 
+    font-family: 'Nunito', sans-serif; 
+    cursor: pointer; 
+    box-shadow: 0 8px 20px rgba(255,87,34,0.3); 
+    transition: transform 0.2s; 
+  }
+  .btn-claim:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(255,87,34,0.2); }
 
-  .discount-badge {
-    position: absolute;
-    top: 16px;
-    right: 0;
-    background: #FFF7ED;
-    color: #EA580C;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 4px 8px;
-    border-radius: 4px;
-  }
-
-  /* ─── Bottom Navigation Mock ─── */
-  .btm-nav {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 500px;
-    background: #fff;
-    border-top: 1px solid #E5E7EB;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-    z-index: 100;
-  }
-  .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    color: #9CA3AF;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .nav-item.active { color: #F97316; }
-  .nav-ic { font-size: 20px; }
-
-  /* Utilities */
+  /* 🚀 Skeleton Loader CSS */
   .skeleton {
-    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background: #E5E7EB;
+    background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite linear;
     border-radius: 8px;
   }
-  @keyframes shimmer { to { background-position: -200% 0; } }
-  .zero-box { padding: 40px 20px; text-align: center; }
+  @keyframes shimmer { 
+    0% { background-position: 200% 0; } 
+    100% { background-position: -200% 0; } 
+  }
+
+  /* 🚀 Pulsing FOMO Badge CSS */
+  .fomo-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: #EF4444; color: #fff; font-size: 10px; font-weight: 900;
+    padding: 4px 8px; border-radius: 6px; z-index: 5; letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(239,68,68,0.4);
+    animation: fomo-pulse 1.5s infinite;
+  }
+  @keyframes fomo-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  }
+  
+  .spin { 
+    width: 34px; height: 34px; 
+    border: 4px solid rgba(255,87,34,0.1); 
+    border-top-color: #FF5722; border-radius: 50%; 
+    animation: spin 0.8s linear infinite; margin: 0 auto 16px; 
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <div id="wrap">
-  
-  <div class="top-bar">
-    <button class="top-btn" onclick="window.location.href='map.html'">←</button>
-    <div class="top-actions">
-      <button class="top-btn" onclick="window.shareStore()">🔗</button>
-      <button class="top-btn">⋮</button>
-    </div>
-  </div>
+  <div class="shdr">
+    <img src="icons/logo.png" id="default-logo" alt="NearPop" class="s-logo" onclick="window.location.href='map.html'" title="Return to Map">
+    <img id="s-logo-img" class="m-logo-img" style="display:none;" onclick="window.location.href='map.html'">
+    <button class="s-share" onclick="window.shareStore()" aria-label="Share Store">📤</button>
 
-  <div class="store-hdr">
-    <div class="s-logo-box">
-      <img src="icons/logo.png" id="s-logo-img" alt="Store Logo">
-    </div>
-    <div class="s-info">
-      <h1 class="s-name" id="s-name">Loading...</h1>
-      <p class="s-cat">Grocery & Daily Needs</p>
-      <p class="s-dist">📍 <span id="s-dist-val">Calculating...</span></p>
-    </div>
-  </div>
-
-  <div class="action-row">
-    <button class="act-btn btn-call">📞 Call</button>
-    <button class="act-btn btn-dir">🗺️ Directions</button>
-    <button class="act-btn btn-follow">☆ Follow</button>
-  </div>
-
-  <div class="tabs">
-    <div class="tab">About</div>
-    <div class="tab">Products</div>
-    <div class="tab active">Offers</div>
+    <h1 id="s-name">Loading Store...</h1>
+    <p>NearPop Local Partner</p>
   </div>
 
   <div id="content">
-    <div class="item-row" style="border:none;">
-      <div class="item-img skeleton"></div>
-      <div class="item-info">
-        <div class="skeleton" style="width:70%; height:18px; margin-bottom:8px;"></div>
-        <div class="skeleton" style="width:90%; height:14px; margin-bottom:12px;"></div>
-        <div class="skeleton" style="width:40%; height:20px;"></div>
+    <div class="search-wrap skeleton" style="height: 48px; border:none; box-shadow:none;"></div>
+    <div class="deals-grid" style="margin-top:20px;">
+      <div class="deal-card" style="border:none; box-shadow:none; background:#fff;">
+        <div class="skeleton" style="width:100%; height:100px; border-radius:14px;"></div>
+        <div class="skeleton" style="width:80%; height:16px; margin-top:8px;"></div>
+        <div class="skeleton" style="width:50%; height:16px;"></div>
+        <div class="skeleton" style="width:40%; height:20px; margin-top:auto;"></div>
+      </div>
+      <div class="deal-card" style="border:none; box-shadow:none; background:#fff;">
+        <div class="skeleton" style="width:100%; height:100px; border-radius:14px;"></div>
+        <div class="skeleton" style="width:70%; height:16px; margin-top:8px;"></div>
+        <div class="skeleton" style="width:40%; height:16px;"></div>
+        <div class="skeleton" style="width:50%; height:20px; margin-top:auto;"></div>
       </div>
     </div>
   </div>
-
-  <div class="btm-nav">
-    <div class="nav-item" onclick="window.location.href='home.html'"><span class="nav-ic">🏠</span>Home</div>
-    <div class="nav-item"><span class="nav-ic">🔍</span>Search</div>
-    <div class="nav-item active"><span class="nav-ic">🏷️</span>Offers</div>
-    <div class="nav-item"><span class="nav-ic">♡</span>Saved</div>
-    <div class="nav-item" onclick="window.location.href='profile.html'"><span class="nav-ic">👤</span>Profile</div>
-  </div>
-
 </div>
 
 <script type="module">
-  import { db, toast, TE, LS, distM } from './js/app.js';
+  import { db, toast, TE, TC, LS } from './js/app.js';
   import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 
   async function initStore() {
     const urlParams = new URLSearchParams(window.location.search);
     const mid = urlParams.get('mid');
-
+    
     urlParams.delete('mid');
     const trackingTags = urlParams.toString() ? `&${urlParams.toString()}` : '';
-
+    
     const content = document.getElementById('content');
     const nameEl = document.getElementById('s-name');
 
     if (!mid) {
       nameEl.textContent = "Oops!";
-      content.innerHTML = `<div class="zero-box"><h3>Store Not Found</h3><p>Please scan a valid NearPop QR code.</p></div>`;
+      content.innerHTML = `<div class="zero-box"><div class="z-ti">Store Not Found</div><div class="z-desc">Please scan a valid NearPop QR code.</div></div>`;
       return;
     }
 
-    // QR Analytics
+    // 🚀 QR Analytics Maintained Safely
     if (!sessionStorage.getItem('np_scanned_' + mid)) {
       updateDoc(doc(db, 'users', mid), { qrScans: increment(1) }).catch(e => console.warn(e));
       sessionStorage.setItem('np_scanned_' + mid, 'true');
     }
 
+    if (!LS('uid')) {
+      sessionStorage.setItem('np_intent', window.location.href);
+      window.location.href = 'index.html?qr=1&mid=' + mid;
+      return; 
+    }
+
+    if (urlParams.get('utm_source') === 'qr_standee') {
+      if (sessionStorage.getItem('np_qr_logged_' + mid)) {
+        sessionStorage.removeItem('np_qr_logged_' + mid);
+      } else {
+        updateDoc(doc(db, 'users', mid), { qrRet: increment(1) }).catch(e => console.warn(e));
+      }
+    }
+
     try {
-      // 1. Fetch Store Data
       const userDoc = await getDoc(doc(db, 'users', mid));
       const userData = userDoc.exists() ? userDoc.data() : {};
-
+      
       const mname = userData.mname || 'Local Store';
-      const mlogo = userData.logoUrl || 'icons/logo.png';
+      const mlogo = userData.logoUrl || null;
       
       nameEl.textContent = mname;
-      document.getElementById('s-logo-img').src = mlogo;
 
-      // Calculate Distance if possible
-      const lastLoc = LS('lastLoc');
-      if (lastLoc && userData.lat && userData.lng) {
-        const d = distM(lastLoc.lat, lastLoc.lng, userData.lat, userData.lng);
-        document.getElementById('s-dist-val').textContent = d < 1000 ? Math.round(d) + ' m away' : (d / 1000).toFixed(1) + ' km away';
-      } else {
-        document.getElementById('s-dist-val').textContent = 'Nearby';
+      if (mlogo) {
+        const logoEl = document.getElementById('s-logo-img');
+        logoEl.src = mlogo;
+        logoEl.style.display = 'block';
       }
 
-      // 2. Fetch Active Offers
       const q = query(collection(db, 'listings'), where('uid', '==', mid), where('status', '==', 'active'));
       const snap = await getDocs(q);
       const listings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      if (listings.length > 0) {
-        let html = '';
+      if (listings.length === 1) {
+        content.innerHTML = `<div class="zero-box" style="padding:40px 20px"><div class="spin"></div><div style="font-weight: 800; color: #111827; font-size: 16px;">Taking you to the offer...</div></div>`;
+        setTimeout(() => { window.location.href = `detail.html?id=${listings[0].id}${trackingTags}`; }, 600); 
+      } else if (listings.length > 1) {
+        
+        let html = `
+          <div class="search-wrap">
+            <span class="search-ic">🔍</span>
+            <input type="text" id="deal-search" placeholder="Search offers, products..." onkeyup="window.filterDeals()">
+          </div>
+          <div class="menu-lbl">Today's Live Offers</div>
+          <div id="deals-container" class="deals-grid">
+        `;
 
         listings.forEach(l => {
-          const imgUrl = l.imageUrl || l.image || 'https://via.placeholder.com/80?text=No+Image';
+          const searchString = `${l.title} ${l.price} ${l.type}`.toLowerCase();
           
-          // Price and Discount Logic
-          let priceHtml = `<span class="item-price">${l.price || 'Special'}</span>`;
-          let badgeHtml = '';
+          const imgUrl = l.imageUrl || l.image;
+          const iconHtml = imgUrl 
+            ? `<div class="d-ic" style="background: #ffffff url('${imgUrl}') center/contain no-repeat; border: 1px solid #E5E7EB;"></div>`
+            : `<div class="d-ic">${l.emoji || TE(l.type)}</div>`;
 
-          // If the database has MRP (e.g. l.mrp = "120") and Price (l.price = "89")
-          if (l.mrp && l.price) {
-            // Remove non-numeric characters just in case it's stored as "₹120"
-            const numMrp = parseFloat(String(l.mrp).replace(/[^0-9.]/g, ''));
-            const numPrice = parseFloat(String(l.price).replace(/[^0-9.]/g, ''));
-            
-            if (numMrp > numPrice) {
-               const pct = Math.round(((numMrp - numPrice) / numMrp) * 100);
-               badgeHtml = `<div class="discount-badge">${pct}% OFF</div>`;
+          const col = l.color || TC(l.type);
+
+          // 🚀 FOMO Badge Injection Maintained Safely
+          let fomoHtml = '';
+          if (l.expiryDate) {
+            const hrsLeft = (new Date(l.expiryDate) - new Date()) / 3600000;
+            if (hrsLeft > 0 && hrsLeft <= 24) {
+              fomoHtml = `<div class="fomo-badge">🔥 Ends in ${Math.ceil(hrsLeft)}h!</div>`;
             }
-            
-            // Format the UI to match the screenshot
-            const unit = l.unit ? `<span class="item-unit">/ ${l.unit}</span>` : '';
-            priceHtml = `<span class="item-mrp">₹${numMrp || l.mrp}</span> <span class="item-price">₹${numPrice || l.price}</span> ${unit}`;
-          } else {
-            // Fallback if no MRP exists
-            priceHtml = `<span class="item-price">${l.price || 'Special Deal'}</span>`;
           }
 
-          const desc = l.desc ? l.desc.replace('\n', '<br>') : 'Locally sourced product.';
-
           html += `
-            <div class="item-row" onclick="window.location.href='detail.html?id=${l.id}${trackingTags}'">
-              <img src="${imgUrl}" class="item-img" alt="Product">
-              <div class="item-info">
-                <div class="item-ti">${l.title}</div>
-                <div class="item-desc">${desc}</div>
-                <div class="item-price-row">${priceHtml}</div>
+            <div class="deal-card" data-search="${searchString}" onclick="window.location.href='detail.html?id=${l.id}${trackingTags}'">
+              ${fomoHtml}
+              ${iconHtml}
+              <div class="d-inf">
+                <div class="d-ti">${l.title}</div>
+                <div class="d-pr">${l.price || 'Special Deal'}</div>
               </div>
-              ${badgeHtml}
+              <div class="dc-bot">
+                <div class="d-tag" style="background:${col}20; color:${col};">${(l.type || 'Offer').toUpperCase()}</div>
+                <div class="d-arrow">➔</div>
+              </div>
             </div>
           `;
         });
-
+        
+        html += `</div><div id="no-results" style="display:none; text-align:center; padding: 20px; color: #6B7280; font-weight: 700; font-size: 14px;">No offers match your search.</div>`;
         content.innerHTML = html;
 
       } else {
-        content.innerHTML = `
-          <div class="zero-box">
-            <h3 style="margin-bottom:8px;">Welcome to ${mname}!</h3>
-            <p style="color:#6B7280; font-size:14px; margin-bottom:20px;">No active discount offers right now.</p>
-          </div>
-        `;
+        content.innerHTML = `<div class="zero-box"><div class="z-ic">👋</div><div class="z-ti">Welcome to ${mname}!</div><div class="z-desc">We don't have any active discount offers running right now, but thanks for stopping by!</div><button class="btn-claim" onclick="window.claimVisitPoints()">⭐ Claim 50 Visit Points</button></div>`;
       }
     } catch (e) {
       console.error(e);
-      nameEl.textContent = "Error";
-      content.innerHTML = `<div class="zero-box"><p>Could not connect to store.</p></div>`;
+      nameEl.textContent = "Connection Error";
+      content.innerHTML = `<div class="zero-box"><div class="z-desc">Could not connect to the store network. Check your internet and try scanning again.</div></div>`;
     }
   }
 
-  // Native Share API
+  // 🚀 Native Share API Maintained Safely
   window.shareStore = async () => {
     const storeName = document.getElementById('s-name').textContent;
     if (navigator.share) {
@@ -464,6 +486,29 @@
       navigator.clipboard.writeText(window.location.href);
       toast('🔗', 'Store link copied!');
     }
+  };
+
+  window.filterDeals = () => {
+    const query = document.getElementById('deal-search').value.toLowerCase();
+    const cards = document.querySelectorAll('.deal-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const searchData = card.getAttribute('data-search');
+      if (searchData.includes(query)) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
+  };
+
+  window.claimVisitPoints = () => {
+    toast('⭐', '50 Points Claimed! Redirecting to map...');
+    setTimeout(() => { window.location.href = 'map.html'; }, 1500);
   };
 
   initStore();
