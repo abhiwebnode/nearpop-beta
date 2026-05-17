@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/shared.css">
 <style>
+  /* 🚀 Scrolling Fix Enforced */
   html, body { 
     background: #ffffff !important; 
     margin: 0 !important; 
@@ -17,7 +18,9 @@
     font-family: 'Nunito', sans-serif !important; 
     -webkit-tap-highlight-color: transparent !important; 
     color: #111827;
-    overflow-x: hidden;
+    overflow-y: auto !important; 
+    height: auto !important;
+    min-height: 100vh !important;
   }
 
   #wrap { 
@@ -27,7 +30,9 @@
     max-width: 500px; 
     margin: 0 auto; 
     background: #ffffff; 
-    padding-bottom: 90px; /* Space for bottom nav */
+    padding-bottom: 90px; 
+    overflow-y: auto !important; 
+    height: auto !important;
   }
 
   /* ─── Top Nav Bar ─── */
@@ -50,10 +55,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px; /* Fixed width to keep center aligned */
   }
-  .top-actions {
-    display: flex;
-    gap: 16px;
+  
+  .top-logo-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 28px;
   }
 
   /* ─── Store Header ─── */
@@ -84,9 +93,16 @@
   .s-name {
     font-size: 24px;
     font-weight: 800;
-    margin: 0;
+    margin: 0 0 2px 0;
     line-height: 1.2;
     color: #111827;
+  }
+  .s-partner-tag {
+    font-size: 13px;
+    color: #F97316;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   /* ─── Tabs & Search ─── */
@@ -95,7 +111,7 @@
     border-bottom: 1px solid #E5E7EB;
     padding: 0 20px;
     gap: 24px;
-    justify-content: flex-start; /* Left aligned */
+    justify-content: flex-start;
   }
   .tab {
     padding: 12px 16px 12px 0;
@@ -121,6 +137,7 @@
 
   .search-wrap {
     padding: 15px 20px 5px;
+    display: none; /* Hidden by default */
   }
   .search-box {
     background: #F3F4F6;
@@ -155,6 +172,7 @@
     border-bottom: 1px solid #F3F4F6;
     cursor: pointer;
     transition: background 0.15s;
+    align-items: center;
   }
   .item-row:active { background: #F9FAFB; }
   .item-row:last-child { border-bottom: none; }
@@ -214,6 +232,17 @@
     font-weight: 600;
   }
 
+  .item-like {
+    font-size: 22px;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+  }
+  .item-like:active { transform: scale(0.8); }
+
   /* ─── Bottom Navigation ─── */
   .btm-nav {
     position: fixed;
@@ -260,17 +289,15 @@
 <div id="wrap">
   
   <div class="top-bar">
-    <div class="top-btn" onclick="window.location.href='map.html'" title="Go to Map">
-      <img src="icons/logo.png" alt="NearPop" style="height: 28px;">
-    </div>
-    <div class="top-actions">
-      <button class="top-btn" onclick="window.shareStore()">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-      </button>
-      <button class="top-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-      </button>
-    </div>
+    <button class="top-btn" onclick="window.location.href='map.html'" title="Back to Map">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    
+    <img src="icons/logo.png" alt="NearPop" class="top-logo-center">
+    
+    <button class="top-btn" onclick="window.shareStore()" style="justify-content: flex-end;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+    </button>
   </div>
 
   <div class="store-hdr">
@@ -279,6 +306,7 @@
     </div>
     <div class="s-info">
       <h1 class="s-name" id="s-name">Loading...</h1>
+      <div class="s-partner-tag">NearPop Local Partner</div>
     </div>
   </div>
 
@@ -286,7 +314,7 @@
     <div class="tab active">Offers</div>
   </div>
 
-  <div class="search-wrap">
+  <div class="search-wrap" id="search-container">
     <div class="search-box">
       <span style="font-size: 16px; opacity: 0.6;">🔍</span>
       <input type="text" id="deal-search" placeholder="Search offers..." onkeyup="window.filterDeals()">
@@ -311,7 +339,7 @@
     <div class="nav-item" onclick="window.location.href='map.html'">
       <span class="nav-ic">🏠</span>Home
     </div>
-    <div class="nav-item" onclick="document.getElementById('deal-search').focus()">
+    <div class="nav-item" id="nav-search-btn" onclick="window.toggleSearch()">
       <span class="nav-ic">🔍</span>Search
     </div>
     <div class="nav-item" id="nav-saved-btn" onclick="window.toggleSaved()">
@@ -325,7 +353,8 @@
 </div>
 
 <script type="module">
-  import { db, toast, TE, LS } from './js/app.js';
+  import { db, toast, TE, LS, SS, addPts } from './js/app.js';
+  import { syncField } from './js/userSync.js';
   import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 
   // Global variables for search & filtering
@@ -371,18 +400,16 @@
 
       if (listings.length > 0) {
         let html = '';
+        const likedIds = LS('liked') || [];
 
         listings.forEach(l => {
-          // Setup Search String
           const searchString = `${l.title} ${l.price} ${l.type} ${l.desc}`.toLowerCase();
 
-          // Format image or emoji placeholder
           const imgHtml = (l.imageUrl || l.image) 
             ? `<img src="${l.imageUrl || l.image}" class="item-img" alt="Product">` 
             : `<div class="item-img" style="background:#F3F4F6;">${l.emoji || TE(l.type)}</div>`;
           
           let priceVal = l.price || 'Special Deal';
-          
           const numMatch = String(priceVal).match(/\d+/);
           if (numMatch && !String(priceVal).includes('₹')) {
              priceVal = '₹' + priceVal;
@@ -390,6 +417,9 @@
 
           const unitStr = l.unit ? `<span class="item-unit">/ ${l.unit}</span>` : '';
           const desc = l.desc ? l.desc.replace('\n', '<br>') : 'Locally sourced product.';
+          
+          const isLiked = likedIds.includes(l.id);
+          const likeHtml = `<div class="item-like" onclick="event.stopPropagation(); window.toggleLike('${l.id}', this)">${isLiked ? '❤️' : '🤍'}</div>`;
 
           html += `
             <div class="item-row deal-card" data-search="${searchString}" data-id="${l.id}" onclick="window.location.href='detail.html?id=${l.id}${trackingTags}'">
@@ -402,11 +432,11 @@
                   ${unitStr}
                 </div>
               </div>
+              ${likeHtml}
             </div>
           `;
         });
         
-        // Add No Results Div at the end
         html += `<div id="no-results" style="display:none; text-align:center; padding: 30px 20px; color: #6B7280; font-weight: 700; font-size: 15px;">No offers match your search.</div>`;
         content.innerHTML = html;
 
@@ -425,7 +455,59 @@
     }
   }
 
-  // Live Search & Filter Function
+  // 🚀 Toggle Like/Save Logic
+  window.toggleLike = (id, el) => {
+    if (navigator.vibrate) navigator.vibrate(30);
+    
+    const liked = new Set(LS('liked') || []);
+    const wasLiked = liked.has(id);
+    
+    if (wasLiked) {
+      liked.delete(id);
+      el.textContent = '🤍';
+    } else {
+      liked.add(id);
+      el.textContent = '❤️';
+      toast('❤️', 'Saved to your profile!');
+      if (typeof addPts === 'function') addPts(10);
+    }
+    
+    const newLikedArray = [...liked];
+    SS('liked', newLikedArray);
+    
+    // Attempt cloud sync if available
+    try {
+      const uid = LS('uid');
+      if (uid && typeof syncField === 'function') {
+        syncField(uid, 'liked', newLikedArray);
+      }
+    } catch(e) {}
+    
+    // If user is currently viewing the "Saved" filter, refresh the list to hide it
+    if (window.isShowingSaved && wasLiked) {
+      window.filterDeals();
+    }
+  };
+
+  // 🚀 Toggle Search Bar
+  window.toggleSearch = () => {
+    const searchWrap = document.getElementById('search-container');
+    const searchBtn = document.getElementById('nav-search-btn');
+    const input = document.getElementById('deal-search');
+
+    if (searchWrap.style.display === 'none' || searchWrap.style.display === '') {
+      searchWrap.style.display = 'block';
+      searchBtn.classList.add('active');
+      input.focus();
+    } else {
+      searchWrap.style.display = 'none';
+      searchBtn.classList.remove('active');
+      input.value = '';
+      window.filterDeals();
+    }
+  };
+
+  // 🚀 Live Search & Filter Function
   window.filterDeals = () => {
     const query = document.getElementById('deal-search').value.toLowerCase();
     const cards = document.querySelectorAll('.deal-card');
@@ -458,9 +540,9 @@
     }
   };
 
-  // Smart Saved Toggle Function
+  // 🚀 Smart Saved Toggle Function
   window.toggleSaved = () => {
-    window.haptic(30);
+    if (navigator.vibrate) navigator.vibrate(30);
     window.isShowingSaved = !window.isShowingSaved;
     
     const btn = document.getElementById('nav-saved-btn');
