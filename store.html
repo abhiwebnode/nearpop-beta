@@ -62,7 +62,7 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    height: 38px; /* Increased size to stand out */
+    height: 38px;
   }
 
   /* ─── Store Header ─── */
@@ -73,10 +73,10 @@
     gap: 14px;
   }
   .s-logo-box {
-    width: 60px; /* Reduced size */
-    height: 60px; /* Reduced size */
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background: #ffffff; /* White background to prevent distortion */
+    background: #ffffff; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -84,24 +84,24 @@
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     border: 1px solid #F3F4F6;
-    padding: 4px; /* Inner padding for the image */
+    padding: 4px; 
   }
   .s-logo-box img {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Ensures the logo fits perfectly without cropping */
+    object-fit: contain; 
   }
   .s-info { flex: 1; }
   .s-name {
-    font-size: 20px; /* Slightly smaller */
+    font-size: 20px;
     font-weight: 800;
     margin: 0 0 2px 0;
     line-height: 1.2;
     color: #111827;
   }
   .s-partner-tag {
-    font-size: 11px; /* Slightly smaller */
-    color: #F97316;
+    font-size: 11px;
+    color: #FF5722; /* NearPop Brand Orange */
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -124,7 +124,7 @@
     position: relative;
   }
   .tab.active {
-    color: #F97316;
+    color: #FF5722;
   }
   .tab.active::after {
     content: '';
@@ -133,7 +133,7 @@
     left: 0;
     width: calc(100% - 16px);
     height: 3px;
-    background: #F97316;
+    background: #FF5722;
     border-radius: 3px 3px 0 0;
   }
 
@@ -170,7 +170,7 @@
   
   .item-row {
     display: flex;
-    padding: 16px 20px; /* Edge-to-edge padding */
+    padding: 16px 20px;
     border-bottom: 1px solid #E5E7EB;
     cursor: pointer;
     transition: background 0.15s;
@@ -178,9 +178,9 @@
     background: #ffffff;
   }
   
-  /* Alternating Background Colors */
+  /* NearPop Branded Alternating Background Colors */
   .item-row:nth-child(even) {
-    background: #F8FAFC; /* Very subtle slate-gray tint */
+    background: #FFF5F2; /* Subtle NearPop Orange Tint (approx 4% opacity of #FF5722) */
   }
   
   .item-row:active { background: #F1F5F9; }
@@ -233,7 +233,7 @@
   .item-price {
     font-size: 18px;
     font-weight: 900;
-    color: #16A34A;
+    color: #16A34A; /* Green Price for visibility */
   }
   .item-unit {
     font-size: 13px;
@@ -279,8 +279,17 @@
     transition: color 0.2s;
   }
   .nav-item:active { transform: scale(0.95); }
-  .nav-item.active { color: #F97316; }
-  .nav-ic { font-size: 22px; margin-bottom: -2px; }
+  .nav-item.active { color: #FF5722; }
+  
+  /* Flexbox fix for perfect emoji baseline alignment */
+  .nav-ic { 
+    font-size: 22px; 
+    height: 24px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    line-height: 1;
+  }
 
   /* Utilities */
   .skeleton {
@@ -352,7 +361,7 @@
       <span class="nav-ic">🔍</span>Search
     </div>
     <div class="nav-item" id="nav-saved-btn" onclick="window.toggleSaved()">
-      <span class="nav-ic" id="saved-icon" style="line-height: 1;">🤍</span>Saved
+      <span class="nav-ic" id="saved-icon" style="transform: translateY(1px);">🤍</span>Saved
     </div>
     <div class="nav-item" onclick="window.location.href='profile.html'">
       <span class="nav-ic">👤</span>Profile
@@ -385,7 +394,7 @@
       return;
     }
 
-    // 🚀 FULL QR ANALYTICS & ROUTING (Protected)
+    // 🚀 FULL QR ANALYTICS & ROUTING
     if (!sessionStorage.getItem('np_scanned_' + mid)) {
       updateDoc(doc(db, 'users', mid), { qrScans: increment(1) }).catch(e => console.warn(e));
       sessionStorage.setItem('np_scanned_' + mid, 'true');
@@ -577,10 +586,12 @@
     if (window.isShowingSaved) {
       btn.classList.add('active');
       icon.innerHTML = '❤️';
+      icon.style.transform = 'translateY(1px)'; // Maintain alignment
       toast('❤️', 'Showing your saved offers');
     } else {
       btn.classList.remove('active');
       icon.innerHTML = '🤍';
+      icon.style.transform = 'translateY(1px)'; // Maintain alignment
     }
     
     window.filterDeals();
