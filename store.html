@@ -17,6 +17,7 @@
     font-family: 'Nunito', sans-serif !important; 
     -webkit-tap-highlight-color: transparent !important; 
     color: #111827;
+    overflow-x: hidden;
   }
 
   #wrap { 
@@ -26,7 +27,7 @@
     max-width: 500px; 
     margin: 0 auto; 
     background: #ffffff; 
-    padding-bottom: 80px; 
+    padding-bottom: 90px; /* Space for bottom nav */
   }
 
   /* ─── Top Nav Bar ─── */
@@ -43,7 +44,6 @@
   .top-btn {
     background: transparent;
     border: none;
-    font-size: 22px;
     color: #374151;
     cursor: pointer;
     padding: 4px;
@@ -67,7 +67,7 @@
     width: 76px;
     height: 76px;
     border-radius: 50%;
-    background: #064E3B; /* Fallback green */
+    background: #064E3B;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -84,53 +84,22 @@
   .s-name {
     font-size: 24px;
     font-weight: 800;
-    margin: 0 0 2px 0;
+    margin: 0;
     line-height: 1.2;
     color: #111827;
   }
-  .s-cat {
-    font-size: 14px;
-    color: #6B7280;
-    font-weight: 600;
-    margin: 0 0 4px 0;
-  }
 
-  /* ─── Action Buttons ─── */
-  .action-row {
-    display: flex;
-    gap: 12px;
-    padding: 0 20px 20px;
-  }
-  .act-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 0;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: transform 0.15s;
-  }
-  .act-btn:active { transform: scale(0.96); }
-  
-  .btn-call { background: #22C55E; color: #fff; border: none; }
-  .btn-follow { background: #fff; color: #F97316; border: 1.5px solid #F97316; }
-
-  /* ─── Tabs ─── */
+  /* ─── Tabs & Search ─── */
   .tabs {
     display: flex;
     border-bottom: 1px solid #E5E7EB;
     padding: 0 20px;
     gap: 24px;
-    justify-content: flex-end; /* Align right as in image */
+    justify-content: flex-start; /* Left aligned */
   }
   .tab {
-    padding: 12px 16px;
-    font-size: 15px;
+    padding: 12px 16px 12px 0;
+    font-size: 16px;
     font-weight: 800;
     color: #6B7280;
     cursor: pointer;
@@ -144,15 +113,40 @@
     position: absolute;
     bottom: -1px;
     left: 0;
-    width: 100%;
+    width: calc(100% - 16px);
     height: 3px;
     background: #F97316;
     border-radius: 3px 3px 0 0;
   }
 
+  .search-wrap {
+    padding: 15px 20px 5px;
+  }
+  .search-box {
+    background: #F3F4F6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .search-box input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: #111827;
+    font-weight: 600;
+  }
+  .search-box input::placeholder {
+    color: #9CA3AF;
+  }
+
   /* ─── Product/Offer List ─── */
   #content {
-    padding: 10px 20px 20px;
+    padding: 0 20px 20px;
   }
   
   .item-row {
@@ -212,7 +206,7 @@
   .item-price {
     font-size: 18px;
     font-weight: 900;
-    color: #16A34A; /* Bold Green */
+    color: #16A34A;
   }
   .item-unit {
     font-size: 13px;
@@ -220,7 +214,7 @@
     font-weight: 600;
   }
 
-  /* ─── Bottom Navigation Mock ─── */
+  /* ─── Bottom Navigation ─── */
   .btm-nav {
     position: fixed;
     bottom: 0;
@@ -266,9 +260,9 @@
 <div id="wrap">
   
   <div class="top-bar">
-    <button class="top-btn" onclick="window.location.href='map.html'">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    </button>
+    <div class="top-btn" onclick="window.location.href='map.html'" title="Go to Map">
+      <img src="icons/logo.png" alt="NearPop" style="height: 28px;">
+    </div>
     <div class="top-actions">
       <button class="top-btn" onclick="window.shareStore()">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
@@ -285,27 +279,22 @@
     </div>
     <div class="s-info">
       <h1 class="s-name" id="s-name">Loading...</h1>
-      <p class="s-cat" id="s-cat">Local Business</p>
     </div>
-  </div>
-
-  <div class="action-row">
-    <button class="act-btn btn-call" onclick="window.callStore()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> 
-      Call
-    </button>
-    <button class="act-btn btn-follow" onclick="window.claimVisitPoints()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      Follow
-    </button>
   </div>
 
   <div class="tabs">
     <div class="tab active">Offers</div>
   </div>
 
+  <div class="search-wrap">
+    <div class="search-box">
+      <span style="font-size: 16px; opacity: 0.6;">🔍</span>
+      <input type="text" id="deal-search" placeholder="Search offers..." onkeyup="window.filterDeals()">
+    </div>
+  </div>
+
   <div id="content">
-    <div class="item-row" style="border:none;">
+    <div class="item-row deal-card" style="border:none;">
       <div class="item-img skeleton"></div>
       <div class="item-info">
         <div class="skeleton" style="width:70%; height:18px; margin-bottom:8px;"></div>
@@ -313,14 +302,24 @@
         <div class="skeleton" style="width:40%; height:20px;"></div>
       </div>
     </div>
+    <div id="no-results" style="display:none; text-align:center; padding: 30px 20px; color: #6B7280; font-weight: 700; font-size: 15px;">
+      No offers match your search.
+    </div>
   </div>
 
   <div class="btm-nav">
-    <div class="nav-item" onclick="window.location.href='home.html'"><span class="nav-ic">🏠</span>Home</div>
-    <div class="nav-item"><span class="nav-ic">🔍</span>Search</div>
-    <div class="nav-item active"><span class="nav-ic">🏷️</span>Offers</div>
-    <div class="nav-item"><span class="nav-ic">♡</span>Saved</div>
-    <div class="nav-item" onclick="window.location.href='profile.html'"><span class="nav-ic">👤</span>Profile</div>
+    <div class="nav-item" onclick="window.location.href='map.html'">
+      <span class="nav-ic">🏠</span>Home
+    </div>
+    <div class="nav-item" onclick="document.getElementById('deal-search').focus()">
+      <span class="nav-ic">🔍</span>Search
+    </div>
+    <div class="nav-item" id="nav-saved-btn" onclick="window.toggleSaved()">
+      <span class="nav-ic" id="saved-icon">♡</span>Saved
+    </div>
+    <div class="nav-item" onclick="window.location.href='profile.html'">
+      <span class="nav-ic">👤</span>Profile
+    </div>
   </div>
 
 </div>
@@ -329,7 +328,8 @@
   import { db, toast, TE, LS } from './js/app.js';
   import { doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 
-  let storePhone = '';
+  // Global variables for search & filtering
+  window.isShowingSaved = false;
 
   async function initStore() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -360,14 +360,9 @@
 
       const mname = userData.mname || 'Local Store';
       const mlogo = userData.logoUrl || 'icons/logo.png';
-      storePhone = userData.phone || '';
       
       nameEl.textContent = mname;
       document.getElementById('s-logo-img').src = mlogo;
-      
-      if (userData.category) {
-        document.getElementById('s-cat').textContent = userData.category;
-      }
 
       // 2. Fetch Active Offers
       const q = query(collection(db, 'listings'), where('uid', '==', mid), where('status', '==', 'active'));
@@ -378,15 +373,16 @@
         let html = '';
 
         listings.forEach(l => {
+          // Setup Search String
+          const searchString = `${l.title} ${l.price} ${l.type} ${l.desc}`.toLowerCase();
+
           // Format image or emoji placeholder
           const imgHtml = (l.imageUrl || l.image) 
             ? `<img src="${l.imageUrl || l.image}" class="item-img" alt="Product">` 
             : `<div class="item-img" style="background:#F3F4F6;">${l.emoji || TE(l.type)}</div>`;
           
-          // Format Price strictly to match the new image (Green Price + Unit)
           let priceVal = l.price || 'Special Deal';
           
-          // Try to extract just the numbers to format cleanly with the rupee symbol
           const numMatch = String(priceVal).match(/\d+/);
           if (numMatch && !String(priceVal).includes('₹')) {
              priceVal = '₹' + priceVal;
@@ -396,7 +392,7 @@
           const desc = l.desc ? l.desc.replace('\n', '<br>') : 'Locally sourced product.';
 
           html += `
-            <div class="item-row" onclick="window.location.href='detail.html?id=${l.id}${trackingTags}'">
+            <div class="item-row deal-card" data-search="${searchString}" data-id="${l.id}" onclick="window.location.href='detail.html?id=${l.id}${trackingTags}'">
               ${imgHtml}
               <div class="item-info">
                 <div class="item-ti">${l.title}</div>
@@ -409,7 +405,9 @@
             </div>
           `;
         });
-
+        
+        // Add No Results Div at the end
+        html += `<div id="no-results" style="display:none; text-align:center; padding: 30px 20px; color: #6B7280; font-weight: 700; font-size: 15px;">No offers match your search.</div>`;
         content.innerHTML = html;
 
       } else {
@@ -427,12 +425,57 @@
     }
   }
 
-  window.callStore = () => {
-    if (storePhone) {
-      window.location.href = `tel:${storePhone}`;
-    } else {
-      toast('📞', 'Phone number not provided by store.');
+  // Live Search & Filter Function
+  window.filterDeals = () => {
+    const query = document.getElementById('deal-search').value.toLowerCase();
+    const cards = document.querySelectorAll('.deal-card');
+    const liked = LS('liked') || [];
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const id = card.getAttribute('data-id');
+      const searchData = card.getAttribute('data-search');
+      
+      const matchesSearch = searchData.includes(query);
+      const matchesSaved = window.isShowingSaved ? liked.includes(id) : true;
+
+      if (matchesSearch && matchesSaved) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    const noResultsEl = document.getElementById('no-results');
+    if (noResultsEl) {
+      noResultsEl.style.display = visibleCount === 0 ? 'block' : 'none';
+      if (visibleCount === 0) {
+        noResultsEl.textContent = (window.isShowingSaved && query === '') 
+          ? "You haven't saved any offers from this store yet." 
+          : "No offers match your search.";
+      }
     }
+  };
+
+  // Smart Saved Toggle Function
+  window.toggleSaved = () => {
+    window.haptic(30);
+    window.isShowingSaved = !window.isShowingSaved;
+    
+    const btn = document.getElementById('nav-saved-btn');
+    const icon = document.getElementById('saved-icon');
+    
+    if (window.isShowingSaved) {
+      btn.classList.add('active');
+      icon.innerHTML = '❤️';
+      toast('❤️', 'Showing your saved offers');
+    } else {
+      btn.classList.remove('active');
+      icon.innerHTML = '♡';
+    }
+    
+    window.filterDeals();
   };
 
   // Native Share API
@@ -452,10 +495,6 @@
       navigator.clipboard.writeText(window.location.href);
       toast('🔗', 'Store link copied!');
     }
-  };
-
-  window.claimVisitPoints = () => {
-    toast('⭐', 'Followed! You will get updates from this store.');
   };
 
   initStore();
