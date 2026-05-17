@@ -73,9 +73,9 @@
     gap: 14px;
   }
   .s-logo-box {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    width: 64px; 
+    height: 64px;
+    border-radius: 12px; /* Changed from circle to rounded rectangle */
     background: #ffffff; 
     display: flex;
     align-items: center;
@@ -90,6 +90,7 @@
     width: 100%;
     height: 100%;
     object-fit: contain; 
+    border-radius: 8px; /* Inner corner rounding */
   }
   .s-info { flex: 1; }
   .s-name {
@@ -101,7 +102,7 @@
   }
   .s-partner-tag {
     font-size: 11px;
-    color: #FF5722; /* NearPop Brand Orange */
+    color: #FF5722;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -178,9 +179,12 @@
     background: #ffffff;
   }
   
-  /* NearPop Branded Alternating Background Colors */
+  /* NearPop Branded Alternating Background Colors (Starts on 1st listing) */
+  .item-row:nth-child(odd) {
+    background: #FFF5F2; 
+  }
   .item-row:nth-child(even) {
-    background: #FFF5F2; /* Subtle NearPop Orange Tint (approx 4% opacity of #FF5722) */
+    background: #ffffff; 
   }
   
   .item-row:active { background: #F1F5F9; }
@@ -233,7 +237,7 @@
   .item-price {
     font-size: 18px;
     font-weight: 900;
-    color: #16A34A; /* Green Price for visibility */
+    color: #16A34A;
   }
   .item-unit {
     font-size: 13px;
@@ -281,7 +285,6 @@
   .nav-item:active { transform: scale(0.95); }
   .nav-item.active { color: #FF5722; }
   
-  /* Flexbox fix for perfect emoji baseline alignment */
   .nav-ic { 
     font-size: 22px; 
     height: 24px; 
